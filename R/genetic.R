@@ -1,7 +1,8 @@
-genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=20,
-mutate=FALSE, maxclone=5, exclude=NULL, include=NULL,
-improvement=TRUE, printfile=FALSE,
-iseed=c(sample(0:4095,3),sample(0:2047,1)*2+1), criterion="RM", pcindices=1:kmax){
+genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
+mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
+improvement=TRUE, setseed= FALSE,  criterion="RM", pcindices=1:kmax,
+initialpop=c(0)){
+
 
 # validation of input
 
@@ -26,24 +27,89 @@ iseed=c(sample(0:4095,3),sample(0:2047,1)*2+1), criterion="RM", pcindices=1:kmax
             }
         if (sum(duplicated(c(exclude,include))) > 0)
           stop("\n You have requested that the same variable be both included in, and excluded \n from, the subset.")
-         labelsrm<-c("RM","Rm","rm","1",1)
-         labelsrv<-c("RV","Rv","rv","2",2)
-         labelsgcd<-c("GCD","Gcd","gcd","3",3)
-         if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified")
+        labelsrm<-c("RM","Rm","rm","1",1)
+        labelsrv<-c("RV","Rv","rv","2",2)
+        labelsgcd<-c("GCD","Gcd","gcd","3",3)
+        if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified")
+        if ((mutprob < 0) | (mutprob > 1)) stop("\n The mutation probability parameter (mutprob) must be between 0 and 1")
 
-# initializations for the Fortran subroutine
-
+        if (setseed == TRUE) set.seed(2,kind="default")
         if (sum(criterion == labelsrm) > 0) criterio<-1
         if (sum(criterion == labelsrv) > 0) criterio<-2
         if (sum(criterion == labelsgcd) > 0) criterio<-3
 
         nexclude<-length(exclude)
+        if (kmax >= p-nexclude) stop("\n Cardinalities requested are too large for the requested number of excluded variables")
         if (nexclude !=0) exclude<-sort(exclude)  
         exc<-c(0,exclude)
         ninclude<-length(include)
+        if (kmin <= ninclude) stop("\n Cardinalities requested are too small for the requested number of included variables")
         if (ninclude !=0) include<-sort(include)
         inc<-c(0,include)
         if (length(pcindices) != kmax) esp<-TRUE else {if (pcindices != 1:kmax) esp<-TRUE  else esp<-FALSE}
+
+
+# initializations when initial population has been specified; checking for
+# nature of initialpop (and how to interpret it) and for
+# conflicts with the exclude and include parameters (which initial
+# population must respect)
+
+        if (initialpop == c(0)) {pilog <- FALSE}
+        else {pilog <- TRUE  # initial population has been specified by user          
+
+# checking for the presence of variables that are to be forcefully
+# excluded
+
+            if ((nexclude != 0) & (sum(exclude == rep(initialpop,rep(length(exclude),length(as.vector(initialpop))))) !=0)) stop("\n the specified initial population contains variables that are to be excluded")
+
+# how to deal with various formats of input (of initial population) for
+# a single cardinality
+
+            dimpop<-dim(initialpop)
+            if (length(dimpop) > 3) stop("\n Can't handle arrays of more than 3 dimensions")
+            if (kmin == kmax) {
+
+# inital solution is a vector: not acceptable
+
+               if (is.vector(initialpop)) {
+                     {stop("\n The specified initial population must have different k-subsets")}
+                    }
+
+# initial solution is array?
+
+              if (is.array(initialpop)) {
+
+# initialpop is 3-d array
+              if (length(dimpop) == 3) {
+                 if (dimpop[[3]] > 1) stop("\n The input array of initial population must have dimensions as \n popsize x k x 1 when a single cardinality is requested")
+                 else initialpop<-matrix(nrow=dimpop[[1]],ncol=dimpop[[2]],initialpop)
+              }
+              else # initialpop is matrix: must be of form popsize x k
+ 
+                 {if (dimpop[[2]] != kmax) stop("\n Input matrix of initial solutions must have as many columns as variables in the requested subset")
+                  else 
+                      {if  (dimpop[[1]] != popsize) {
+                        stop("\n The number of initial solutions can only be 1 or popsize (number of final solutions requested)")}}}
+              }}
+
+# how to deal with various formats of input (initialpop) if more than
+# one cardinality is requested
+
+             else  #(if kmax > kmin), i.e., more than one cardinality requested
+
+# initial population must be 3-d array
+
+              {if (length(dimpop) < 3) stop("\n There must be initial populations for all cardinalities requested")
+               else 
+               {if ((dimpop[[3]] != length(kmin:kmax)) | (dimpop[[2]] != kmax) | (dimpop[[1]] != popsize)) stop("\n The input array of initial solutions must have dimensions as \n popsize x kmax x no. of different cardinalities requested")
+                  }
+                 if ((ninclude != 0) & (sum(include == rep(initialpop,rep(length(include),length(as.vector(initialpop))))) != popsize*length(kmin:kmax)*length(include))) stop("\n Not all the specified initial solutions contain the variables that are to be included") 
+}}
+
+
+# initializations for the Fortran subroutine
+
+
         valores<-rep(0.0,length(kmin:kmax)*popsize)
         vars<-rep(0,popsize*length(kmin:kmax)*kmax)
         bestval<-rep(0.0,length(kmin:kmax))
@@ -59,15 +125,15 @@ iseed=c(sample(0:4095,3),sample(0:2047,1)*2+1), criterion="RM", pcindices=1:kmax
           as.integer(nexclude),as.integer(exc),as.integer(ninclude),
           as.integer(inc),as.integer(popsize),as.integer(nger),
           as.integer(maxclone),as.logical(mutate),
-          as.logical(improvement),as.logical(printfile),
-          as.integer(iseed),
+          as.double(mutprob),as.logical(improvement),
           as.integer(length(pcindices)),as.integer(pcindices),as.logical(esp),
-          as.integer(kabort),
+          as.integer(kabort),as.logical(pilog),
+          as.integer(as.vector(initialpop)),
           PACKAGE="subselect")
 
 # preparing the output
 
-        kabort<-Fortout[[24]]
+        kabort<-Fortout[[23]]
         valores<-matrix(nrow=popsize,ncol=length(kmin:kmax),Fortout[[6]])
         dimnames(valores)<-list(paste("Solution",1:popsize,sep=" "),paste("card.",kmin:kmax,sep=""))
         variaveis<-array(Fortout[[7]],c(popsize,kmax,length(kmin:kmax)))

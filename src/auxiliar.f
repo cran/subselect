@@ -2,7 +2,7 @@
 ! Included in the R/S package "subselect", available on CRAN.
 !*******************************************************************
       subroutine inicializar(criterio,p,s,svector,sq,nfora,fora,
-     +  ndentro,dentro,fica,tracos,tracosq,valp,vecp)
+     +  ndentro,dentro,fica,tracos,tracosq,valp,vecp,poriginal)
 !*********************************************************************
 ! performs some initial chores: converts svector into a matrix s; computes
 ! the square of that matrix, sq, and the traces of both s (for RM) and sq 
@@ -15,7 +15,8 @@
 !
 ! INPUT:
 !
-! criterio - integer variable indicating the criterion for the quality of the k-subset.
+! criterio - integer variable indicating the criterion for the quality of 
+!            the k-subset.
 !    p     - integer variable, giving the number of original variables.
 ! svector  - double precision vector, giving the full covariance (or 
 !            correlation) matrix of the p variables (given as a vector
@@ -45,6 +46,8 @@
 !            decreasing order)
 !  vecp    - double precision array (pxp) giving the eigenvectors of s (in
 !            the same column-order as the values of valp).
+! poriginal - integer variable, indicating the original number of variables
+!             (poriginal = p + nfora)
 !    
 
 
@@ -181,14 +184,13 @@
 !*********************************************************************
 
 !********************************************************************
-      subroutine randsk1(iseed,n,k,sk)
+      subroutine randsk1(n,k,sk)
 !*********************************************************************
 ! generates a subset of k random integers from the set {1,2,...,n}. 
 ! Warning: uses function randint.
 
 !  INPUT: 
-!  iseed - integer vector of length 4, random seed required by 
-!                  LAPACK routine slaruv.
+
 !    n   - integer variable, largest integer in the set.
 !    k   - integer variable, giving the number of random integers that
 !                are to be generated
@@ -197,7 +199,7 @@
 !   sk   - logical vector defining the generated subset 
 !               (sk(i)=.true. iff i belongs to sk, i=1,...,n)
 
-       integer randint,pp(300),iseed(4)
+       integer randint,pp(300)
        logical sk(300)
 
        do i=1,n
@@ -205,31 +207,36 @@
         pp(i)=i
        end do
        do i=1,k
-        nalt=randint(iseed,i,n)
+        nalt=randint(i,n)
         sk(pp(nalt))=.true.
         pp(nalt)=pp(i)
        end do
        return 
       end
 !**********************************************************************
-
 !***********************************************************************
-      integer function randint(iseed,esq,dir)
+      integer function randint(esq,dir)
 !*********************************************************************
 ! randomly generates a number in the interval [esq,dir].
-! WARNING: Uses the LAPCAK routine SLARUV
 !
-!INPUT: iseed - integer vector of length 4, random seed for SLARUV.
+! WARNING: Uses a call to R's random number generator (as described
+!  in pages 48 and 50-51 of the "Writing R Extensions" manual, version
+!  1.5).
+!
+!INPUT: 
+
 !        esq  - integer variable, giving lower bound of interval.
 !        dir  - integer variable, giving upper bound of interval.
 
-       external slaruv
+       external unifrnd, rndstart, rndend
 
-       real ran
-       integer esq,dir,iseed(4)
+       double precision ran
+       integer esq,dir
 
-       call slaruv(iseed,1,ran)
+       call rndstart()
+       ran = unifrnd()
        randint=esq+int(ran*(dir-esq+1))
+       call rndend()
        return 
       end
 !********************************************************************
@@ -277,8 +284,8 @@
 ! cardinality k=|setk|+ndentro, whose variable numbers are in accordance with 
 ! the original variable numbers. The vector setk is re-defined accordingly.
 ! Thus, the two subroutines randsk1and dcorrigesk randomly select a subset
-! of cardinality k from the set {1,2,...,p}, ensuring that the ndentro variables
-! specified by dentro are included.
+! of cardinality k from the set {1,2,...,p}, ensuring that the ndentro 
+! variables specified by dentro are included.
 !
 ! INPUT: 
 !
@@ -317,13 +324,12 @@
 
 !***********************************************************************
       subroutine dannealing(criterio,p,k,s,sq,setk,vactual,ndentro,
-     +  dentro,iseed,niter,beta,citer,tracos,tracosq,nqsi,qsi,
+     +  dentro,niter,beta,temp,coolfreq,tracos,tracosq,nqsi,qsi,
      +  valp,vecp,fica)
 !*********************************************************************
 ! 
 ! Applies simulated annealing to a subset setk of the original variables. 
 !
-! WARNING: Uses the LAPACK routine SLARUV.
 !
 ! INPUT : 
 !
@@ -341,13 +347,15 @@
 !          be forcefully included in the output subset.
 ! dentro  - integer vector, indicating the numbers associated with the 
 !          ndentro variables that are to be forced into the subsets.
-! iseed   - integer vector of length 4, used as a random seed by SLARUV.
 ! niter   - integer variable, number of simulated annealing iterations 
 !           requested for each solution.
 !  beta   - double precision variable,(between 0 and 1) indicating the
 !           geometric cooling factor for simulated annealing.
-! citer   - double precision variable, indicating the initial temperature
+! temp   - double precision variable, indicating the initial temperature
 !           to e used in the simulated annealing algorithm.
+! coolfreq - integer indicating the cooling frequency, i.e., the number 
+!           of iterations that are to be carried out for each fixed
+!           temperature 
 ! tracos  - double precision variable, the trace of the covariance (or
 !           correlation) matrix s. (For RM criterion only).
 ! tracosq - double precision variable, the trace of the matrix sq. (For RV
@@ -375,16 +383,16 @@
 !           produced throughout the niter iterations.
 
 
-        external slaruv
+        external unifrnd, rndstart, rndend
 
 ! general declarations
 
         character*3 aceita
         real r
-        integer iseed(4),criterio
+        integer coolfreq, criterio
         integer dentro(0:ndentro),p,que(p),cons(p),randint
         logical setk(300),setkmax(300),auxlog(p)
-        double precision s(300,300),sq(300,300),beta,citer
+        double precision s(300,300),sq(300,300),beta,citer,temp
         double precision vactual,vmax,vtroca,dir,crittroca,critactual
 ! declarations specific to the RM criterion
         double precision tracos,dobjrm
@@ -393,10 +401,13 @@
 ! declarartions specific to the GCD criterion
         integer qsi(p),fica(0:p),nqsi
         double precision valp(p),vecp(300,300),dobjgcd
-
+ 
+          
 
 ! initializing 
-         do j=1,p
+        citer = temp
+
+        do j=1,p
          auxlog(j)=.true.
         end do
         do j=1,ndentro
@@ -423,7 +434,8 @@
         end do
 
 ! Leftovers of previous tests, if anyone should ever be interested in
-! seeing a HUGE file of subset values...:
+! seeing a HUGE file of subset values..., all subsequent commented code 
+! beginning with "if(printall)" used 
 ! to print to file *ALL* solutions considered by simulated annealing 
 !        if (printall) then
 !          open(16,file='safull.out')
@@ -432,16 +444,17 @@
 !        end if
 
 ! more initializing
-        iter=0
+        iter=0      
         nigual=0
         inaoconv=0
         do while(iter<niter)
+         
  
 ! generates a (uniform) random integer, kque, in {1,2,...,nque}.
 ! jentra, the variable which is being considered for inclusion in the subset
 ! setk, is the element in position kque of the vector que 
 
-         kque=randint(iseed,1,nque)
+         kque=randint(1,nque)
          jentra=que(kque)
   
 ! generates a (uniform) random integer, kcons, in {1,2,...,kcons}.
@@ -449,7 +462,7 @@
 ! setk, is the element in position kcons of the vector cons, i.e., an 
 ! element of setk not belonging to vector dentro
 
-         kcons=randint(iseed,1,ncons)
+         kcons=randint(1,ncons)
          jsai=cons(kcons)
 
 ! calculates the value of the criterion for solution setk\{jsai}U{jentra}
@@ -477,9 +490,10 @@
          end if
 
 ! The replacement is carried out if vtroca>=vactual or, if not, with 
-! probability given by the simulated annealing algorithm.
+! probability given by the simulated annealing algorithm, and computed
+! by R's Random Number Generator
 
-         call slaruv(iseed,1,r)
+         r = unifrnd()
 
          if(vtroca-vactual>=0) then 
           dir=10000.
@@ -500,19 +514,26 @@
           vactual=vtroca
           que(kque)=jsai
           cons(kcons)=jentra
+
 !           if (printall) aceita='sim'
+!            aceita = 'sim'
+
            nigual=0
         else ! reject the swap
            setk(jsai)=.true.
            setk(jentra)=.false.
+
 !           if (printall) aceita='nao'
+!           aceita = 'nao'
+
           nigual=nigual+1 ! counts number of consecutive rejections of a swap
         end if
 
 ! Hacking the temperature:
-! updates the temperature citer for simulated annealing every 20 iterations.
+! updates the temperature citer every coolfreq iterations
 
-        if(mod(iter,20)==0) citer=citer*(1-beta)
+        if(mod(iter,coolfreq)==0) citer=citer*(1-beta)
+
 
 ! when there are more than p consecutive rejections of a swap and the
 ! first 20p iterations have not yet been completed, the
@@ -521,7 +542,7 @@
 ! number of iterations is between 5p and 10p, by a factor of 1.1 if
 ! the current number of iterations is between 10p and 20p. 
 
-        if(nigual>=p) then
+       if(nigual>=p) then
          if(iter<=5*p) then
               citer=citer*2
 	 else
@@ -549,24 +570,26 @@
          if (inaoconv>500) iter=niter
          iter=iter+1
           
-!         if (printall) then
-!           if (criterio.eq.1) then
-!             crittroca=dsqrt(vtroca/tracos)
-!             critactual=dsqrt(vactual/tracos)
-!           endif
-!           if (criterio.eq.2) then
-!             crittroca=dsqrt(vtroca/tracosq)
-!             critactual=dsqrt(vactual/tracosq)
-!           endif
-!           if (criterio.eq.3) then
-!             crittroca=vtroca/dsqrt(dfloat(nqsi*k))
+!         if (printall) then 
+!           if (criterio.eq.1) then                 
+!             crittroca=dsqrt(vtroca/tracos)        
+!             critactual=dsqrt(vactual/tracos)      
+!           endif                                   
+!           if (criterio.eq.2) then                 
+!             crittroca=dsqrt(vtroca/tracosq)      
+!             critactual=dsqrt(vactual/tracosq)     
+!           endif                                    
+!           if (criterio.eq.3) then                 
+!             crittroca=vtroca/dsqrt(dfloat(nqsi*k)) 
 !             critactual=vactual/dsqrt(dfloat(nqsi*k))
-!           endif
-!            write(16,101) iter,citer,crittroca,
+!           endif                                     
+!            write(16,101) iter,citer,crittroca,      
 !     +       critactual,r,dir,aceita
 !101         format(' ',1X,i6,1X,f7.4,2x,f10.7,1X,f10.7,7x,f6.4,
-!     +       9x,f16.14,7x,a3)
+!     +       9x,f16.14,7x,a3)                        
 !         end if
+
+
       end do
  
 ! defines the algorithm's solution, vactual, as the best solution obtained
@@ -576,6 +599,8 @@
        do i=1,p
           setk(i)=setkmax(i)
        end do
+
+
        return
       end
 
@@ -587,18 +612,21 @@
        subroutine dmelhoramentogen(criterio,p,setk,vactual,ndentro,
      +  dentro,k,s,sq,nqsi,qsi,valp,vecp,fica)
 !*********************************************************************
-! This subroutine (which is only called by the "improve" subroutine, but also by
-! the other two main routines - "genetic" and "anneal" -  if the logical variable 
-! "improvement" is set to .true.) seeks to improve an initial k-subset by a modified  
-! local search algorithm, the details of which are as follows. The variables not belonging 
-! to this initial subset are placed in a queue ("que"). This subroutine explores the 
-! possibility of replacing a variable in the subset with a variable from the queue. 
-! More precisely, a variable j is selected and removed from the queue. Each variable i in 
-! the subset is, in turn, replaced by variable j and the resulting values of the criterion 
-! are computed. If the best of these k new criterion values exceeds the subset's original 
-! criterion value, the current solution is updated accordingly. In this case, the variable which
-! leaves the subset is added to the queue, but only if it has not previously been in the queue
-! (i.e., no variable can enter the queue twice). The algorithm proceeds until the queue is emptied. 
+! This subroutine (which is only called by the "improve" subroutine, 
+! but also by the other two main routines - "genetic" and "anneal" -  if 
+! the logical variable "improvement" is set to .true.) seeks to improve an 
+! initial k-subset by a modified local search algorithm, the details of 
+! which are as follows. The variables not belonging to this initial subset 
+! are placed in a queue ("que"). This subroutine explores the possibility 
+! of replacing a variable in the subset with a variable from the queue. 
+! More precisely, a variable j is selected and removed from the queue. Each 
+! variable i in the subset is, in turn, replaced by variable j and the 
+! resulting values of the criterion are computed. If the best of these k 
+! new criterion values exceeds the subset's original criterion value, the 
+! current solution is updated accordingly. In this case, the variable which
+! leaves the subset is added to the queue, but only if it has not previously 
+! been in the queue (i.e., no variable can enter the queue twice). The 
+! algorithm proceeds until the queue is emptied. 
 !
 ! INPUT: 
 !criterio - integer variable indicating the criterion of subset quality

@@ -7,18 +7,32 @@ rv.coef<-function(mat, indices)
 
 #  error checking
 
-        if (!is.matrix(mat)) stop("Data is missing or is not given in matrix form")
-        if (dim(mat)[1] != dim(mat)[2])  {
-             mat<-cov(mat) 
-             warning("Data must be given as a covariance or correlation matrix. \n It has been assumed that you wanted the covariance matrix of the \n data matrix supplied")
+     if (!is.matrix(mat)) {
+         stop("Data is missing or is not given in matrix form")}
+     if (dim(mat)[1] != dim(mat)[2]) {
+         mat<-cov(mat)
+         warning("Data must be given as a covariance or correlation matrix. \n It has been assumed that you wanted the covariance matrix of the \n data matrix which was supplied.")
+       }
+      tr<-function(mat){sum(diag(mat))}
+      rv.1d<-function(mat,indices){
+             mat2 <- (mat %*% mat)[indices, indices]
+             invmatk <- solve(mat[indices, indices])
+             sqrt(tr(mat2 %*% invmatk %*% mat2 %*% invmatk)/tr(mat %*% mat))
         }
-# function to compute the trace of a square matrix
+      dimension<-length(dim(indices))
+      if (dimension > 1){
+         rv.2d<-function(mat,subsets){
+             apply(subsets,1,function(indices){rv.1d(mat,indices)})
+            }  
+             if (dimension > 2) {
+               rv.3d<-function(mat,array3d){
+                   apply(array3d,3,function(subsets){rv.2d(mat,subsets)})
+                 }
+               output<-rv.3d(mat,indices)
+              }
+              if (dimension == 2) {output<-rv.2d(mat,indices)}
+      }
 
-       tr<-function(mat){sum(diag(mat))}   
-
-# body of function
-
-	mat2 <- (mat %*% mat)[indices, indices]
-	invmatk <- solve(mat[indices, indices])
-	sqrt(tr(mat2 %*% invmatk %*% mat2 %*% invmatk)/tr(mat %*% mat))
+      if (dimension < 2) {output<-rv.1d(mat,indices)}
+      output
 }

@@ -1,0 +1,55 @@
+##########  Version 0.2  (June 2002) #################
+
+The following changes were made in Version 0.2 of R package subselect:
+
+1) A bug was corrected in function anneal: when more than one solution
+   (nsol > 1) was requested, the initial temperature for subsequent
+   solutions was not being updated.
+
+2) The Fortran code was changed to use R's default random number
+   generator, introducing a call to R as described in pages 48 and
+   50-51 of the "Writing R Extensions" manual, version 1.5. As a
+   consequence, the LAPACK routine SLARUV is no longer used and the
+   "iseed" argument of functions "anneal", "genetic" and "improve" has
+   been replaced by the logical argument "setseed".
+
+3) Initial solutions (variable subsets) may now be fed by the user to
+   each of functions "anneal" (argument "initialsol"), "genetic"
+   (argument "initialpop") and "improve" (argument "initialsol").
+
+4) The Fortran code was changed to pass messages directly to the R GUI
+   (which did not occur in the Windows version), as described in page 
+   50 of the "Writing R Extensions" manual, version 1.5.
+
+5) The "indices" argument of functions "gcd.coef", "rm.coef" and
+   "rv.coef" can now be 2-d or 3-d arrays. In this way, the "$subsets"
+   and "$bestsets" output options of functions "anneal", "genetic" and
+   "improve" can be passed directly to functions "rm.coef", "rv.coef"
+   and "gcd.coef", allowing easy computation of values of any
+   criteria for subsets produced by the search algorithms using 
+   a different criterion.
+
+6) The "printfile" option of functions "anneal", "genetic" and
+   "improve" has been dropped, as printing to files is best done using
+   the R environment.
+
+7) Function "anneal" has a new argument, "coolfreq", which controls
+   the frequency with which the simulated annealing temperature is
+   cooled (used to be hard-coded as every 20 iterations in the Fortran
+   code of version 0.1).
+
+8) Function "genetic" has a new argument "mutprob", which controls the
+   probability of each offspring in the genetic algorithm undergoing a
+   mutation (i.e., being fed to the restricted local improvement
+   algorithm), if the "mutate" option is set to TRUE (previously *all*
+   children were mutated, which considerably slowed down run times).
+
+9) Function "full.k.search" has been dropped from the
+   package. It was computationally inefficient and not in the general
+   spirit of the package. For computationally efficient full-search
+   algorithms, see program SSCMA by Pedro Duarte Silva of the
+   Universidade Catolica do Porto, available at
+   http://porto.ucp.pt/psilva
+
+10) The help files were updated accordingly. Details of the "rv.coef"
+   and "rm.coef" functions were also introduced.

@@ -1,14 +1,12 @@
-anneal                   Simulated Annealing Search for an optimal k-
-                         variable subset
-full.k.search            Values of the RM, GCD and RV coefficients for
-                         all k-variable subsets of a data set
-gcd.coef                 Computes Yanai's GCD for the variable-subset
-                         selection problem
-genetic                  Genetic Algorithm for an optimal k-variable
-                         subset
-improve                  Restricted Local Improvement search for an
-                         optimal k-variable subset
-rm.coef                  Computes the RM coefficient in the context of
-                         variable subset selection
-rv.coef                  Computes the RV coefficient for variable subset
-                         selection
+anneal                  Simulated Annealing Search for an optimal
+                        k-variable subset
+gcd.coef                Computes Yanai's GCD in the context of the
+                        variable-subset selection problem
+genetic                 Genetic Algorithm searching for an optimal
+                        k-variable subset
+improve                 Restricted Local Improvement search for an
+                        optimal k-variable subset
+rm.coef                 Computes the RM coefficient for variable subset
+                        selection
+rv.coef                 Computes the RV-coefficient applied to the
+                        variable subset selection problem
