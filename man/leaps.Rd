@@ -23,10 +23,15 @@ The user may force variables to be included and/or excluded from the
 In order to improve computation times, the bulk of computations are
 carried out by C++ routines. Further details about the Algorithm can 
 be found in References 2 and 3 and in the comments to the C++ code.
-A discussion of the criteria considered can be found in Reference 1.}
+A discussion of the criteria considered can be found in Reference 1.
+
+The function checks for ill-conditioning of the input matrix
+(specifically, it checks whether the ratio of the input matrix's
+smallest and largest eigenvalues is less than \code{tolval}). For an
+ill-conditioned input matrix, execution is aborted. The function \code{\link{trim.matrix}} may be used to obtain a well-conditioned input matrix.}
 
 \usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,
-criterion="RM",pcindices=NULL,timelimit=15)}
+criterion="RM",pcindices="first_k",timelimit=15, tolval=.Machine$double.eps)}
 
 
 \arguments{
@@ -63,6 +68,8 @@ criterion="RM",pcindices=NULL,timelimit=15)}
    allowed to conduct the search. After this limit is exceeded, leaps exits
    with a waring message stating that it was not possible to find the otpimal
    subsets within the allocated time.}
+
+  \item{tolval}{the tolerance level for the reciprocal of the 2-norm condition number of the correlation/covariance matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. Matrices with a reciprocal of the condition number smaller than \code{tolval} will abort the search algorithm.} 
  }
 
 \value{A list with five items:
@@ -92,7 +99,7 @@ criterion="RM",pcindices=NULL,timelimit=15)}
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{anneal}}, \code{\link{genetic}}, 
-\code{\link{improve}}.}
+\code{\link{improve}}, \code{\link{trim.matrix}}.}
 
 \references{
 1) Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the

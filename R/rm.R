@@ -12,8 +12,8 @@ rm.coef<-function(mat, indices)
   if (!is.matrix(mat)) {
          stop("Data is missing or is not given in matrix form")}
      if (dim(mat)[1] != dim(mat)[2]) {
-         mat<-cov(mat)
-         warning("Data must be given as a covariance or correlation matrix. \n It has been assumed that you wanted the covariance matrix of the \n data matrix which was supplied.")
+         mat<-cor(mat)
+         warning("Data must be given as a covariance or correlation matrix. \n It has been assumed that you wanted the correlation matrix of the \n data matrix which was supplied.")
        }
       tr<-function(mat){sum(diag(mat))}
       rm.1d<-function(mat,indices){

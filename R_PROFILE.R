@@ -1,1 +1,0 @@
-options(echo=FALSE)

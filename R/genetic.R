@@ -1,13 +1,15 @@
 genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="RM", pcindices="first_k",
-initialpop=NULL){
+initialpop=NULL, force=FALSE, tolval=.Machine$double.eps){
 
 ###############################
 # general validation of input #
 ###############################
 
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices)
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
+        maxnovar = 400
+        if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
 
 ##############################################################
 # more specific validation of input for the genetic function #
@@ -26,6 +28,15 @@ initialpop=NULL){
         bestval<-rep(0.0,length(kmin:kmax))
         bestvar<-rep(0,kmax*length(kmin:kmax))
         kabort<-kmax+1
+        if (criterio == 3) {
+          decespectral<-eigen(mat,symmetric=TRUE)
+          valp<-decespectral$values
+          vecp<-decespectral$vectors
+               }
+           else {
+              valp<-rep(0,p)
+              vecp<-matrix(nrow=p,ncol=p,rep(0,p*p))
+                 }
 
 ##################################
 # call to the Fortran subroutine #
@@ -41,7 +52,8 @@ initialpop=NULL){
           as.double(mutprob),as.logical(improvement),
           as.integer(length(pcindices)),as.integer(pcindices),as.logical(esp),
           as.integer(kabort),as.logical(pilog),
-          as.integer(as.vector(initialpop)),
+          as.integer(as.vector(initialpop)),as.double(valp),
+          as.double(as.vector(vecp)),
           PACKAGE="subselect")
 
 ########################

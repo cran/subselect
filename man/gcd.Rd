@@ -38,7 +38,7 @@ variables (specified by \code{indices}) and a subset of the
 full-data set's Principal Components (specified by \code{pcindices}).
  Input data is expected in the form of a (co)variance or
 correlation matrix. If a non-square matrix is given, it is assumed to
-be a data matrix, and its (co)variance matrix is used as input. The
+be a data matrix, and its correlation matrix is used as input. The
 number of variables (k) and of PCs (q) does not have to be the same.
 
 Yanai's GCD is defined as:

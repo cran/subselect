@@ -1,26 +1,25 @@
-validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices){
+validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval){
 
 ##########################################################
 #  general validation of input for all search functions  #
 ##########################################################
 
+         if (tolval < 0) stop("\n The 'tolval' argument must be non-negative.")
 
 ####################################################################
 # checking for an input matrix that must be square, of full rank,  #
 #    symmetric, positive definite                                  #
 ####################################################################
 
-         if (!is.matrix(mat)) 
-          stop("Data is missing or is not given in matrix form\n") 
+         if (!is.matrix(mat)) stop("Data is missing or is not given in matrix form\n")
          p<-dim(mat)[2] 
-         if (qr(mat)$rank != p) stop("\n The covariance/correlation matrix supplied is not of full rank\n")
          if (dim(mat)[1] != p) {
-         mat <- var(mat)
-         warning("Data must be given as a covariance or correlation matrix.\n It has been assumed that you wanted the covariance matrix of the \n data matrix supplied\n")}
-         if ( max( abs(mat-t(mat)) ) > 1E-6 ) 
-	    stop("\n The covariance/correlation matrix supplied is not symmetric\n")
-  	 if ( eigen(mat,only.values=TRUE)$values[p] < 0 )
-            stop("\n The covariance/correlation matrix supplied is not positive definite\n")
+         mat <- cor(mat)
+         warning("Data must be given as a covariance or correlation matrix.\n It has been assumed that you wanted the correlation matrix of the \n data matrix supplied\n")}
+         if (sum(mat != t(mat)) > 0) 
+	    stop("\n The covariance/correlation matrix supplied is not symmetric.\n")
+         eigvals<-eigen(mat,symmetric=TRUE)
+         if (eigvals$values[p]/eigvals$values[1] < tolval) stop(paste("\n The covariance/correlation matrix supplied has reciprocal condition number \n smaller than the specified threshold of",tolval,". \n Setting a lower value of the 'tolval' function argument may force a solution, \n but numerical accuracy  may be compromised. \n Try a new function call after excluding  variables responsible for the \n (real or approximate) linear dependences. See help(trim.matrix) for  \n assistance in this respect."))
 
 #################################################
 # checking acceptability of criterion requested #
@@ -78,7 +77,7 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices){
                                 warning("\n Cardinalities requested are too small for the requested number of included \n variables, and kmin has been set to ninclude + 1 \n")}
          include<-sort(include)}
          inc<-c(0,include)
-         if (kmax<kmin) stop("\n After trying to adapt to the requests for exclusion and inclusion of variables, \n kmax is now smaller than kmin. \n There must be a mistake\n")
+         if (kmax<kmin) stop("\n After trying to adapt to the requests for exclusion and inclusion of \n variables, kmax is now smaller than kmin. There must be a mistake.\n")
 
 ######################
 # Checking pcindices #

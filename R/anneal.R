@@ -1,14 +1,17 @@
 anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,
 exclude=NULL, include=NULL, improvement=TRUE, 
 setseed = FALSE, cooling=0.05, temp=1,
-coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL){
+coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL,
+force=FALSE, tolval=.Machine$double.eps){
 
 ###############################
 # general validation of input #
 ###############################
 
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices)
-
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
+        maxnovar = 400
+        if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
+        
 ##########################################################################
 # more specific validation of input for the anneal and improve functions #
 ##########################################################################
@@ -35,6 +38,16 @@ coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL){
         vars<-rep(0,nsol*length(kmin:kmax)*kmax)
         bestval<-rep(0.0,length(kmin:kmax))
         bestvar<-rep(0,kmax*length(kmin:kmax))
+        if (criterio == 3) {
+          decespectral<-eigen(mat,symmetric=TRUE)
+          valp<-decespectral$values
+          vecp<-decespectral$vectors
+               }
+           else {
+              valp<-rep(0,p)
+              vecp<-matrix(nrow=p,ncol=p,rep(0,p*p))
+                 }
+           
 
 ##################################
 # call to the Fortran subroutine #
@@ -50,7 +63,8 @@ coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL){
           as.double(cooling),as.double(temp),
           as.integer(coolfreq),as.integer(length(pcindices)),
           as.integer(pcindices),as.logical(esp),as.logical(silog),
-          as.integer(as.vector(initialsol)),PACKAGE="subselect")
+          as.integer(as.vector(initialsol)), as.double(valp),
+          as.double(as.vector(vecp)), PACKAGE="subselect")
 
 ########################
 # preparing the output #

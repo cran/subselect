@@ -10,7 +10,7 @@ optimal, as a surrogate for the whole set, with respect to a given criterion.
 }
 
 \details{An initial k-variable subset (for k ranging from \code{kmin}
-to \code{kmax})  of a full set of p (p not exceeding 300) variables is
+to \code{kmax})  of a full set of p  variables is
 randomly selected and the variables not belonging to this subset are
 placed in a queue. The possibility of replacing a variable in the
 current k-subset with a variable from the queue is then explored.  
@@ -34,12 +34,19 @@ effort in each iteration of the algorithm.
 In order to improve computation times, the bulk of computations are
 carried out in a Fortran routine. Further details about the algorithm can
 be found in Reference 1 and in the comments to the Fortran code (in
-the \code{src} subdirectory for this package). For p > 300, it is
-necessary to change the declarative statements in the Fortran code. 
+the \code{src} subdirectory for this package). For datasets with a very
+large number of variables (currently p > 400), it is 
+necessary to set the \code{force} argument to TRUE for the function to run, but this may cause a session crash if there is not enough memory available.
+
+The function checks for ill-conditioning of the input matrix
+(specifically, it checks whether the ratio of the input matrix's
+smallest and largest eigenvalues is less than \code{tolval}). For an
+ill-conditioned input matrix, execution is aborted. The function \code{\link{trim.matrix}} may be used to obtain a well-conditioned input matrix.
 }
 
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
-include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k", initialsol=NULL)
+include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k",
+initialsol = NULL, force = FALSE, tolval=.Machine$double.eps)
 }
 
 \arguments{
@@ -87,7 +94,7 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k", initials
   initial solution necessarily produces the same final solution); 
   a 1 x \emph{k} matrix (as
   produced by the \code{$bestsets} output value of the algorithm functions
-  \code{anneal}, \code{\link{genetic}}, or \code{\link{improve}}, or
+  \code{anneal}, \code{\link{genetic}}, or \code{\link{improve}}), or
   a 1 x \emph{k} x 1 array (as produced by the
   \code{$subsets} output value), in
   which case it will be treated as the above k-vector; or an
@@ -110,6 +117,13 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k", initials
 
   If the \code{exclude} and/or \code{include} options are used,
   \code{initialsol} must also respect those requirements. }
+
+  \item{force}{a logical variable indicating whether, for large data
+    sets (currently \code{p} > 400) the algorithm should proceed
+    anyways, regardless of possible memory problems which may crash the
+    R session.}
+
+  \item{tolval}{the tolerance level for the reciprocal of the 2-norm condition number of the correlation/covariance matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. Matrices with a reciprocal of the condition number smaller than \code{tolval} will abort the search algorithm.} 
 }
 
 \value{A list with five items:
@@ -137,13 +151,12 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k", initials
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
-\code{\link{gcd.coef}}, \code{\link{genetic}}, \code{\link{anneal}}.}
+\code{\link{gcd.coef}}, \code{\link{genetic}}, \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
 
 \references{
 1) Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
 Computational aspects of algorithms for variable selection in the
-context of principal components. Accepted for publication in
-\emph{Computational Statistics \& Data Analysis}.
+context of principal components. \emph{Computational Statistics \& Data Analysis}, 47, 225-236.
 
 2) Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,

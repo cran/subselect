@@ -1,0 +1,47 @@
+reduce.matrix<-function(mat, tolval=1e-07, size=NULL){
+        p<-dim(mat)[2]
+        if ((dim(mat)[1] != p) || (sum(t(mat) != mat) >0)) stop("\n Data must be given as a covariance or correlation matrix.\n The input matrix is rectangular or not symmetric.\n")
+        colnames(mat)<-1:p
+        mat.svd<-svd(mat)
+        discard<-rep(FALSE,p)
+        newmat<-mat
+        if(is.null(size)) {
+#########################################################
+#  if no size is requested, will crop until full rank   #
+#########################################################
+           while (mat.svd$d[p] < tolval) {
+                    int<-as.numeric(colnames(newmat)[order(abs(mat.svd$v[,p]),decreasing=TRUE)[1]])
+                   discard[int]<-TRUE
+                   newmat<-mat[!discard,!discard]
+                   p<-p-1
+                   mat.svd<-svd(newmat)
+                     }
+           size<-dim(newmat)[2]
+#### end if size is NULL
+           }
+          else
+           {
+##################################################################
+#  if size is requested, will crop until given size (if valid)   #
+##################################################################
+            if (size <= 0) {stop("\n A non-positive size was requested for the new matrix")}
+              else {
+                 if (size != round(size)){
+                 size<-round(size)
+                 warning("\n A non-integer size was requested and the nearest integer was assumed\n")}}
+                 while (size < p) {
+                    int<-as.numeric(colnames(newmat)[order(abs(mat.svd$v[,p]),decreasing=TRUE)[1]])
+                   discard[int]<-TRUE
+                   newmat<-mat[!discard,!discard]
+                   p<-p-1
+                   mat.svd<-svd(newmat)
+                     }
+#### end else
+             }
+#########################################
+        
+       output<-list(newmat,as.numeric(colnames(mat)[discard]),size)
+       names(output)<-c("lowrankmat","discarded","size")
+       outmessage<-paste("\n Output matrix is not of full rank for the given tolerance value \n (i.e., the output matrix has singular values less than ",tolval,")\n")
+       if (sum(svd(newmat)$d > tolval) < size) warning(outmessage)
+       output}

@@ -1,5 +1,54 @@
+########## Version 0.9 (March 2005) #############
+
+1) Namespace added.
 
 
+2) A new function "trim.matrix" was introduced, to deal with the issue
+of multicollinearities in the input data.
+
+3) The four search functions ("leaps", "anneal", "genetic" and
+"improve") now perform a teste for multicollinearity, which consists
+in comparing the ratio of the smallest to the largest eigenvalue of
+the input covariance/correlation 
+matrix with the new argument "tolval" (1e-15, by default). If this
+ratio is smaller than "tolval", the function exits with a
+message to the user requiring that the input matrix be cleared of its
+ill-conditionment (perhaps through the use of the new function
+"trim.matrix") before resubmitting it to the search function. The use
+of the search functions can be forced, by lowering the value of
+"tolval" (negative values of "tolval" are not allowed), but with
+risks of numerical inaccuracy.  
+
+4) The previous maximum number of variables allowed for the search
+functions (300) was eliminated. The code now runs for any number of
+variables.  A test for input data with more than
+400 variables was introduced in the search functions, and when that
+condition tests positive, the function stops execution and passes a
+message to the user, who may choose to run the function anyways, by
+setting a new function argument ("force") to TRUE. The code will now
+run with any number of variables, but may crash the R session due to
+memory problems. 
+
+5) Non-standard C++ code in the routines was changed and code which
+caused memory errors was also modified. The new code passes the
+"valgrind" memory checks.
+
+6) Some Fortran code which did not comply with Fortran 77 
+standards was changed (e.g.: symbols such as ">" changed to
+".GT."; comments using "*" in the first column; etc.). Some
+non-standard code was kept (use of  
+variable array sizes in subroutine declaratives; use of do-loops and
+do-while-loops). 
+
+7) The default behaviour when a non-square matrix is passed as input data
+to the search functions has been changed: instead of assuming that
+covariance matrix of the input data matrix was wanted, the new option
+is to compute the input data matrix's *correlation* matrix.
+
+8) The default values for "pcindices" whas been changed in 
+the "leaps" function and is now "first_k" as in the "anneal",
+"genetic" and "improve" functions. This change is possible due to 
+changes in the "leaps" source code.
 
 ########## Version 0.8 (May 2004) ##############
 

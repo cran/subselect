@@ -17,7 +17,7 @@ the variables.
   Input data is expected in the form of a (co)variance or
 correlation matrix of the full data set. If a non-square matrix is
 given, it is assumed to 
-be a data matrix, and its (co)variance matrix is used as input.
+be a data matrix, and its correlation matrix is used as input.
 The subset of variables on which the full data set will be regressed
 is given by \code{indices}.
 

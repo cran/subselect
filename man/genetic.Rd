@@ -12,7 +12,7 @@ optimal, as a surrogate for the whole set, with respect to a given criterion.
 \details{
 For each cardinality k (with k ranging from \code{kmin} to \code{kmax}),
 an initial population of \code{popsize} k-variable subsets is randomly
-selected from a full set of p (p not exceeding 300) variables. 
+selected from a full set of p  variables. 
 In each iteration, \code{popsize}/2 couples
 are formed from among the population and each couple generates a child
 (a new k-variable subset)
@@ -46,14 +46,22 @@ In order to improve computation times, the bulk of computations are
 carried out by a Fortran routine. Further details about the Genetic
 Algorithm can 
 be found in Reference 1 and in the comments to the Fortran code (in
-the \code{src} subdirectory for this package). For p > 300, it is 
-necessary to change the declarative statements in the Fortran code. 
+the \code{src} subdirectory for this package).  For datasets with a very
+large number of variables (currently p > 400), it is 
+necessary to set the \code{force} argument to TRUE for the function to run, but this may cause a session crash if there is not enough memory available.
+
+The function checks for ill-conditioning of the input matrix
+(specifically, it checks whether the ratio of the input matrix's
+smallest and largest eigenvalues is less than \code{tolval}). For an
+ill-conditioned input matrix, execution is aborted. The function
+\code{\link{trim.matrix}} may be used to obtain a well-conditioned input
+matrix.
 }
 
 \usage{genetic( mat, kmin, kmax = kmin, popsize = 100, nger = 100,
 mutate = FALSE, mutprob = 0.01, maxclone = 5, exclude = NULL,
 include = NULL, improvement = TRUE, setseed= FALSE, criterion = "RM",
-pcindices = "first_k", initialpop=NULL )
+pcindices = "first_k", initialpop = NULL, force = FALSE, tolval=.Machine$double.eps)
 }
 
 \arguments{
@@ -128,7 +136,14 @@ pcindices = "first_k", initialpop=NULL )
   \code{$subsets} output value).
 
   If the \code{exclude} and/or \code{include} options are used,
-  \code{initialpop} must also respect those requirements. } 
+  \code{initialpop} must also respect those requirements. }
+
+  \item{force}{a logical variable indicating whether, for large data
+    sets (currently \code{p} > 400) the algorithm should proceed
+    anyways, regardless of possible memory problems which may crash the
+    R session.}
+
+  \item{tolval}{the tolerance level for the reciprocal of the 2-norm condition number of the correlation/covariance matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. Matrices with a reciprocal of the condition number smaller than \code{tolval} will abort the search algorithm.} 
 }
 
 \value{A list with five items:
@@ -161,13 +176,12 @@ pcindices = "first_k", initialpop=NULL )
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
-\code{\link{gcd.coef}}, \code{\link{anneal}}, \code{\link{improve}}.}
+\code{\link{gcd.coef}}, \code{\link{anneal}}, \code{\link{improve}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
 
 \references{
 1) Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
 Computational aspects of algorithms for variable selection in the
-context of principal components. Accepted for publication in
-\emph{Computational Statistics \& Data Analysis}.
+context of principal components. \emph{Computational Statistics \& Data Analysis}, 47, 225-236.
 
 2) Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,

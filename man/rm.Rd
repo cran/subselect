@@ -28,7 +28,7 @@ spectral decompositions of a p-variable data matrix, and of the matrix which
 results from regressing those variables on a subset (given by "indices") of
 the variables.  Input data is expected in the form of a (co)variance or
 correlation matrix. If a non-square matrix is given, it is assumed to
-be a data matrix, and its (co)variance matrix is used as input.
+be a data matrix, and its correlation matrix is used as input.
 
 The definition of the RM coefficient is as follows:
 \deqn{RM = \sqrt{\frac{\mathrm{tr}(X^t P_v X)}{\mathrm{X^t X}}} }

@@ -10,7 +10,7 @@
 }
 \usage{
 
-validation(mat, kmin, kmax, exclude, include, criterion, pcindices)
+validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
 validgenetic(kmin, kmax, popsize, mutprob, exclude, nexclude, include, ninclude, initialpop)
 validannimp(kmin, kmax, nsol, exclude, nexclude, include, ninclude, initialsol,implog)
 }
