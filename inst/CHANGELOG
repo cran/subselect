@@ -1,3 +1,10 @@
+########## Version 0.4.1 (February 2004) #########
+
+1) Changed file gcd.Rd, which had old default option for the argument
+pcindices. This generated a codoc mismatch.
+
+
+
 ##########  Version 0.4 (April 2003) ##############
 
 1) Version 1.7 of R includes LAPACK. The configure scripts to check

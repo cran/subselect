@@ -11,7 +11,7 @@ variables and a subset of the full data set's Principal
 Components.
 }
 
-\usage{gcd.coef(mat, indices, pcindices =  seq(1:length(indices)))}
+\usage{gcd.coef(mat, indices, pcindices =  NULL)}
 
 \arguments{
 
