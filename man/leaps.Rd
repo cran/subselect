@@ -77,10 +77,17 @@ criterion="RM",pcindices=1:kmin,timelimit=15)}
 
    \item{values}{An \code{nsol} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the criterion values
-   of the best \code{nsol} (rows) subsets according to the chosen criterion.} 
+   of the best \code{nsol} (rows) subsets according to the chosen
+criterion. For criterion \code{GCD}, and unlike the behaviour of other
+search algorithms in this package, if no \code{pcindices} are
+specified, GCD values compare the variable subsets with the subspace
+spanned by the first \code{kmin} PCs.}   
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
-   the overall best values of the criterion for each cardinality.} 
+   the overall best values of the criterion for each cardinality. For criterion \code{GCD}, and unlike the behaviour of other
+search algorithms in this package, if no \code{pcindices} are
+specified, GCD values compare the variable subsets with the subspace
+spanned by the first \code{kmin} PCs.} 
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables

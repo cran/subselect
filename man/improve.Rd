@@ -122,10 +122,16 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices
 
    \item{values}{An \code{nsol} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the criterion values
-   of the \code{nsol} (rows) solutions obtained.}
+   of the \code{nsol} (rows) solutions obtained. For criterion
+\code{GCD}, if no \code{pcindices} are 
+specified, GCD values compare each \code{k}-variable subset with the subspace
+spanned by the first \code{k} PCs.}
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
-   the best values of the criterion obtained for each cardinality.}
+   the best values of the criterion obtained for each cardinality. For
+criterion \code{GCD}, if no \code{pcindices} are 
+specified, GCD values compare the best \code{k}-variable subsets with
+the subspace spanned by the first \code{k} PCs.}
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables

@@ -16,8 +16,8 @@ const double   YES   = 1E98;
 const double   NO    = 1E99;
 const unsigned SRC   = 1;
 const unsigned INV   = 0;
-const unsigned MIN   = 0;
-const unsigned MAX   = 1;
+const unsigned MINIMZ= 0;
+const unsigned MAXIMZ= 1;
 const unsigned MS    = 5;
 const unsigned C     = 1;
 const unsigned RMAX  = 32767;
@@ -25,8 +25,8 @@ const double   DNO   = 1E99;
 
 
 #ifndef TRUEFALSE
-const unsigned TRUE  = 1;
-const unsigned FALSE = 0;
+#define TRUE   1
+#define FALSE  0
 #define TRUEFALSE
 #endif
 

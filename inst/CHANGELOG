@@ -1,4 +1,29 @@
 
+
+########## Version 0.7.1 (March 2004) ##############
+
+1) Two lines defining constants "TRUE" and "FALSE" in the C++ file
+src/matrixb.h, which gave errors when compiling in Mac OS X, were
+changed. The same change was made in file SR_vsda.h, and similar
+changes with the constants "EPSLON" were made in files lagmat.cpp,
+gaussjel.cpp, gausstrg.cpp, matfact.cpp, pdiagon.cpp and
+simgaussjell.cpp. Constants "MIN" and "MAX" in files SR_vsda.h,
+sr_sscma.cpp and sr_wrkf1.cpp were renamed MINIMZ and MAXIMZ,
+respectively.
+
+2) Warnings in the R code and help files were introduced, to caution
+against the difference in default behaviour of the "leaps" function -
+when compared to the search algorithm functions "anneal", "genetic"
+and "improve" - in case the "GCD" criterion is requested. In the latter
+functions, GCD values compare (by default) the subspaces spanned by
+k-variable subsets  and by the first k PCs. In the leaps function, GCD
+values, by default, compare the subspaces spanned by k-variable
+subsets and by the first *kmin* PCs (i.e., the cardinalities of the
+subsets of variables and PCs are not equal, except for the first
+cardinality requested). This option is directly related to the nature of the
+leaps algorithm.
+
+
 ########## Version 0.7 (March 2004) ##############
 
 1) A major new function has been included: "leaps". Leaps implements

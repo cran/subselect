@@ -3,7 +3,7 @@
 #include "fullmati.h"
 #include "lagmvct.h"
 
-const double EPSLON = 1E-8;
+#define EPSLON 1E-8
 
 
 lagvct::lagvct(unsigned k,unsigned nvar) 

@@ -92,9 +92,9 @@ void initpvar()
 
 unsigned getpcrt(char *st)
 {
-	if ( !strncmp(st,"rm",2) || !strncmp(st,"RM",2) || !strncmp(st,"Rm",2) )        return MCB2;    
-	else if ( !strncmp(st,"rv",2) || !strncmp(st,"RV",2) || !strncmp(st,"Rv",2) )   return RV;
-	else if ( !strncmp(st,"gcd",3) || !strncmp(st,"GCD",3) || !strncmp(st,"Gcd",3) ) return GCD;  
+	if ( !strncmp(st,"rm",2) || !strncmp(st,"RM",2) || !strncmp(st,"Rm",2) || !strncmp(st,"1",1) )        return MCB2;    
+	else if ( !strncmp(st,"rv",2) || !strncmp(st,"RV",2) || !strncmp(st,"Rv",2) || !strncmp(st,"2",1))   return RV;
+	else if ( !strncmp(st,"gcd",3) || !strncmp(st,"GCD",3) || !strncmp(st,"Gcd",3) || !strncmp(st,"3",1)) return GCD;  
 	else return NOTFOUND;
 }
 
@@ -196,7 +196,7 @@ void asgmemory()
 	for (i=0;i<maxsbst;i++) if ((sbsarr[i]=new sbset(i,p)) == NULL) prmtend("sbsarr-i");
 	for (i=0;i<maxsbqe;i++) if ((sbqearr[i]=new sbsetqe(i)) == NULL) prmtend("sbqearr-i");
 	if ( pcrt == MCB2 ) {
-		pcrttp = MIN;
+		pcrttp = MINIMZ;
 		if (ms > 0) 
 			if (ndim == p-fp-lp) { 
 				for (i=0;i<ndim-1;i++) if ( (bsts[i] = new subsetq(-1,ms)) == NULL) prmtend("bsts-i");
@@ -212,7 +212,7 @@ void asgmemory()
 		lbnd = NULL;
 	}
 	else  {
-		pcrttp = MAX;
+		pcrttp = MAXIMZ;
 		if (ms > 0) {
 			if (ndim == p-fp-lp) { 
 				for (i=0;i<ndim-1;i++) if ( (bsts[i] = new subsetq(1,ms)) == NULL) prmtend("bsts-i");

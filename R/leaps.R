@@ -106,6 +106,8 @@ leaps <- function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,
         
 	 if (Cout$found == FALSE) {
 	    stop("\n Leaps was not able to complete the search within the specified time limit.\n Either increase this limit or try one of the available meta-heuristics") }
+         if ((Cout[9] == "GCD") || (Cout[9] == "gcd") || (Cout[9] == "Gcd") || (Cout[9] == "3")) {
+            warning("\n If no pcindices were specified, the values of the GCD compare \n each k-variable subset with the first kmin PCs \n")}
          output <- Cout[15:18]
          names(output) <- c("subsets","values","bestvalues","bestsets")
          output

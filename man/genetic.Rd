@@ -142,13 +142,19 @@ pcindices = 1:kmax, initialpop=NULL )
    \item{values}{A \code{popsize} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the (ordered)
    criterion values of the \code{popsize} (rows) subsets in the final
-   generation.} 
+   generation. For criterion
+\code{GCD}, if no \code{pcindices} are 
+specified, GCD values compare each \code{k}-variable subset with the subspace
+spanned by the first \code{k} PCs.} 
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
    the best values of the criterion obtained for each cardinality. If
    \code{improvement} is TRUE, these values result from the final
    restricted local search algorithm (and may therefore exceed the
-   largest value for that cardinality in \code{values}).}
+   largest value for that cardinality in \code{values}). For criterion
+\code{GCD}, if no \code{pcindices} are 
+specified, GCD values compare the best \code{k}-variable subsets with
+the subspace spanned by the first \code{k} PCs.}
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables

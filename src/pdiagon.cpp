@@ -2,7 +2,8 @@
 #include "fullmati.h"
 #include "fullsqmi.h"
 
-const double EPSLON = 1E-8;
+
+#define EPSLON 1E-8
 
 /********
  *

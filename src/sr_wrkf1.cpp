@@ -76,8 +76,8 @@ void prcksp1(wrkspace *w,unsigned tree,unsigned k0,unsigned k1,unsigned nv,unsig
 	if (nv < mindim || nv > maxdim) return;
 	++cntg;
 	crt = w->wrklst[k1]->c;  
-	if (pcrttp == MAX && crt < lbnd[nv-mindim]) return;  
-	if (pcrttp == MIN && crt > ubnd[nv-mindim]) return;
+	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;  
+	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;
 	
 	getactv(w,tree,k1,nv);
 	switch (pcrt) {
@@ -96,7 +96,7 @@ void prcksp1(wrkspace *w,unsigned tree,unsigned k0,unsigned k1,unsigned nv,unsig
 	bnd = bsts[nv-mindim]->inserte(sq);
 	if (bnd == NO) dsbsetqe(sq);
 	if (bsts[nv-mindim]->full())
-		if (pcrttp == MAX) lbnd[nv-mindim] = bnd;
+		if (pcrttp == MAXIMZ) lbnd[nv-mindim] = bnd;
 		else ubnd[nv-mindim] = bnd;
 	return;
 }
@@ -145,8 +145,8 @@ char leap(unsigned dir,double crt,unsigned minv,unsigned maxv)
 	char l;
 
 	for (l=TRUE,i=minv;l&&i<=maxv;i++) {
-		if (dir == MAX && crt > lbnd[i-mindim]) l = FALSE; 
-		else if (dir == MIN && crt < ubnd[i-mindim]) l = FALSE;
+		if (dir == MAXIMZ && crt > lbnd[i-mindim]) l = FALSE; 
+		else if (dir == MINIMZ && crt < ubnd[i-mindim]) l = FALSE;
 	}
 	return l;
 }

@@ -4,12 +4,12 @@
 const double    UNKNOWN =    9E99;
 const unsigned  NWD =          11;
 
+
 #ifndef TRUEFALSE
-const unsigned TRUE  = 1;
-const unsigned FALSE = 0;
+#define TRUE   1
+#define FALSE  0
 #define TRUEFALSE
 #endif
-
 
 #ifndef NULL
 

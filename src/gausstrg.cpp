@@ -3,7 +3,8 @@
 #include <math.h>
 #include "sqmatb.h"
 
-const double EPSLON = 1E-8;
+
+#define EPSLON 1E-8
 
 
 /********
