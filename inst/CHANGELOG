@@ -1,3 +1,15 @@
+
+##########  Version 0.3 (October 2002) ##############
+
+1) Changes to the configure scripts necessary for configuration in the
+   MacOSX.
+
+2) Functions anneal, genetic and improve now include checks for
+   covariance/correlation matrices not of full rank. If non-full rank
+   matrices are given, the functions exit with a warning.
+
+
+
 ##########  Version 0.2  (June 2002) #################
 
 The following changes were made in Version 0.2 of R package subselect:

@@ -18,6 +18,7 @@ coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=c(0)){
           warning("Argument kmin should precede argument kmax.\n Since the value of kmin exceeded that of kmax, they have been swapped \n")}
         if (!(as.integer(coolfreq) == coolfreq) | (coolfreq < 1)) stop("\n The cooling frequency must be a non-negative integer")
         p<-dim(mat)[[2]]
+        if (qr(mat)$rank != p) stop("\n The covariance/correlation matrix supplied is not of full rank") 
         if (kmin >= p) {
              kmin<-p-1
              warning("\n The value of kmin requested is equal to or exceeds the number \n of variables. It has been set at p-1")

@@ -17,6 +17,7 @@ initialpop=c(0)){
           kmax<-aux
           warning("the argument kmin should precede the argument kmax.\n Since the value of kmin exceeded that of kmax, they have been swapped \n")}
         p<-dim(mat)[[2]]
+        if (qr(mat)$rank != p) stop("\n The covariance/correlation matrix supplied is not of full rank") 
         if (kmin >= p) {
              kmin<-p-1
              warning("\n The value of kmin requested is equal to or exceeds the number \n of variables. It has been set at p-1")

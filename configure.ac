@@ -13,6 +13,7 @@ if test -z "${F77}"; then
   AC_MSG_ERROR([R was configured without a FORTRAN compiler], 1)
 fi
 AC_PROG_F77
+FLIBS=`${R_HOME}/bin/R CMD config FLIBS`
 ACX_BLAS([], AC_MSG_ERROR([could not find your BLAS library], 1))
 ACX_LAPACK([], AC_MSG_ERROR([could not find your LAPACK library], 1))
 AC_OUTPUT([src/Makevars])
