@@ -160,9 +160,10 @@ pcindices = 1:kmax, initialpop=NULL )
 \code{\link{gcd.coef}}, \code{\link{anneal}}, \code{\link{improve}}.}
 
 \references{
-1) Cadima, J., Cerdeira, J. Orestes and Minhoto, M. A Comparative
-Study of Algorithms for Variable Selection in Multivariate
-Statistics, submitted for publication.
+1) Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
+Computational aspects of algorithms for variable selection in the
+context of principal components. Accepted for publication in
+\emph{Computational Statistics \& Data Analysis}.
 
 2) Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,

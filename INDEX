@@ -6,7 +6,9 @@ genetic                 Genetic Algorithm searching for an optimal
                         k-variable subset
 improve                 Restricted Local Improvement search for an
                         optimal k-variable subset
-rm.coef                 Computes the RM coefficient for variable subset
-                        selection
+leaps                   A Leaps and Bounds Algorithm for finding the
+                        best variable subsets
+rm.coef                 Computes the RM coefficient for variable
+                        subset selection
 rv.coef                 Computes the RV-coefficient applied to the
                         variable subset selection problem

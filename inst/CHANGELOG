@@ -1,3 +1,18 @@
+
+########## Version 0.7 (March 2004) ##############
+
+1) A major new function has been included: "leaps". Leaps implements
+Duarte Silva's adaptation of Furnival and Wilson's Leaps and Bounds
+Algorithm for variable selection in Regression Analysis. The bulk of
+computations are carried out by C++ routines.
+
+2) New checks for symmetry and positive-definiteness of the input
+matrix were added.
+
+3) The references in the help files were updated. 
+
+
+
 ########## Version 0.4.1 (February 2004) #########
 
 1) Changed file gcd.Rd, which had old default option for the argument

@@ -1,11 +1,11 @@
 Package: subselect
-Version: 0.4-1
-Date: 2004-02-05
+Version: 0.7
+Date: 2004/03/05
 Title: Selecting variable subsets. 
 Author: Jorge Orestes Cerdeira <orestes@isa.utl.pt>
+        Pedro Duarte Silva <psilva@porto.ucp.pt>
         Jorge Cadima <jcadima@isa.utl.pt>
         Manuel Minhoto <minhoto@uevora.pt>
 Maintainer: Jorge Cadima <jcadima@isa.utl.pt>
-Depends: R (>= 1.7)
-Description: Functions that assess the quality of variable subsets as surrogates for a full data set (using three different criteria: Yanai's GCD, Escoufier's RV and McCabe's RM) and search for subsets which are optimal under those criteria (using a simulated annealing algorithm, a genetic algorithm, or a restricted local improvement algorithm).
+Description: A collection of functions which assess the quality of variable subsets as surrogates for a full data set, in an exploratory data analysis, and search for subsets which are optimal under various criteria.  
 License: GPL

@@ -19,6 +19,10 @@ coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=NULL){
         if (!(as.integer(coolfreq) == coolfreq) | (coolfreq < 1)) stop("\n The cooling frequency must be a non-negative integer")
         p<-dim(mat)[[2]]
         if (qr(mat)$rank != p) stop("\n The covariance/correlation matrix supplied is not of full rank") 
+  	if ( max( abs(mat-t(mat)) ) > 1E-6 ) 
+	    stop("\n The covariance/correlation matrix supplied is not symmetric")
+  	if ( eigen(mat,only.values=TRUE)$values[p] < 0 )
+            stop("\n The covariance/correlation matrix supplied is not positive definite") 
         if (kmin >= p) {
              kmin<-p-1
              warning("\n The value of kmin requested is equal to or exceeds the number \n of variables. It has been set at p-1")
