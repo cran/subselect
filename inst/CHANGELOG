@@ -1,3 +1,28 @@
+##########  Version 0.4 (April 2003) ##############
+
+1) Version 1.7 of R includes LAPACK. The configure scripts to check
+   for the presence of LAPACK in the system have been deleted.
+
+2) Argument "initialsol" in functions "anneal" and "improve", as well
+   as argument "initialpop" in function "genetic" are now NULL by
+   default. The validations and initializations have been changed as a result.
+
+3) Argument "pcindices" in function "gcd.coef" is initially NULL and
+   will be set to 1:kmax unless the user has specified a set of PC indices.
+
+4) Validation tests in functions "gcd.coef", "rm.coef" and "rv.coef"
+   to check whether user-specified variable (and or PC) indices are
+   integers.
+
+5) Validation tests in functions "anneal", "improve" and "genetic" to
+   test whether inital solutions or population are specified as arrays
+   of integers.
+
+6) A bug was fixed in functions "anneal", "genetic" and "improve" in
+   those cases when argument "pcindices" is defined by the user. A
+   logical comparison between a vector "pcindices" and another vector
+   was being treated as if a global value for equality were returned.
+
 
 ##########  Version 0.3 (October 2002) ##############
 

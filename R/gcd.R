@@ -1,4 +1,4 @@
-gcd.coef<-function(mat, indices, pcindices = c(0))
+gcd.coef<-function(mat, indices, pcindices = NULL)
 {
 #   
 #       calcula o GCD entre um subconjunto ("indices") de variaveis
@@ -7,25 +7,27 @@ gcd.coef<-function(mat, indices, pcindices = c(0))
 
 #  error checking
 
+         if  (sum(!(as.integer(indices) == indices)) > 0) stop("\n The variable indices must be integers")         
+         if  (!is.null(pcindices) & (sum(!(as.integer(pcindices) == pcindices)) > 0)) stop("\n The PC indices must be integers")
      if (!is.matrix(mat)) {
          stop("Data is missing or is not given in matrix form")}
      if (dim(mat)[1] != dim(mat)[2]) {
          mat<-cov(mat)
          warning("Data must be given as a covariance or correlation matrix. \n It has been assumed that you wanted the covariance matrix of the \n data matrix which was supplied.")
-       }
+     }        
 
 # body of function
 
 # initializations
 
-      if (pcindices != c(0)) {
+      if (!is.null(pcindices)) {
        if (!is.vector(pcindices)) stop("If Principal Components are user-specified, only one set of PCs is allowed for each function call")
       }
   
      dvsmat <- svd(mat)
       tr<-function(mat){sum(diag(mat))}
       gcd.1d<-function(mat,indices, pcindices){
-             if (pcindices == c(0)) {pcindices <- 1:sum(!indices==0)}
+             if (is.null(pcindices)) {pcindices <- 1:sum(!indices==0)}
              indices<-indices[!indices == 0]
              svdapprox <- function(mat, indices) {
              t(dvsmat$v[, indices] %*% (t(dvsmat$u[, indices]) * dvsmat$d[indices]))

@@ -1,7 +1,7 @@
 anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,
 exclude=NULL, include=NULL, improvement=TRUE, 
 setseed = FALSE, cooling=0.05, temp=1,
-coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=c(0)){
+coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=NULL){
 
 
 # validation of input
@@ -33,7 +33,8 @@ coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=c(0)){
          labelsrv<-c("RV","Rv","rv","2",2)
          labelsgcd<-c("GCD","Gcd","gcd","3",3)
          if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified")
-         
+         if  (!is.null(initialsol) & (sum(!(as.integer(initialsol) == initialsol)) > 0)) stop("\n The initial solutions must be specified as integers indicating variable numbers")
+         if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers")
 
 # initializations for the Fortran subroutine
        
@@ -51,15 +52,15 @@ coolfreq=1, criterion="RM", pcindices=1:kmax, initialsol=c(0)){
         if (ninclude !=0) include<-sort(include)
         inc<-c(0,include)
         if (cooling<=0 || cooling >=1) stop("\n values of cooling must be between 0 and 1")
-        if (length(pcindices) != kmax) esp<-TRUE else {if (pcindices
-        != 1:kmax) esp<-TRUE  else esp<-FALSE}
+        if (length(pcindices) != kmax) esp<-TRUE else {if (sum(pcindices != 1:kmax)>0) esp<-TRUE  else esp<-FALSE}
+
 
 # initializations when initial solutions are specified; checking for
 # nature of initialsol (and how to interpret it) and for
 # conflicts with the exclude and include parameters (which inital
 # solutions must respect)
 
-        if (initialsol == c(0)) {silog <- FALSE}
+        if (is.null(initialsol)) {silog <- FALSE}
         else {silog <- TRUE  # initial solutions have been specified by user          
 
 # checking for the presence of variables that are to be forcefully excluded

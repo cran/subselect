@@ -1,6 +1,6 @@
 improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
 include=NULL, setseed = FALSE, criterion="RM", pcindices=1:kmax,
-initialsol=c(0)){
+initialsol=NULL){
 
 # validation of input
 
@@ -30,8 +30,8 @@ initialsol=c(0)){
          labelsrv<-c("RV","Rv","rv","2",2)
          labelsgcd<-c("GCD","Gcd","gcd","3",3)
          if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified")
-
-
+         if  (!is.null(initialsol) & (sum(!(as.integer(initialsol) == initialsol)) > 0)) stop("\n The initial solutions must be specified as integers indicating variable numbers")
+         if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers")
 
 # initializations for the Fortran subroutine
 
@@ -48,8 +48,7 @@ initialsol=c(0)){
         if (kmin <= ninclude) stop("\n Cardinalities requested are too small for the requested number of included variables")
         if (ninclude !=0) include<-sort(include)
         inc<-c(0,include)
-        if (length(pcindices) != kmax) esp<-TRUE else {if (pcindices
-        != 1:kmax) esp<-TRUE  else esp<-FALSE}
+        if (length(pcindices) != kmax) esp<-TRUE else {if (sum(pcindices != 1:kmax)>0) esp<-TRUE  else esp<-FALSE}
 
 
 # initializations when initial solutions are specified; checking for
@@ -57,7 +56,7 @@ initialsol=c(0)){
 # conflicts with the exclude and include parameters (which inital
 # solutions must respect)
 
-        if (initialsol == c(0)) {silog <- FALSE}
+        if (is.null(initialsol)) {silog <- FALSE}
         else {silog <- TRUE  # initial solutions have been specified by user          
 
 # checking for the presence of variables that are to be forcefully

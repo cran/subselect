@@ -40,7 +40,7 @@ necessary to change the declarative statements in the Fortran code.
 
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
 include = NULL, setseed = FALSE, criterion = "RM", pcindices
-= 1:kmax, initialsol=c(0))
+= 1:kmax, initialsol=NULL)
 }
 
 \arguments{

@@ -54,7 +54,7 @@ necessary to change the declarative statements in the Fortran code.
 \usage{anneal( mat, kmin, kmax = kmin, nsol = 1, niter = 1000, exclude
 = NULL, include = NULL, improvement = TRUE, setseed = FALSE,
 cooling = 0.05,  temp = 1, coolfreq = 1, criterion = "RM",
-pcindices = 1:kmax), initialsol=c(0) )} 
+pcindices = 1:kmax), initialsol=NULL )} 
 
 \arguments{
 

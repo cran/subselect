@@ -53,7 +53,7 @@ necessary to change the declarative statements in the Fortran code.
 \usage{genetic( mat, kmin, kmax = kmin, popsize = 100, nger = 100,
 mutate = FALSE, mutprob = 0.01, maxclone = 5, exclude = NULL,
 include = NULL, improvement = TRUE, setseed= FALSE, criterion = "RM",
-pcindices = 1:kmax, initialpop=c(0) )
+pcindices = 1:kmax, initialpop=NULL )
 }
 
 \arguments{

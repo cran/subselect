@@ -1,6 +1,4 @@
-Package 'subselect' requires the Fortran LAPACK library.
-
-The configure script for this package attempts to detect the lapack
-library and the BLAS libraries.
+Package 'subselect' requires the Fortran LAPACK library. As of version
+1.7 of R, LAPACK is included in R.
 
 Details of changes since Version 0.1 are detailed in file CHANGELOG

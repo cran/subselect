@@ -1,7 +1,7 @@
 genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="RM", pcindices=1:kmax,
-initialpop=c(0)){
+initialpop=NULL){
 
 
 # validation of input
@@ -47,7 +47,9 @@ initialpop=c(0)){
         if (kmin <= ninclude) stop("\n Cardinalities requested are too small for the requested number of included variables")
         if (ninclude !=0) include<-sort(include)
         inc<-c(0,include)
-        if (length(pcindices) != kmax) esp<-TRUE else {if (pcindices != 1:kmax) esp<-TRUE  else esp<-FALSE}
+        if (length(pcindices) != kmax) esp<-TRUE else {if (sum(pcindices != 1:kmax)>0) esp<-TRUE  else esp<-FALSE}
+         if  (!is.null(initialpop) & (sum(!(as.integer(initialpop) == initialpop)) > 0)) stop("\n The initial population must be specified as integers indicating variable numbers")
+         if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers")
 
 
 # initializations when initial population has been specified; checking for
@@ -55,8 +57,14 @@ initialpop=c(0)){
 # conflicts with the exclude and include parameters (which initial
 # population must respect)
 
-        if (initialpop == c(0)) {pilog <- FALSE}
+        if (is.null(initialpop)) {pilog <- FALSE}
         else {pilog <- TRUE  # initial population has been specified by user          
+
+# initial solution is a vector: not acceptable
+
+            if (is.vector(initialpop)) {
+                     {stop("\n The specified initial population must have different k-subsets")}
+                    }
 
 # checking for the presence of variables that are to be forcefully
 # excluded
@@ -69,12 +77,6 @@ initialpop=c(0)){
             dimpop<-dim(initialpop)
             if (length(dimpop) > 3) stop("\n Can't handle arrays of more than 3 dimensions")
             if (kmin == kmax) {
-
-# inital solution is a vector: not acceptable
-
-               if (is.vector(initialpop)) {
-                     {stop("\n The specified initial population must have different k-subsets")}
-                    }
 
 # initial solution is array?
 

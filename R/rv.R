@@ -7,6 +7,7 @@ rv.coef<-function(mat, indices)
 
 #  error checking
 
+     if  (sum(!(as.integer(indices) == indices)) > 0) stop("\n The variable indices must be integers")
      if (!is.matrix(mat)) {
          stop("Data is missing or is not given in matrix form")}
      if (dim(mat)[1] != dim(mat)[2]) {
