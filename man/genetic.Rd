@@ -53,7 +53,7 @@ necessary to change the declarative statements in the Fortran code.
 \usage{genetic( mat, kmin, kmax = kmin, popsize = 100, nger = 100,
 mutate = FALSE, mutprob = 0.01, maxclone = 5, exclude = NULL,
 include = NULL, improvement = TRUE, setseed= FALSE, criterion = "RM",
-pcindices = 1:kmax, initialpop=NULL )
+pcindices = "first_k", initialpop=NULL )
 }
 
 \arguments{
@@ -110,9 +110,11 @@ pcindices = 1:kmax, initialpop=NULL )
   "RV" or "GCD" (see References, \code{\link{rm.coef}}, 
   \code{\link{rv.coef}} and \code{\link{gcd.coef}} for further details).}
 
-  \item{pcindices}{a vector of ranks of Principal Components that are to be
-  used for comparison with the variable subsets (for the GCD
-  criterion only, see \code{\link{gcd.coef}}).}
+  \item{pcindices}{either a vector of ranks of Principal Components that are to be
+  used for comparison with the k-variable subsets (for the GCD
+  criterion only, see \code{\link{gcd.coef}}) or the default text
+  \code{first_k}. The latter will associate PCs 1 to \emph{k} with each
+  cardinality \emph{k} that has been requested by the user.}
 
   \item{initialpop}{vector, matrix or 3-d array of initial population
   for the genetic algorithm. If a \emph{single cardinality} is
@@ -129,7 +131,7 @@ pcindices = 1:kmax, initialpop=NULL )
   \code{initialpop} must also respect those requirements. } 
 }
 
-\value{A list with four items:
+\value{A list with five items:
 
    \item{subsets}{A \code{popsize} x \code{kmax} x
    length(\code{kmin}:\code{kmax}) 3-dimensional array, giving for
@@ -142,24 +144,20 @@ pcindices = 1:kmax, initialpop=NULL )
    \item{values}{A \code{popsize} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the (ordered)
    criterion values of the \code{popsize} (rows) subsets in the final
-   generation. For criterion
-\code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare each \code{k}-variable subset with the subspace
-spanned by the first \code{k} PCs.} 
+   generation.} 
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
    the best values of the criterion obtained for each cardinality. If
    \code{improvement} is TRUE, these values result from the final
    restricted local search algorithm (and may therefore exceed the
-   largest value for that cardinality in \code{values}). For criterion
-\code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare the best \code{k}-variable subsets with
-the subspace spanned by the first \code{k} PCs.}
+   largest value for that cardinality in \code{values}).}
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables
    (referenced by their row/column numbers in matrix \code{mat}) in the
    best k-subset that was found.}
+
+   \item{call}{The function call which generated the output.}
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
@@ -221,6 +219,9 @@ genetic(cor(swiss),3,4,popsize=10,nger=5,criterion="Rv")
 ##$bestsets
 ##Var.1 Var.2 Var.3 
 ##    1     2     3 
+##
+##$call
+##genetic(cor(swiss), 3, 4, popsize = 10, nger = 5, criterion = "Rv")
 }
 
 \keyword{manip}

@@ -39,8 +39,7 @@ necessary to change the declarative statements in the Fortran code.
 }
 
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
-include = NULL, setseed = FALSE, criterion = "RM", pcindices
-= 1:kmax, initialsol=NULL)
+include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k", initialsol=NULL)
 }
 
 \arguments{
@@ -72,9 +71,11 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices
   "RV" or "GCD" (see References, \code{\link{rm.coef}}, 
   \code{\link{rv.coef}} and \code{\link{gcd.coef}} for further details).}
 
-  \item{pcindices}{a vector of ranks of Principal Components that are to be
+  \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the GCD
-  criterion only, see \code{\link{gcd.coef}}).}
+  criterion only, see \code{\link{gcd.coef}}) or the default text
+  \code{first_k}. The latter will associate PCs 1 to \emph{k} with each
+  cardinality \emph{k} that has been requested by the user.}
 
   \item{initialsol}{vector, matrix or 3-d array of initial solutions
   for the restricted local improvement search. If a \emph{single
@@ -111,7 +112,7 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices
   \code{initialsol} must also respect those requirements. }
 }
 
-\value{A list with four items:
+\value{A list with five items:
 
    \item{subsets}{An \code{nsol} x \code{kmax} x
    length(\code{kmin}:\code{kmax}) 3-dimensional array, giving for
@@ -122,21 +123,17 @@ include = NULL, setseed = FALSE, criterion = "RM", pcindices
 
    \item{values}{An \code{nsol} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the criterion values
-   of the \code{nsol} (rows) solutions obtained. For criterion
-\code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare each \code{k}-variable subset with the subspace
-spanned by the first \code{k} PCs.}
+   of the \code{nsol} (rows) solutions obtained.}
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
-   the best values of the criterion obtained for each cardinality. For
-criterion \code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare the best \code{k}-variable subsets with
-the subspace spanned by the first \code{k} PCs.}
+   the best values of the criterion obtained for each cardinality.}
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables
    (referenced by their row/column numbers in matrix \code{mat}) in the
    best k-subset that was found.}
+
+   \item{call}{The function call which generated the output.}
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
@@ -193,6 +190,9 @@ improve(cor(swiss),2,3,nsol=4,criterion="GCD")
 ##        Var.1 Var.2 Var.3
 ## Card.2     3     6     0
 ## Card.3     4     5     6
+##
+##$call
+##improve(cor(swiss), 2, 3, nsol = 4, criterion = "GCD")
 
 #
 #
@@ -234,5 +234,8 @@ improve(cor(swiss),2,3,nsol=4,criterion="GCD")
 ##        Var.1 Var.2 Var.3
 ## Card.2     1     6     0
 ## Card.3     1     5     6
+##
+##$call
+##improve(cor(swiss), 2, 3, nsol = 4, criterion = "GCD", include = c(1))
 }
 \keyword{manip}

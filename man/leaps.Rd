@@ -22,11 +22,11 @@ The user may force variables to be included and/or excluded from the
 
 In order to improve computation times, the bulk of computations are
 carried out by C++ routines. Further details about the Algorithm can 
-be found in References 2 and 3.
+be found in References 2 and 3 and in the comments to the C++ code.
 A discussion of the criteria considered can be found in Reference 1.}
 
 \usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,
-criterion="RM",pcindices=1:kmin,timelimit=15)}
+criterion="RM",pcindices=NULL,timelimit=15)}
 
 
 \arguments{
@@ -56,8 +56,8 @@ criterion="RM",pcindices=1:kmin,timelimit=15)}
 
   \item{pcindices}{a vector of ranks of Principal Components that are to be
   used for comparison with the variable subsets (for the GCD
-  criterion only, see \code{\link{gcd.coef}}).}
-
+  criterion only, see \code{\link{gcd.coef}}). \emph{This is a compulsory
+  argument for the \code{leaps} function, when the GCD criterion is requested}.}
 
   \item{timelimit}{a user specified limit (in seconds) for the maximum time 
    allowed to conduct the search. After this limit is exceeded, leaps exits
@@ -65,7 +65,7 @@ criterion="RM",pcindices=1:kmin,timelimit=15)}
    subsets within the allocated time.}
  }
 
-\value{A list with four items:
+\value{A list with five items:
 
    \item{subsets}{An \code{nsol} x \code{kmax} x
    length(\code{kmin}:\code{kmax}) 3-dimensional 
@@ -77,22 +77,17 @@ criterion="RM",pcindices=1:kmin,timelimit=15)}
 
    \item{values}{An \code{nsol} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the criterion values
-   of the best \code{nsol} (rows) subsets according to the chosen
-criterion. For criterion \code{GCD}, and unlike the behaviour of other
-search algorithms in this package, if no \code{pcindices} are
-specified, GCD values compare the variable subsets with the subspace
-spanned by the first \code{kmin} PCs.}   
+   of the best \code{nsol} (rows) subsets according to the chosen criterion.} 
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
-   the overall best values of the criterion for each cardinality. For criterion \code{GCD}, and unlike the behaviour of other
-search algorithms in this package, if no \code{pcindices} are
-specified, GCD values compare the variable subsets with the subspace
-spanned by the first \code{kmin} PCs.} 
+   the overall best values of the criterion for each cardinality.} 
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables
    (referenced by their row/column numbers in matrix \code{mat}) in
    the best k-subset.}
+
+   \item{call}{The function call which generated the output.}
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
@@ -175,6 +170,8 @@ leaps(cor(swiss),nsol=3,criterion="RM")
 ##Card.4     2     4     5     6     0
 ##Card.5     1     2     3     5     6
 ##
+##$call
+##leaps(cor(swiss), nsol = 3, criterion = "RM")
 
 #
 #
@@ -215,6 +212,9 @@ leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="RM")
 ##       Var.1 Var.2 Var.3
 ##Card.2     4     5     0
 ##Card.3     1     2     5
+##
+##$call
+##leaps(cor(swiss), 2, 3, exclude = 6, nsol = 3, criterion = "RM")
 
 #
 # Searching for 2- and 3- dimensional subsets that best approximate the 
@@ -255,7 +255,9 @@ leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 ##       Var.1 Var.2 Var.3
 ##Card.2     4     5     0
 ##Card.3     4     5     6
-
+##
+##$call
+##leaps(cor(swiss), 2, 3, criterion = "gcd", pcindices = 1:3, nsol = 3)
 }
 
 \keyword{manip}

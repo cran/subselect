@@ -1,159 +1,36 @@
 improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
-include=NULL, setseed = FALSE, criterion="RM", pcindices=1:kmax,
+include=NULL, setseed = FALSE, criterion="RM", pcindices="first_k",
 initialsol=NULL){
 
-# validation of input
 
-        if (!is.matrix(mat)) 
-          stop("Data is missing or is not given in matrix form")
-        if (dim(mat)[1] != dim(mat)[2]) {
-          mat <- var(mat)
-          warning("Data must be given as a covariance or correlation matrix.\n It has been assumed that you wanted the covariance matrix of the \n data matrix supplied")}
-        if (kmax < kmin) {
-          aux<-kmin
-          kmin<-kmax
-          kmax<-aux
-          warning("the argument kmin should precede the argument kmax.\n Since the value of kmin exceeded that of kmax, they have been swapped \n")}
-        p<-dim(mat)[[2]]
-        if (qr(mat)$rank != p) stop("\n The covariance/correlation matrix supplied is not of full rank")  
-  	if ( max( abs(mat-t(mat)) ) > 1E-6 ) 
-	    stop("\n The covariance/correlation matrix supplied is not symmetric")
-  	if ( eigen(mat,only.values=TRUE)$values[p] < 0 )
-            stop("\n The covariance/correlation matrix supplied is not positive definite")
-        if (kmin >= p) {
-             kmin<-p-1
-             warning("\n The value of kmin requested is equal to or exceeds the number \n of variables. It has been set at p-1")
-            }  
-        if (kmax >= p) {
-             kmax<-p-1
-             warning("\n The value of kmax requested is equal to or exceeds the number \n of variables. It has been set at p-1")
-            }
-        if (sum(duplicated(c(exclude,include))) > 0)
-          stop("\n You have requested that the same variable be both included in, and excluded \n from, the subset.")
-         labelsrm<-c("RM","Rm","rm","1",1)
-         labelsrv<-c("RV","Rv","rv","2",2)
-         labelsgcd<-c("GCD","Gcd","gcd","3",3)
-         if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified")
-         if  (!is.null(initialsol) & (sum(!(as.integer(initialsol) == initialsol)) > 0)) stop("\n The initial solutions must be specified as integers indicating variable numbers")
-         if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers")
+###############################
+# general validation of input #
+###############################
 
-# initializations for the Fortran subroutine
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices)
+
+##########################################################################
+# more specific validation of input for the anneal and improve functions #
+##########################################################################
+
+        implog<-TRUE
+        validannimp(kmin, kmax, nsol, exclude, nexclude, include, ninclude, initialsol, implog)
+
+
+
+###########################################
+# initializations for Fortran subroutine  #
+###########################################
 
         if (setseed == TRUE) set.seed(2,kind="default")
-        if (sum(criterion == labelsrm) > 0) criterio<-1
-        if (sum(criterion == labelsrv) > 0) criterio<-2
-        if (sum(criterion == labelsgcd) > 0) criterio<-3
-
-        nexclude<-length(exclude)
-        if (kmax >= p-nexclude) stop("\n Cardinalities requested are too large for the requested number of excluded variables")
-        if (nexclude !=0) exclude<-sort(exclude)  
-        exc<-c(0,exclude)
-        ninclude<-length(include)
-        if (kmin <= ninclude) stop("\n Cardinalities requested are too small for the requested number of included variables")
-        if (ninclude !=0) include<-sort(include)
-        inc<-c(0,include)
-        if (length(pcindices) != kmax) esp<-TRUE else {if (sum(pcindices != 1:kmax)>0) esp<-TRUE  else esp<-FALSE}
-
-
-# initializations when initial solutions are specified; checking for
-# nature of initialsol (and how to interpret it) and for
-# conflicts with the exclude and include parameters (which inital
-# solutions must respect)
-
-        if (is.null(initialsol)) {silog <- FALSE}
-        else {silog <- TRUE  # initial solutions have been specified by user          
-
-# checking for the presence of variables that are to be forcefully
-# excluded
-
-            if ((nexclude != 0) & (sum(exclude == rep(initialsol,rep(length(exclude),length(as.vector(initialsol))))) !=0)) stop("\n the specified initial solutions contain variables that are to be excluded")
-
-# how to deal with various formats of input (of initial solutions) for
-# a single cardinality
-
-            dimsol<-dim(initialsol)
-            if (length(dimsol) > 3) {stop("\n Can't handle arrays of more than 3 dimensions")}
-            if (kmin == kmax) {
-
-# inital solution is a vector: must be repeated if nsol > 1
-
-               if (is.vector(initialsol)) {
-                   if (length(initialsol) != kmax) 
-                     {stop("\n The specified initial and final solutions have different cardinalities")}
-                   else
-                     {if (nsol > 1) {
-                     initialsol<-matrix(nrow=nsol,ncol=kmax,rep(initialsol,rep(nsol,kmax)))
-                     warning("\n a single initial subset necessarily produces nsol identical final solutions")}
-                    }
-               }
-
-# initial solution is array?
-
-              if (is.array(initialsol)) {
-
-# initialsol is 3-d array
-              if (length(dimsol) == 3) {
-                 if (dim(initialsol)[[3]] > 1) stop("\n The input array of initial solutions must have dimensions as \n nsol x k x 1 when a single cardinality is requested")
-                 else initialsol<-matrix(nrow=dim(initialsol)[[1]],ncol=dim(initialsol)[[2]],initialsol)
-              }
-              else
-
-# initialsol is matrix: must be of form nsol x k
- 
-                 {if (dim(initialsol)[[2]] != kmax) stop("\n Input matrix of initial solutions must have as many columns as variables in the requested subset")
-                  else 
-                      {if  (dim(initialsol)[[1]] != nsol) {
-                         if (dim(initialsol)[[1]] == 1) {
-                          initialsol<-matrix(nrow=nsol,ncol=dim(initialsol)[[2]],rep(initialsol,rep(nsol,kmax))) 
-                          warning("\n a single initial subset necessarily produces nsol identical final solutions")
-                         }
-                           else {stop("\n The number of initial solutions can only be 1 or nsol (number of final solutions requested)")}}}}
-              }}
-
-# how to deal with various formats of input (initialsol) if more than
-# one cardinality is requested
-
-             else  # (if kmax > kmin), i.e., more than one cardinality requested
-
-# initial solution cannot be a single vector
-
-              {if (is.vector(initialsol)) stop("\n There must be initial solutions for all cardinalities requested")
-
-               if (is.array(initialsol)) {
-
-# initial solution 3-d array?
-
-                  if (length(dim(initialsol)) == 3) {
-                   if ((dim(initialsol)[[3]] != length(kmin:kmax)) | (dim(initialsol)[[2]] != kmax) | ((dim(initialsol)[[1]] != nsol) & (dim(initialsol)[[1]] > 1))) stop("\n The input array of initial solutions must have dimensions as \n nsol x kmax x no. of different cardinalities requested")
-                   else 
-                    { if (dim(initialsol)[[1]] != nsol) {
-                       initialsol<-array(dim=c(nsol,kmax,length(kmin:kmax)),rep(initialsol,rep(nsol,kmax*length(kmin:kmax))))
-                       warning("\n a single initial subset necessarily produces nsol identical final solutions")
-                      } 
-                  }}
-                else 
-
-# if initalsol is a matrix
-
-                    {
-                    if ((dim(initialsol)[[2]] != kmax) | (dim(initialsol)[[1]] != length(kmin:kmax))) stop("\n A matrix of initial solutions for more than one cardinality must be of type no. of cardinalities x kmax")
-                    if (nsol > 1) {
-                       initialsol<-array(dim=c(nsol,kmax,length(kmin:kmax)),rep(t(initialsol),rep(nsol,kmax*length(kmin:kmax)))) 
-                       warning("\n a single initial subset necessarily produces nsol identical final solutions")
-                    }
-}}}
-                 if ((ninclude != 0) & (sum(include == rep(initialsol,rep(length(include),length(as.vector(initialsol))))) != nsol*length(kmin:kmax)*length(include))) stop("\n Not all the specified initial solutions contain the variables that are to be included") 
-}
-
-
-# initializations for Fortran subroutine
-
         valores<-rep(0.0,(kmax-kmin+1)*nsol)
         vars<-rep(0,nsol*length(kmin:kmax)*kmax)
         bestval<-rep(0.0,length(kmin:kmax))
         bestvar<-rep(0,kmax*length(kmin:kmax))
 
-# call to Fortran subroutine
+###############################
+# call to Fortran subroutine  #
+###############################
 
         Fortout<-.Fortran("improve",as.integer(criterio),as.integer(p),
           as.double(as.vector(mat)),
@@ -165,7 +42,9 @@ initialsol=NULL){
           as.logical(esp),as.logical(silog),
           as.integer(as.vector(initialsol)),PACKAGE="subselect")
 
-# preparing the output
+########################
+# preparing the output #
+########################
 
         valores<-matrix(ncol=length(kmin:kmax),nrow=nsol,Fortout[[6]])
         dimnames(valores)<-list(paste("Solution",1:nsol,sep=" "),paste("card.",kmin:kmax,sep=""))
@@ -175,8 +54,8 @@ initialsol=NULL){
         names(bestval)<-paste("Card",kmin:kmax,sep=".")
         bestvar<-t(matrix(nrow=kmax,ncol=length(kmin:kmax),Fortout[[9]]))
         dimnames(bestvar)<-list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
-        output<-list(variaveis,valores,bestval,bestvar)
-        names(output)<-c("subsets","values","bestvalues","bestsets")
+        output<-list(variaveis,valores,bestval,bestvar,match.call())
+        names(output)<-c("subsets","values","bestvalues","bestsets","call")
         output}
 
 

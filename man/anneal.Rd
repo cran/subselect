@@ -54,7 +54,7 @@ necessary to change the declarative statements in the Fortran code.
 \usage{anneal( mat, kmin, kmax = kmin, nsol = 1, niter = 1000, exclude
 = NULL, include = NULL, improvement = TRUE, setseed = FALSE,
 cooling = 0.05,  temp = 1, coolfreq = 1, criterion = "RM",
-pcindices = 1:kmax), initialsol=NULL )} 
+pcindices = "first_k"), initialsol=NULL )} 
 
 \arguments{
 
@@ -103,9 +103,11 @@ pcindices = 1:kmax), initialsol=NULL )}
   \code{\link{rv.coef}} and \code{\link{gcd.coef}} for further
   details).}
 
-  \item{pcindices}{a vector of ranks of Principal Components that are to be
+  \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the GCD
-  criterion only, see \code{\link{gcd.coef}}).}
+  criterion only, see \code{\link{gcd.coef}}) or the default text
+  \code{first_k}. The latter will associate PCs 1 to \emph{k} with each
+  cardinality \emph{k} that has been requested by the user.}
 
   \item{initialsol}{vector, matrix or 3-d array of initial solutions
   for the simulated annealing search. If a \emph{single cardinality} is
@@ -135,7 +137,7 @@ pcindices = 1:kmax), initialsol=NULL )}
   \code{initialsol} must also respect those requirements. }
 }
 
-\value{A list with four items:
+\value{A list with five items:
 
    \item{subsets}{An \code{nsol} x \code{kmax} x
    length(\code{kmin}:\code{kmax}) 3-dimensional 
@@ -147,24 +149,20 @@ pcindices = 1:kmax), initialsol=NULL )}
 
    \item{values}{An \code{nsol} x length(\code{kmin}:\code{kmax})
    matrix, giving for each cardinality (columns), the criterion values
-   of the \code{nsol} (rows) subsets obtained. For criterion
-\code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare each \code{k}-variable subset with the subspace
-spanned by the first \code{k} PCs.}
+   of the \code{nsol} (rows) subsets obtained.}
 
    \item{bestvalues}{A length(\code{kmin}:\code{kmax}) vector giving
    the best values of the criterion obtained for each cardinality. If
    \code{improvement} is TRUE, these values result from the final
    restricted local search algorithm (and may therefore exceed the
-   largest value for that cardinality in \code{values}). For criterion
-\code{GCD}, if no \code{pcindices} are 
-specified, GCD values compare the best \code{k}-variable subsets with
-the subspace spanned by the first \code{k} PCs.}
+   largest value for that cardinality in \code{values}).}
 
    \item{bestsets}{A length(\code{kmin}:\code{kmax}) x \code{kmax}
    matrix, giving, for each cardinality (rows), the variables
    (referenced by their row/column numbers in matrix \code{mat}) in
    the best k-subset that was found.}
+
+   \item{call}{The function call which generated the output.}
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
@@ -222,6 +220,9 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM")
 ##       Var.1 Var.2 Var.3
 ##Card.2     3     6     0
 ##Card.3     4     5     6
+##
+##$call
+##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "RM")
 
 
 #
@@ -265,7 +266,10 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM",exclude=c(6))
 ##       Var.1 Var.2 Var.3
 ##Card.2     4     5     0
 ##Card.3     1     2     5
-
+##
+##$call
+##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "RM",
+##     exclude=c(6))
 
 # specifying initial solutions: using the subsets produced by
 # simulated annealing for one criterion (RM, by default) as initial
@@ -308,5 +312,9 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd", initialsol=rmresults$subs
 ##       Var.1 Var.2 Var.3
 ##Card.2     3     6     0
 ##Card.3     4     5     6
+##
+##$call
+##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "gcd", 
+##    initialsol = rmresults$subsets)
 }
 \keyword{manip}
