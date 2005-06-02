@@ -31,7 +31,7 @@ smallest and largest eigenvalues is less than \code{tolval}). For an
 ill-conditioned input matrix, execution is aborted. The function \code{\link{trim.matrix}} may be used to obtain a well-conditioned input matrix.}
 
 \usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,
-criterion="RM",pcindices="first_k",timelimit=15, tolval=.Machine$double.eps)}
+criterion="RM",pcindices="first_k",timelimit=15, tolval=10*.Machine$double.eps)}
 
 
 \arguments{
@@ -59,10 +59,11 @@ criterion="RM",pcindices="first_k",timelimit=15, tolval=.Machine$double.eps)}
   "RV" or "GCD" (see References, \code{\link{rm.coef}}, 
   \code{\link{rv.coef}} and \code{\link{gcd.coef}} for further details).}
 
-  \item{pcindices}{a vector of ranks of Principal Components that are to be
-  used for comparison with the variable subsets (for the GCD
-  criterion only, see \code{\link{gcd.coef}}). \emph{This is a compulsory
-  argument for the \code{leaps} function, when the GCD criterion is requested}.}
+  \item{pcindices}{either a vector of ranks of Principal Components that are to be
+  used for comparison with the k-variable subsets (for the GCD
+  criterion only, see \code{\link{gcd.coef}}) or the default text
+  \code{first_k}. The latter will associate PCs 1 to \emph{k} with each
+  cardinality \emph{k} that has been requested by the user.}
 
   \item{timelimit}{a user specified limit (in seconds) for the maximum time 
    allowed to conduct the search. After this limit is exceeded, leaps exits
@@ -268,3 +269,4 @@ leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 }
 
 \keyword{manip}
+

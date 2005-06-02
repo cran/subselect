@@ -2,7 +2,7 @@ anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,
 exclude=NULL, include=NULL, improvement=TRUE, 
 setseed = FALSE, cooling=0.05, temp=1,
 coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL,
-force=FALSE, tolval=.Machine$double.eps){
+force=FALSE, tolval=10*.Machine$double.eps){
 
 ###############################
 # general validation of input #

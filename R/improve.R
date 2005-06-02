@@ -1,6 +1,6 @@
 improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
 include=NULL, setseed = FALSE, criterion="RM", pcindices="first_k",
-initialsol=NULL, force=FALSE, tolval=.Machine$double.eps){
+initialsol=NULL, force=FALSE, tolval=10*.Machine$double.eps){
 
 
 ###############################

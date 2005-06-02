@@ -1,4 +1,4 @@
-trim.matrix<-function(mat, tolval=1e-15){
+trim.matrix<-function(mat, tolval=10*.Machine$double.eps){
 
         if (tolval < 0) stop("\n The 'tolval' argument must be non-negative.")
 

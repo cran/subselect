@@ -1,7 +1,7 @@
 genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="RM", pcindices="first_k",
-initialpop=NULL, force=FALSE, tolval=.Machine$double.eps){
+initialpop=NULL, force=FALSE, tolval=10*.Machine$double.eps){
 
 ###############################
 # general validation of input #

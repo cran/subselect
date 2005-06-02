@@ -1,7 +1,19 @@
+
+
+########## Version 0.9.1 (June 2005) #############
+
+1) The default value of argument "tolval" in functions "trim.matrix",
+"leaps", "anneal", "genetic" and "improve" has been changed to
+10*.Machine$double.eps (previously .Machine$double.eps).
+
+2) Correction of minor mistakes in the "leaps" help page and in
+function "validation" (which is not in the Namespace) - changes made
+to the "leaps" function between versions 0.8 and 0.9 had not been updated
+in this function and help page.
+
 ########## Version 0.9 (March 2005) #############
 
 1) Namespace added.
-
 
 2) A new function "trim.matrix" was introduced, to deal with the issue
 of multicollinearities in the input data.
@@ -10,7 +22,8 @@ of multicollinearities in the input data.
 "improve") now perform a teste for multicollinearity, which consists
 in comparing the ratio of the smallest to the largest eigenvalue of
 the input covariance/correlation 
-matrix with the new argument "tolval" (1e-15, by default). If this
+matrix with the new argument "tolval" (.Machine$double.eps, by
+default). If this 
 ratio is smaller than "tolval", the function exits with a
 message to the user requiring that the input matrix be cleared of its
 ill-conditionment (perhaps through the use of the new function

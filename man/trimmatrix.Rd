@@ -9,7 +9,7 @@ until a well-conditioned submatrix is obtained.}
 This function seeks to deal with ill-conditioned matrices, for which the search algorithms of optimal k-variable subsets could encounter numerical problems. Given a square matrix \code{mat} which is assumed positive semi-definite, the function checks whether it has reciprocal of the 2-norm condition number (i.e., the ratio of the smallest to the largest eigenvalue) smaller than \code{tolval}. If not, the matrix is considered well-conditioned and remains unchanged. If the ratio of the smallest to largest eigenvalue is smaller than \code{tolval}, an iterative process is begun, which deletes rows/columns (using Jolliffe's method for subset selections described on pg. 138 of the Reference below) until a principal submatrix with reciprocal of the condition number larger than \code{tolval} is obtained.
 }
 
-\usage{trim.matrix(mat,tolval=1E-15)}
+\usage{trim.matrix(mat,tolval=10*.Machine$double.eps)}
 
 \arguments{
 

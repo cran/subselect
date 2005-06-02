@@ -89,7 +89,7 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 
          esp<-FALSE
          if (criterio == 3) { 
-                            if (is.null(pcindices)) stop("\n For criterion GCD, argument pcindices must be explicitely set in the leaps \n function, must be non-NULL in other search functions. \n")
+                            if (is.null(pcindices)) stop("\n For criterion GCD, argument pcindices must be non-NULL. \n")
                             if (is.numeric(pcindices))  {esp<-TRUE
                                     if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers.\n")
                                     if (max(pcindices)  >  p) stop("\n PCs of rank larger than the data set were requested. \n")
