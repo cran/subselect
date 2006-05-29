@@ -4,22 +4,29 @@
 #include "Subsets.h"
 #include "Vsmabo.h"
 
-using namespace leapsnbnds;
+namespace extendedleaps {
+
+extern long unsigned *sbsetcnt;                                                 
+
+const unsigned SRC  = 1;
+const unsigned INV  = 0;
 
 const real   NOBND = 1E99;
 
-void prcksp1(wrkspace *,vind,vind,vind,vind);
+void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vind maxvi);
 void getactv(wrkspace *,vind,vind,vind);
 void actvcnv(vind,vind,vind *,vind *);
 bool leap(vind,real,const real *,vind,vind);
+real getbounds(vind dir,vind minv,vind maxv);
+int cmp(const void *a,const void *b);
 
 #ifdef COUNTING
 void showcnt(int,long unsigned,vind);
 #endif
 
 extern vind maxdim,*prvks;    
-extern int pcrttp;
-extern enum {given,firstk} pcsets;
+extern short int	pcrttp;                                         
+extern pcskept pcsets;
 extern real   crub,*bndl;
 extern psbstlist *bsts;
 
@@ -67,26 +74,34 @@ void getactv(wrkspace *w,vind t,vind k1,vind nv)
 		{ for (vind i=0;i<nv;i++) actv[i] = wlst->getithvar(wlst->getvar(i+1)-1)+1; }
 }
 
-void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi)
+void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vind maxvi)
 {
-	real crt;              
+	real crt,ind,acptbound;              
 	sbset *prevsbset,*st;
 	sbstlist::iterator ptprevsbset;
 	
 	assert(k0 > k1);
-	if (k1 == 0)  w->pivot(vi,vi+1,vi,k0,0);
-	else w->pivot(vi,vi+1,p-1,k0,k1);
+	if (w->usebounds())  {
+		acptbound = getbounds(pcrttp,minvi,maxvi);
+		if (k1 == 0)  w->pivot(vi,0,k0,0,true,acptbound);
+		else w->pivot(vi,p-1-vi,k0,k1,true,acptbound);
+	}
+	else {
+		if (k1 == 0)  w->pivot(vi,0,k0,0,false,0.);
+		else w->pivot(vi,p-1-vi,k0,k1,false,0.);
+	}
 	if (nv < mindim || nv > maxdim) return;
 	#ifdef COUNTING
 	++cntg;
 	#endif
 	crt = w->subsetat(k1+1).getdata().criterion();  
-
+	ind = w->subsetat(k1+1).getdata().indice();  
+	
 	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	// Check if new subset is better than any of the
 	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	// sets in current best set list for this dimension
 	
 	getactv(w,tree,k1,nv);
-	st = csbset(nv,actv,crt);	
+	st = csbset(nv,actv,crt,ind);	
 	psbstlist curlist = bsts[nv-mindim];
 
 	if (sbsetcnt[nv-mindim] == ms)  {				// Remove and discard worst subset saved	   
@@ -102,11 +117,11 @@ void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi)
 	return;
 }
 
-bool leapsnbnds::prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
+bool prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
 {
 	vind ks0;
 	static vind k1;
-	vind maxnvs,maxnvi,minnv,maxnv;  
+	vind nv,maxnvs,maxnvi,maxnv,minnvs,minnvi,minnv;  
 	real   bnd = NOBND;                                     
 	const  real*	cbnd;                         
 
@@ -114,19 +129,24 @@ bool leapsnbnds::prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
 		if (clock()-btime > maxtime) return false;
 	} 
 
-	maxnvs = nvs+k; 
+	if ( (maxnvs=nvs+k) > maxdim) maxnvs = maxdim;
 	maxnvi = nvi-1;
-	{ for (vind minnvs=nvs+1,minnvi=nvi-k,i=0;i<k;minnvs++,minnvi++,i++)  {
+	{ for (vind i=0;i<k;i++)  {
 		if (i == 0) ks0 = ks;
 		else ks0 = k1;
 		k1 = p-1-fv-i;
 		if (k1 > 0) prvks[k1-1] = ks0;
+		nv = minnvs = nvs+1+i;
 		if (maxnvs >= mindim && minnvs <= maxdim) 
-			if (minnvs == maxdim) prcksp1(SW,SRC,ks0,0,minnvs,fv+i);
-			else prcksp1(SW,SRC,ks0,k1,minnvs,fv+i);
+			if (minnvs < mindim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,mindim,maxnvs);
+			else if (minnvs < maxdim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,minnvs,maxnvs);
+				 else prcksp1(SW,SRC,ks0,0,nv,fv+i,minnvs,maxnvs);
+		nv = nvi - 1;
+		if ( (minnvi=nvi-k+i) < mindim) minnvi = mindim;
 		if (maxnvi >= mindim && minnvi <= maxdim) 
-			if (maxnvi == mindim) prcksp1(IW,INV,k,0,maxnvi,fv+i);
-			else prcksp1(IW,INV,k,k1,maxnvi,fv+i);
+			if (maxnvi > maxdim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxdim);
+			else if (maxnvi > mindim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxnvi);
+				 else prcksp1(IW,INV,k,0,nv,fv+i,minnvi,maxnvi);
 	} }
 	{ for (vind i=1;i<k;i++)   {
 		minnv = nvs+k-i;
@@ -144,16 +164,31 @@ bool leapsnbnds::prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
 	return true;
 }
 
-
 bool leap(vind dir,real crt,const real *crtcrr,vind minv,vind maxv)
 {
 	vind i;
 	bool l;
 
 	for (l=true,i=maxv;l&&i>=minv;i--) {
-		if (crtcrr && i < maxv) crt -= crtcrr[i];	// Remove ith+1 parcel when using GCD with i (variable) PCs 
+		if (crtcrr && i < maxv) crt -= crtcrr[i];	
+		// Remove ith+1 parcel when using a quadratic form criterion with a variable number of parcels (ex: GCD)
 		if (dir == MAXIMZ && crt > lbnd[i-mindim]) l = false; 
 		else if (dir == MINIMZ && crt < ubnd[i-mindim]) l = false;
 	}
 	return l;
+}
+
+real getbounds(vind dir,vind minv,vind maxv)
+{
+	real bound;
+
+	if (dir == MAXIMZ) bound = lbnd[minv-mindim];
+	else bound = ubnd[minv-mindim];
+	for (vind i=minv-mindim+1;i<=maxv-mindim;i++) {
+		if (dir == MAXIMZ && lbnd[i] < bound) bound = lbnd[i]; 
+		else if (dir == MINIMZ && ubnd[i] > bound) bound = ubnd[i];
+	}
+	return bound;
+}
+
 }

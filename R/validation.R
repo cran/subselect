@@ -1,4 +1,4 @@
-validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval){
+validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym){
 
 ##########################################################
 #  general validation of input for all search functions  #
@@ -8,34 +8,45 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 
 ####################################################################
 # checking for an input matrix that must be square, of full rank,  #
-#    symmetric, positive definite                                  #
+#    symmetric, positive definite  - calls the 'validmat' routine  #
 ####################################################################
 
-         if (!is.matrix(mat)) stop("Data is missing or is not given in matrix form\n")
-         p<-dim(mat)[2] 
-         if (dim(mat)[1] != p) {
-         mat <- cor(mat)
-         warning("Data must be given as a covariance or correlation matrix.\n It has been assumed that you wanted the correlation matrix of the \n data matrix supplied\n")}
-         if (sum(mat != t(mat)) > 0) 
-	    stop("\n The covariance/correlation matrix supplied is not symmetric.\n")
-         eigvals<-eigen(mat,symmetric=TRUE)
-         if (eigvals$values[p]/eigvals$values[1] < tolval) stop(paste("\n The covariance/correlation matrix supplied has reciprocal condition number \n smaller than the specified threshold of",tolval,". \n Setting a lower value of the 'tolval' function argument may force a solution, \n but numerical accuracy  may be compromised. \n Try a new function call after excluding  variables responsible for the \n (real or approximate) linear dependences. See help(trim.matrix) for  \n assistance in this respect."))
+         p <- dim(mat)[2]
+         validmat(mat,p,tolval,tolsym)
+
 
 #################################################
 # checking acceptability of criterion requested #
 #################################################
          
-         labelsrm<-c("RM","Rm","rm","1",1)
-         labelsrv<-c("RV","Rv","rv","2",2)
-         labelsgcd<-c("GCD","Gcd","gcd","3",3)
-         if (sum(criterion == c(labelsrm,labelsrv,labelsgcd)) == 0) stop("criterion requested is not catered for, or has been misspecified\n")
+ 	labelsrm<-c("RM","Rm","rm","1",1)
+       	labelsrv<-c("RV","Rv","rv","2",2)
+       	labelsgcd<-c("GCD","Gcd","gcd","3",3)
+	labelstau<-c("TAU_2","Tau_2","tau_2","TAU2","Tau2","tau2","TAU","Tau","tau","WILKS","Wilks","wilks")
+	labelsxi<-c("XI_2","Xi_2","xi_2","XI2","Xi2","xi2","XI","Xi","xi","BARTLLET","Bartllet","bartllet")
+	labelszeta<-c("ZETA_2","Zeta_2","zeta_2","ZETA2","Zeta2","zeta2","ZETA","Zeta","zeta","HOTELLING","Hotelling","hotelling")
+       	labelsccr1<-c("CCR1_2","Ccr1_2","ccr1_2","CCR12","Ccr12","ccr12","CCR2","Ccr2","ccr2","CCR1","Ccr1","ccr1","ROY","Roy","roy")
+         	
+	if (sum(criterion == c(labelsrm,labelsrv,labelsgcd,labelstau,labelsxi,labelszeta,labelsccr1)) == 0) 
+		stop("criterion requested is not catered for, or has been misspecified\n")
 
-         if (sum(criterion == labelsrm) > 0) criterio<-1
-         if (sum(criterion == labelsrv) > 0) criterio<-2
-         if (sum(criterion == labelsgcd) > 0) criterio<-3
+       	if (sum(criterion == labelsrm) > 0) criterio<-1
+       	if (sum(criterion == labelsrv) > 0) criterio<-2
+       	if (sum(criterion == labelsgcd) > 0) criterio<-3
+       	if (sum(criterion == labelstau) > 0) criterio<-4
+       	if (sum(criterion == labelsxi) > 0) criterio<-5
+       	if (sum(criterion == labelszeta) > 0) criterio<-6
+       	if (sum(criterion == labelsccr1) > 0) criterio<-7
+      		
+	if (criterio == 1)  criterion <- "RM"
+	if (criterio == 2)  criterion <- "RV"
+	if (criterio == 3)  criterion <- "GCD"
+	if (criterio == 4)  criterion <- "TAU_2"
+	if (criterio == 5)  criterion <- "XI_2"
+	if (criterio == 6)  criterion <- "ZETA_2"
+	if (criterio == 7)  criterion <- "CCR1_2"
 
-
-         
+        
 ######################################################################
 #  checking consistency of the requested values of kmin, kmax        #
 #  (extreme sizes of variable subsets). The validation that kmax<=p  #
@@ -48,13 +59,25 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
           kmin<-kmax
           kmax<-aux
           warning("the argument kmin should precede the argument kmax.\n Since the value of kmin exceeded that of kmax, they have been swapped \n")}
-         if (kmin >= p) {
+          if (kmin != floor(kmin)) {
+                  kmin<-floor(kmin)
+                  warning("\n The value of 'kmin' requested was not an integer. It has been truncated. \n")
+            }                  
+          if (kmin >= p) {
              kmin<-p-1
              warning("\n The value of kmin requested is equal to or exceeds the number \n of variables. It has been set at p-1. \n")
             }
+          if (kmin < 1) {
+             kmin <- 1
+             warning("\n The value of kmin requested is less than 1. It has been set at 1. \n")
+            }
+          if (kmax != floor(kmax)) {
+                  kmax<-floor(kmax)
+                  warning("\n The value of 'kmax' requested was not an integer. It has been truncated. \n")
+            }   
          if (kmax >= p) {
-                         kmax<-p-1
-                         warning("\n The value of kmax requested is equal to or exceeds the number \n of variables. It has been set at p-1. \n")
+         	kmax<-p-1
+         	warning("\n The value of kmax requested is equal to or exceeds the number \n of variables. It has been set at p-1. \n")
             }
 
 #############################################################
@@ -109,7 +132,8 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
          assign("include",include,pos=parent.frame())         
          assign("nexclude",nexclude,pos=parent.frame())         
          assign("ninclude",ninclude,pos=parent.frame())         
-         assign("criterio",criterio,pos=parent.frame())    
+         assign("criterio",criterio,pos=parent.frame())   
+         assign("criterion",criterion,pos=parent.frame())    
          assign("pcindices",pcindices,pos=parent.frame())         
          assign("p",p,pos=parent.frame())                  
          assign("exc",exc,pos=parent.frame())         

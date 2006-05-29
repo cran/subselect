@@ -4,13 +4,12 @@
 #include "Subsets.h"
 #include "Vsmabo.h"
 
-using namespace leapsnbnds;
+namespace extendedleaps {
 
 extern vind flsts,lastvar,mindim,*inactv;  
 extern psbstlist* bsts;
 
-
-void leapsnbnds::savfrst()
+void savfrst()
 {
 	subset* fset;
 
@@ -22,7 +21,7 @@ void leapsnbnds::savfrst()
 	}
 	assert(lastvar > 0 && lastvar <= p);  
 	actv[p-lp-1] = lastvar;
-	sbset* st = csbset(fp,actv,fset->getdata().criterion());
+	sbset* st = csbset(fp,actv,fset->getdata().criterion(),fset->getdata().indice());
 	bsts[0]->insert(st);
 	#ifdef COUNTING
 	cntg++;
@@ -30,7 +29,7 @@ void leapsnbnds::savfrst()
 	return;
 }
 
-void leapsnbnds::savfull(void)
+void savfull(void)
 {
 	subset* wlst; 
 
@@ -46,10 +45,13 @@ void leapsnbnds::savfull(void)
 	} }
 	assert(lastvar > 0 && lastvar <= p);  
 	actv[p-lp-1] = lastvar;
-	sbset*  st = csbset(p-lp,actv,wlst->getdata().criterion());
+	sbset*  st = csbset(p-lp,actv,wlst->getdata().criterion(),wlst->getdata().indice());
 	bsts[p-lp-mindim]->insert(st);
 	#ifdef COUNTING
 	cntg++;
 	#endif
 	return;
 }
+
+}
+

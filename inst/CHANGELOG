@@ -1,4 +1,44 @@
 
+########## Version 0.9.9 (May 2006) ############
+
+Some major changes, as well as some minor ones.
+
+1) Four new criteria have been added: "CCR1_2", "TAU_2", "XI_2" and
+"ZETA_2". All are criteria for subset selection in the context of the
+multivariate linear model. The four criteria were added as options for
+the "criterion" argument in the subset selection algorithms (anneal,
+genetic, improve and leaps). 
+
+2) Four new functions were created to compute the value of the new
+criteria when given a total matrix, a model effects matrix (H) with
+its expected rank (r) and a subset of variables. These new functions
+are called "ccr12.coef", "tau2.coef", "xi2.coef" and "zeta2.coef", and join
+the similar functions "gcd.coef", "rm.coef" and "rv.coef" which already
+existed. 
+
+3) Two new auxiliary functions were created: "validmat" and
+"validnovcrit", which include validation checks for the symmetry and
+positive definiteness of the total matrix and for the suitability of
+the H and r arguments of the new criteria, respectively. These are not
+to be called directly by the user.
+
+4) The validation part of the old and new functions has been further
+modularized, with calls to the new validation functions mentioned above.
+
+5) A new argument "tolsym", with default value
+1000*.Machine$double.eps, has been added to the four search functions
+(anneal, genetic, improve and leaps). It is used in the symmetry
+checks of the total and effects (H) matrices. When the supplied
+matrices have corresponding elements differing by more than this value,
+they are rejected. If corresponding elements differ, but by less than this
+value, the supplied matrix is replaced by its symmetric part and a
+warning is provided.
+
+6) Man files were written for the new functions, and the help files
+for the search functions were improved, with examples using the new
+criteria. 
+
+
 
 ########## Version 0.9.1 (June 2005) #############
 
@@ -19,7 +59,7 @@ in this function and help page.
 of multicollinearities in the input data.
 
 3) The four search functions ("leaps", "anneal", "genetic" and
-"improve") now perform a teste for multicollinearity, which consists
+"improve") now perform a test for multicollinearity, which consists
 in comparing the ratio of the smallest to the largest eigenvalue of
 the input covariance/correlation 
 matrix with the new argument "tolval" (.Machine$double.eps, by

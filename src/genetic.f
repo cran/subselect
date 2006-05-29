@@ -3,13 +3,14 @@
        SUBROUTINE genetic(criterio,p,svector,kmin,kmax,valores,vars,
      +   bestval,bestvar,nfora,fora,ndentro,dentro,npopinic,nger,nclone,
      +   melhorar,mutprob,improvement,nqsi,qsi,esp,kabort,pilog,popinit,
-     +   valp, vecvecp)
+     +   valp, vecvecp,hvector,rh)
 *#######################################################################
 
 * Routine to perform a Genetic Algorithm search for a k-variable subset
 * of a set of p original variables, which maximizes one of several criteria.
-* (The criteria currently considered are RM, RV and GCD). The user may force 
-* the inclusion and/or exclusion of certain variables from the k-subset.
+* (The criteria currently considered are RM, RV, GCD, TAU_2,XI_2,ZETA_2 and 
+*  CCR1_2). The user may force  the inclusion and/or exclusion of certain 
+*  variables from the k-subset.
 * 
 * Designed to be called by an R/S function "genetic" (included in the package 
 * "subselect", available from CRAN).
@@ -67,6 +68,11 @@
 * vecvecp  - double precision vector, giving the eigenvectors of the 
 *            covariance (or correlation) matrix of the p variables (given 
 *            as a vector for convenience in passing from R to Fortran). 
+* hvector  - double precision vector, giving the full effect descrption 
+*            matrix (H) of the p variables (given as a vector for
+*            convenience in passing from R to Fortran). 
+*   rh     - integer variable giving the expected rank of H matrix.
+* 
 *
 * OUTPUT: 
 *
@@ -102,23 +108,23 @@
 * general declarations
        INTEGER p,kmin,kmax,criterio,npopinic,nger,nclone,poriginal
        INTEGER fora(0:nfora),fica(0:p),dentro(0:ndentro),auxw(kmax)
-       INTEGER talvez,painaomae(kmax),maenaopai(kmax)
-       INTEGER ordemger(0:npopinic)
+       INTEGER talvez,painaomae(kmax),maenaopai(kmax),rh
+       INTEGER ordemger(0:npopinic),iseed(4)
        INTEGER garanhao(npopinic),femea(npopinic),randint
        INTEGER vars(npopinic*(kmax-kmin+1)*kmax)
        INTEGER bestvar((kmax-kmin+1)*kmax),kabort
        LOGICAL setk(p),improvement !,printfile
-       LOGICAL pop(npopinic,p),novager(npopinic,p),rep(p)
+       LOGICAL pop(npopinic,p),novager(npopinic,p),rep(p+1)
        LOGICAL filho(npopinic,p),igual,melhorar
 * LOGICAL silog
-       DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p), vecvecp(p*p)
-       DOUBLE PRECISION vactual,vcorrente
+       DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p), vecvecp(p*p),h(p,p)
+       DOUBLE PRECISION vactual,vcorrente,hvector(p*p)
        DOUBLE PRECISION valores((kmax-kmin+1)*npopinic)
        DOUBLE PRECISION valuepop(npopinic+1),valueger(0:npopinic)
        DOUBLE PRECISION critvalue,amax,aux,somavalue,acumulado,vantes
        DOUBLE PRECISION vmaximo,valuenovager(npopinic)
        DOUBLE PRECISION bestval(kmax-kmin+1)
-       DOUBLE PRECISION testran, mutprob
+       DOUBLE PRECISION testran, mutprob,ranaux
        LOGICAL pilog
        INTEGER popinit(kmax*npopinic*(kmax-kmin+1))
 * declarations only for the RM criterion
@@ -130,21 +136,30 @@
        INTEGER nqsi,qsi(p)
        LOGICAL esp
 
+* declarations for tau2,xi2,zeta2 e ccr12
+       Double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+
+
+
+*       external dlaruv
        external randsk1,dobjrm,dobjrv,dobjgcd
        external dcorrigesk,dannealing
-       external dmelhoramentogen,inicializar
-       external intpr
+       external dmelhoramentogen,newinicializar
+       external intpr,dblepr
        external rndstart,rndend,unifrnd
-
+       external dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 * initializations
 
-      call rndstart()       
-      call inicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
-     +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp)
+       call rndstart()       
+       call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
+     +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
+     +  h,hvector,rh)
 
       kabort = kmax+1
-  
+
+
+
 **********************************
 * The loop which is to be repeated for each cardinality of subsets, 
 * between kmin e kmax starts here and ends together with the subroutine.
@@ -154,7 +169,6 @@
       ordemger(0)=0
       npop=npopinic
       do k=kmin,kmax
-
          if (criterio.eq.3) then
              if (.not.esp) then
                nqsi=k
@@ -164,10 +178,12 @@
              end if
          end if
 
+
 * Generating the initial population
 * Remark: vector rep tests whether all elements of {1,2,...,p} are   
 * represented in the initial population, in which case rep(i)=.true. 
 * for i=1,...,p
+
 
          do i=1,p
             rep(i)=.false.
@@ -197,10 +213,10 @@
                endif
            endif
 
-             do i=1,p
+           do i=1,p
                novager(kpop,i)=setk(i)
 	       rep(i)=rep(i).or.setk(i)
-             end do
+           end do
          end do
 
 * tests if all elements are represented
@@ -211,7 +227,6 @@
             i=i+1
          end do
          if(i.LE.p) then 
-
            call intpr('WARNING: Not all variables are present in the ini
      +tial population for cardinality k=',-1,k,1) 
            call intpr('A larger initial population may be adviseable.'
@@ -225,16 +240,19 @@
 * will contain the number of the subset with the second largest criterion
 * values, and so on.
 
+
          somavalue=0
          vmaximo=0
          do kpop=1,npop
            do j=1,p
               setk(j)=novager(kpop,j)
            end do
+
            if (criterio.eq.1) then
                amax = dobjrm(k,setk,p,s,sq,poriginal)
                critvalue = dsqrt(amax/tracos)
            end if
+
            if (criterio.eq.2) then
                amax = dobjrv(k,setk,p,s,sq,poriginal)
                critvalue = dsqrt(amax/tracosq)
@@ -244,8 +262,28 @@
             critvalue = amax/dsqrt(DBLE(nqsi*k))
            end if
 
-           valueger(kpop) = critvalue
+           if (criterio.eq.4) then
+               amax=dobjtau2(k,setk,p,s,poriginal,h,rh)
+               critvalue = amax
+           end if
+		 
+		 if (criterio.eq.5) then
+               amax=dobjxi2(k,setk,p,s,poriginal,h,rh)
+               critvalue = amax
+           end if
+		 
+		 if (criterio.eq.6) then
+               amax=dobjzeta2(k,setk,p,s,poriginal,h,rh)
+	         critvalue = amax
+           end if
+		 
+		 if (criterio.eq.7) then
+               amax=dobjccr12(k,setk,p,s,poriginal,h,rh)
+	         critvalue = amax
+           end if
+		 
 
+	   valueger(kpop) = critvalue
            somavalue=somavalue+valueger(kpop)
            aux=valueger(kpop)
            j=kpop-1
@@ -265,7 +303,6 @@
            valuepop(kpop)=valueger(ordemger(kpop))
          end do
 
-
 ***************************************************************************
 * Here begins a lengthy loop that will repeat the following procedures
 * for each generation: arrange marriages, mate and produce offspring, 
@@ -282,8 +319,10 @@
 
            ngaranhao=npop/2
            do kgaranhao=1,ngaranhao
-             ranaux = unifrnd()
-             r=ranaux*somavalue
+*            call rndstart()
+            ranaux = unifrnd()
+*            call rndend()
+            r=ranaux*somavalue
              kpop=1
              acumulado=0
              do while(valuepop(kpop)+acumulado.LT.r)
@@ -331,10 +370,12 @@
                 call dblepr(' Best criterion value found so far:', -1,
      + valuepop(1),1)
                 kabort = k
+*                call rndend()
                 return
 	       end if   
               end if
             end do
+
 
 * Reproduction.
 * The i-th couple, garanhao(i), femea(i) (with i=1,...,npop/2) will produce 
@@ -449,7 +490,23 @@
      +                   fica,poriginal)
                  critvalue = amax/dsqrt(DBLE(nqsi*k))
               end if
-              valueger(kfilho)=critvalue
+              if (criterio.eq.4) then
+                 amax=dobjtau2(k,setk,p,s,poriginal,h,rh)
+                 critvalue = amax
+              end if 
+	      if (criterio.eq.5) then
+                 amax=dobjxi2(k,setk,p,s,poriginal,h,rh)
+                 critvalue = amax
+              end if
+	      if (criterio.eq.6) then
+                 amax=dobjzeta2(k,setk,p,s,poriginal,h,rh)
+	         critvalue = amax
+              end if
+              if (criterio.eq.7) then
+                 amax=dobjccr12(k,setk,p,s,poriginal,h,rh)
+	         critvalue = amax
+              end if
+	      valueger(kfilho)=critvalue
 
 * If the logical variable "melhorar" is .true., the newborn child will be 
 * genetically improved (i.e., subject to the restricted local improvement 
@@ -459,11 +516,13 @@
 * "mutprob" is large. Default value for "melhorar" is .false.
 
               if(melhorar) then
+               call rndstart()
                testran = unifrnd()
+               call rndend()
                if (testran .LT. mutprob) then
                 vantes=amax
                 call dmelhoramentogen(criterio,p,setk,amax,ndentro,
-     +              dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal)
+     +          dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
                 if(amax.GT.vantes) then
                   if (criterio.eq.1) then
                     critvalue = dsqrt(amax/tracos)
@@ -474,7 +533,19 @@
                   if (criterio.eq.3) then
                     critvalue = amax/dsqrt(DBLE(nqsi*k))
                   end if
-                  valueger(kfilho)=critvalue
+                  if (criterio.eq.4) then
+                     critvalue = amax  
+                  end if
+		  if (criterio.eq.5) then
+                    critvalue = amax
+                  end if
+		  if (criterio.eq.6) then
+                      critvalue = amax
+                  end if
+		  if (criterio.eq.7) then
+                      critvalue = amax
+                  end if
+	          valueger(kfilho)=critvalue
                   do j=1,p
                     filho(kfilho,j)=setk(j)
                   end do
@@ -571,13 +642,17 @@
            if (criterio.eq.1) vactual=valuepop(1)**2*tracos
            if (criterio.eq.2) vactual=valuepop(1)**2*tracosq
            if (criterio.eq.3) vactual=valuepop(1)*dsqrt(DBLE(nqsi*k))
-           do j=1,p
+           if (criterio.eq.4) vactual=valuepop(1)
+           if (criterio.eq.5) vactual=valuepop(1)
+	     if (criterio.eq.6) vactual=valuepop(1)
+		 if (criterio.eq.7) vactual=valuepop(1)
+		 do j=1,p
             setk(j)=pop(1,j)
            end do
            vcorrente = vactual
 
            call dmelhoramentogen(criterio,p,setk,vactual,ndentro,dentro,
-     +      k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal)
+     +      k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
 
 
            if (vactual .GT. vcorrente) then 
@@ -597,6 +672,18 @@
                    if (criterio.eq.3) then
                        critvalue = vactual/dsqrt(DBLE(nqsi*k))
                    end if
+	           if (criterio.eq.4) then
+                       critvalue=vactual
+                   end if
+		   if (criterio.eq.5) then
+                       critvalue=vactual
+                   end if
+		   if (criterio.eq.6) then
+                       critvalue=vactual
+                   end if
+		   if (criterio.eq.7) then
+                       critvalue=vactual
+                   end if
             end if      
          end if
 
@@ -610,6 +697,7 @@
 
 * End of k-loop
 
+*         call rndend()
          return
          call rndend()
        end

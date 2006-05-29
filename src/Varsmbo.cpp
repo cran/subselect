@@ -1,24 +1,58 @@
 #include <cstdlib>
 #include <cassert>
+#include <vector>
 #include "Sscma.h"
 #include "Vsmabo.h"
 
-using namespace leapsnbnds;
+namespace extendedleaps {
 
-vind flsts,flsti;
+extern std::vector<partialdata *> pdata;
+extern vind flsts,flsti;
 int  cmp(const void *,const void *);
 
-subset::subset(vind tnv,vind pnv,subsetdata *id,bool pdt,vind nvo)
-  :  lstvarpm(tnv-1), frstvarpm(tnv-pnv), data(id), privatedata(pdt), p(nvo), k(0), var(0), pmemorypos(0)
+mindices::mindices(vind szfm,vind szpm,vind pmemlag)
+{
+	idfm_ = new itindex<d>(szfm);
+	idpm_ = new lagindex<d>(szpm,pmemlag);
+	iifm_ = 0;
+	iipm_ = 0;
+}
+
+mindices::mindices(vind szfm,vind szpm,vind pmemlag,vind* fmmlst)
+{
+	idfm_ = new itindex<d>(szfm);
+	idpm_ = new lagindex<d>(szpm,pmemlag);
+	iifm_ = new itindex<i>(szfm,fmmlst);
+	iipm_ = 0;
+}
+
+mindices::mindices(vind szfm,vind szpm,vind pmemlag,vind* fmmlst,vind* pmmlst)
+{
+	idfm_ = new itindex<d>(szfm);
+	idpm_ = new lagindex<d>(szpm,pmemlag);
+	iifm_ = new itindex<i>(szfm,fmmlst);
+	iipm_ = new lagindex<i>(szpm,pmemlag,pmmlst);
+}
+
+mindices::~mindices(void)
+{
+	delete idfm_;
+	delete idpm_;
+	delete iifm_;
+	delete iipm_;
+}
+
+subset::subset(vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
+  :  frstvarpm(nvp-pnv), t(pnv), data(id), privatedata(pdt), p(tnv), k(0), var(0), pmemorypos(0), memii(0)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  
-		fmemorypos[i] = orgvarind[i] =  orgvarpos[i] = i; 
+		fmemorypos[i] = orgvarind[i] =  orgvarpos[i] = i;
 	if (id) id->setorgvarl(orgvarind);                    // Attach list of original variable indicators to subsetdata
 }
 
-subset::subset(vind * const ivar,vind tnv,vind pnv,subsetdata *id,bool pdt,vind nvo)
-  :  lstvarpm(tnv-1), frstvarpm(tnv-pnv), data(id), privatedata(pdt), p(nvo), k(0), var(0), pmemorypos(0)
+subset::subset(vind * const ivar,vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
+  :  frstvarpm(nvp-pnv), t(pnv), data(id), privatedata(pdt), p(tnv), k(0), var(0), pmemorypos(0), memii(0)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  {
@@ -35,6 +69,7 @@ void subset::assgnmem()
 	orgvarind = new vind[p];
 	orgvarpos = new vind[p];
 	fmemorypos = new vind[p];
+	memii = new mindices(p,p-frstvarpm,frstvarpm,fmemorypos);
 }
 
 subset::~subset()
@@ -45,6 +80,7 @@ subset::~subset()
 	delete[] fmemorypos;
 	delete[] pmemorypos;
 	if (privatedata) delete data;
+	delete memii;
 }
 
 void subset::copyvar(subset & newsp)
@@ -57,7 +93,7 @@ void subset::sort(vind fv,vind lv)
 	assert(fv > 0 && lv > fv && lv <= p);
 
 	for (vind i=0;i<=lv-fv;i++)  {
-		Fl[i] = data->updatecrt(pmemorypos,fmemorypos,fv+i,frstvarpm);
+		Fl[i] = data->updatecrt(backward,*memii,fv+i,pdata[i]);
 		Flp[orgvarind[fv+i-1]] = i+1;
 		dmyv[i] = i+1;
 	}
@@ -66,63 +102,51 @@ void subset::sort(vind fv,vind lv)
 	{ for (vind i=fv;i<=lv;i++) orgvarind[i-1] = dmyv[i-fv]; }
 }
 
-void subset::reorder(vind *list)
+void subset::reorder(vind *l)
 {
-	vind lag = frstvarpm + (p-lstvarpm) - 1;
+	vind lag = p - t;
 
-	if (!pmemorypos) pmemorypos = new vind[lstvarpm-frstvarpm+1];
+	if (!pmemorypos) 
+		memii->asgnpmmiid(new lagindex<i>(t,frstvarpm,pmemorypos = new vind[t]));
 	for (vind i=0;i<p;i++)  {
-		fmemorypos[i] = list[i] - 1;
-		if (i >= lag) pmemorypos[i-lag] = list[i] - lag -1;
+		fmemorypos[i] = l[i] - 1;
+		if (i >= lag) pmemorypos[i-lag] = l[i]-lag-1;
 	} 
 }
 
 void subset::asgvar(vind fvar,vind nv,vind *list)
 {
-	vind lag = frstvarpm + (p-lstvarpm) - 1;
+	vind lag = p - t;
 
-	if (!pmemorypos) pmemorypos = new vind[lstvarpm-frstvarpm+1];
+	if (!pmemorypos) 
+		memii->asgnpmmiid(new lagindex<i>(t,frstvarpm,pmemorypos = new vind[t]));
 	for (vind i=0;i<nv;i++)  {
 		pmemorypos[fvar+i] = list[i] -1;
 		fmemorypos[lag+fvar+i] = lag + list[i] -1;
 	}
 }
 
-void subset::pivot(vind vp,vind v1,vind vl,subset *newsp,bool last)
-{  
-	real newcrt = data->updatecrt(pmemorypos,fmemorypos,vp,frstvarpm);
-	data->pivot(vp,v1,vl,frstvarpm,newcrt,pmemorypos,fmemorypos,newsp->data,last); 
-	for (vind i=0;i<lstvarpm;i++) newsp->fmemorypos[i] = i;
+void subset::pivot(direction d,vind vp,vind t,subset *newsp,bool last,bool usebnd,real acpbound)
+{
+	if (usebnd) data->updatecrt(d,*memii,vp,pdata[0],acpbound);
+	else data->updatecrt(d,*memii,vp,pdata[0]);
+	newsp->getdatap()->getpdata(pdata[0]);
+	if (!last) 
+		data->pivot(d,*memii,vp,t,pdata[0],newsp->data,last); 
 }
 
-
-wrkspace::wrkspace(bool pvar,vind tp,vind nv,subsetdata *data0)
-	:  full(pvar), p(nv)
+void wrkspace::initwrkspace(vind nv,subsetdata *data0,vind lstind,vind nvattop,vind nvatbot,vind* vattop,vind* vatbot)
 {
-	vind j,lstind=0,nvattop=0,nvatbot=0;       
-	vind *vattop=NULL,*vatbot=NULL,*tlst=NULL;
-	int j1;
+	vind lastv;
+	vind* tlst=0;
 	subset *ispc;
 	subsetdata *newdata;
-	extern vind *ivlst,*ovlst;
 
-	switch (tp)  {
-		case SRC:
-			lstind = flsts = p-lp-1;
-			nvattop = fp;
-			nvatbot = lp;
-			vattop = ivlst;
-			vatbot = ovlst;
-			break;
-		case INV:
-			lstind = flsti = p-fp-1;
-			nvattop = lp;
-			nvatbot = fp;
-			vattop = ovlst;
-			vatbot = ivlst;
-			break;
-	}
+	usebounds_ = data0->usebounds();
 	wrklst = new pkspc[lstind+1];
+	p = nv;
+	lastv = nv - 1;
+	nwl = p-fp-lp;
 	if (fp+lp > 0)  {
 		tlst   = new vind[p];
 		frontlsts(vatbot,vattop,nvatbot,nvattop,tlst);
@@ -130,20 +154,18 @@ wrkspace::wrkspace(bool pvar,vind tp,vind nv,subsetdata *data0)
 	}
 	else ispc = wrklst[lstind] = new subset(p,p,data0,false,p);
 	if (lp+fp > 0) ispc->reorder(tlst);
-	for (j=1;j<=nvattop;j++)  {
+	for (vind j=1;j<=nvattop;j++)  {
 		newdata = data0->crcopy(p,p-nvatbot-j);
 		if (!tlst) wrklst[lstind-j] = new subset(p,p-nvatbot-j,newdata,true,p);
 		else wrklst[lstind-j] = new subset(tlst,p,p-nvatbot-j,newdata,true,p);
-		if (lstind > j) pivot(nvatbot+j,nvatbot+j+1,p,lstind+1-j,lstind-j);
-		else pivot(nvatbot+j,nvatbot+j+1,nvatbot+j,lstind+1-j,0);
+		if (lstind > j) pivot(nvatbot+j,p-nvatbot-j,lstind+1-j,lstind-j,false,0.);
+		else pivot(nvatbot+j,0,lstind+1-j,0,false,0.);
 		delete wrklst[lstind+1-j];
 	}
-	if (tp == SRC) nwl = (flsts -= fp) + 1;
-	if (tp == INV) nwl = (flsti -= lp) + 1;
-	for (j1=nwl-2;j1>=0;j1--) {
-		newdata = data0->crcopy(p-1,j1);
-		if (!tlst) wrklst[j1] = new subset(p-1,j1,newdata,true,p);
-		else wrklst[j1] = new subset(tlst,p-1,j1,newdata,true,p);
+	for (int j1=nwl-2;j1>=0;j1--) {
+		newdata = data0->crcopy(lastv,j1);
+		if (!tlst) wrklst[j1] = new subset(lastv,j1,newdata,true,p);
+		else wrklst[j1] = new subset(tlst,lastv,j1,newdata,true,p);
 	}
 	delete[] tlst;
 }
@@ -177,14 +199,46 @@ wrkspace::~wrkspace(void)
 	delete[] wrklst;
 }
 
-void wrkspace::pivot(vind vp,vind v1,vind vl,vind li,vind lo)
+void wrkspace::pivotinit(subset*& isi,subset*& iso,vind vp,vind li,vind lo)
 {
 	vind isonvar;
-	subset* isi = wrklst[li];
-	subset* iso = wrklst[lo];
+	isi = wrklst[li];
+	iso = wrklst[lo];
 
 	isi->copyvar(*iso);
 	iso->setnvar(isonvar=isi->getnvar()+1);
 	iso->setvar(isonvar,vp);
-	isi->pivot(vp,v1,vl,iso,(lo==0));
+}
+
+SRCwrkspace::SRCwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst)
+{
+	flsts = nv-lp-1;
+	initwrkspace(nv,data0,flsts,fp,lp,ivlst,ovlst);
+	flsts -= fp;
+}
+
+void SRCwrkspace::pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound)
+{
+	subset *isi=0,*iso=0;
+
+	pivotinit(isi,iso,vp,li,lo);
+	isi->pivot(forward,vp,t,iso,(lo==0),usebnd,acpbound);
+}
+
+
+INVwrkspace::INVwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst)
+{
+	flsti = nv-fp-1;
+	initwrkspace(nv,data0,flsti,lp,fp,ovlst,ivlst);
+	flsti -= lp;
+}
+
+void INVwrkspace::pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound)
+{
+	subset *isi=0,*iso=0;
+
+	pivotinit(isi,iso,vp,li,lo);
+	isi->pivot(backward,vp,t,iso,(lo==0),usebnd,acpbound);
+}
+
 }

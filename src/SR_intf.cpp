@@ -1,13 +1,18 @@
-#include "Sscma.h" 
+#include <iostream>
 #include "R.h"
+#include "Sscma.h" 
 
+namespace extendedleaps {
 
-void leapsnbnds::msg(const std::string& s)
+void msg(const std::string& s)
 {
 	Rprintf("%s",s.c_str());
 }
 
-void leapsnbnds::errmsg(const std::string& s)
+void errmsg(const std::string& s)
 {
 	error("\nError: %s",s.c_str());
 }
+
+}
+

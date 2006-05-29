@@ -4,39 +4,62 @@
 #include <deque> 
 #include "SpecialArrays.h"
 
-typedef vector< vector<real> >  twodarray; 
 using std::deque;
+
+namespace extendedleaps {
+
+typedef vector< vector<real> >  twodarray; 
 
 class rvgdata : public globaldata {
 	public:
 		rvgdata(vind);
-		virtual		~rvgdata(void);
-		real*		gettmpv(void)			{ return &tmpv[0];  }
-		real*		getcndv(void)			{ return &cndv[0]; }
-		real		trs2(void)	   const	{ return trs2_; }
-		void		settrs2(real ts2)		{ trs2_ = ts2;  }
-		twodarray&	getm1t(void)  			{ return m1t; }
-		void		sets2(vind i,vind j,real val)	{ (*s2)(i,j) = val; }
-		real		gets2(vind i,vind j) const	{ return (*s2)(i,j); }
+		virtual			~rvgdata(void);
+		real			trs2(void)	   const	{ return trs2_; }
+		void			settrs2(real ts2)		{ trs2_ = ts2;  }
+		void			sets2(vind i,vind j,real val)	{ (*s2)(i,j) = val; }
+		real			gets2(vind i,vind j) const	{ return (*s2)(i,j); }
 	private:
+		vind			p;  
+		symtwodarray*	s2;
+		real			trs2_;
+};
+
+class partialrvdata :  public partialdata {                 // Data used in criterion RV updates
+	public:
+		explicit		partialrvdata(vind nvariables);
+		virtual			~partialrvdata(void)    {  }	
+		real*			gettmpv(void)		{ return &tmpv[0]; }
+		real*			getcndv(void)		{ return &cndv[0]; }
+		twodarray&		getm1t(void)  		{ return m1t; }
+		virtual const real	getcrt(void) const		{ return crt; }
+		const real		getpivotval(void) const	{ return pivotval; }
+		void 			setcrt(real c) 		{ crt = c; }
+		void 			setpivotval(real pv)	{ pivotval = pv; }
+	protected:
 		vind		p;  
+		real		crt;
+		real		pivotval;
+		deque<bool>	vin; 
 		vector<real>	tmpv;
 		vector<real>	cndv;
-		symtwodarray*	s2;
-		real		trs2_;
 		twodarray	m1t;
+	friend class rvdata;
 };
 
 class rvdata :  public subsetdata {
 	public:
-		rvdata(vind,vind,vind,rvgdata *,const deque<bool>&,vind *,real criterion);
+		rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata* data,
+			const deque<bool>& active,vind* origvarlist,real criterion);
 		virtual ~rvdata(void);
-		virtual real criterion(void)	const	{ return crt;  }
-		virtual real indice(void)	const	{ return sqrt(crt/gdt->trs2()); } 
-		virtual real updatecrt(vind *,vind *,vind,vind)	const;
-		virtual void pivot(vind,vind,vind,vind,real,vind *,vind *,subsetdata *,bool);  
+		virtual void  getpdata(partialdata* pd);  
+		virtual const real criterion(void)	const	{ return crt;  }
+		virtual void setcriterion(real c)		{ crt = c; }
+		virtual const real indice(void)		const	{ return sqrt(crt/gdt->trs2()); } 
+		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /*
-Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour will result (general subsetdata class was used in order to garantee upward compability)
+	Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour will result 
+	(general subsetdata class was used in order to garantee upward compability)
 */
 		virtual subsetdata *crcopy(vind lastvariab,vind partialnv) const
 			{  return new rvdata(lastvariab,partialnv,p,gdt,varin,orgvar,crt);	}
@@ -47,11 +70,16 @@ Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour 
 		rvgdata *getgdata(void) const			{ return gdt; }
 		void  sets2m1(vind i,vind j,real val)		{ s2m1[i][j] = val; }
 		real  gets2m1(vind i,vind j) const		{ return s2m1[i][j]; }
-		void  cmpts2sm1(vind *,vind *,twodarray &,bool *,vind *,vind,vind,vind) const;  
-/* Computes the S2*S^1 matrix product for the sub-matrices defined by the boolean list */
-		real  frobenius(twodarray&,bool *) const;   
-/* Computes the Frobenius norm for the sub-matrix defined by the boolean list  */
 	private:
+		template<accesstp tp> 
+			real updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind var,partialdata* newdtpnt) const;   
+		template<accesstp tp> 
+			void pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
+		void cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
+			//  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists 
+		real frobenius(twodarray& m,bool *inlst) const;
+			// Computation of the Frobenius norm for the sub-matrix defined by the boolean list inlst
 		vind			lastv;
 		vind			p;
 		vind			k;
@@ -63,5 +91,7 @@ Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour 
 		twodarray		s2m1;
 		rvgdata*		gdt;
 };
+
+}
 
 #endif

@@ -7,9 +7,10 @@ gcd.coef<-function(mat, indices, pcindices = NULL)
 
 #  error checking
 
-         if  (sum(!(as.integer(indices) == indices)) > 0) stop("\n The variable indices must be integers")         
+         if  (sum(!(as.integer(indices) == indices)) > 0) stop("\n The variable indices must be integers")
          if  (!is.null(pcindices) & (sum(!(as.integer(pcindices) == pcindices)) > 0)) stop("\n The PC indices must be integers")
-     if (!is.matrix(mat)) {
+
+         if (!is.matrix(mat)) {
          stop("Data is missing or is not given in matrix form")}
      if (dim(mat)[1] != dim(mat)[2]) {
          mat<-cor(mat)

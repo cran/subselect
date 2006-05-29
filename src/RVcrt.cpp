@@ -4,7 +4,7 @@
 #include "Vsmabo.h"
 #include "RVcrt.h"
 
-using namespace leapsnbnds;
+namespace extendedleaps {
 
 #ifdef COUNTING  
 extern long unsigned fpcnt1;
@@ -13,10 +13,7 @@ extern long unsigned fpcnt1;
 rvgdata::rvgdata(vind nvariables)
   :   p(nvariables)
 {
-	tmpv.reserve(p);
-	cndv.reserve(p);
 	s2 = new symtwodarray(p);
-	m1t.assign(p,vector<real>(p));
 }
 
 rvgdata::~rvgdata()
@@ -24,8 +21,17 @@ rvgdata::~rvgdata()
 	delete s2;
 }
 
-rvdata::rvdata(vind lastvariab,vind partialnv,vind numbvar,rvgdata *data,const deque<bool>& active,vind *origvarlist,real criterion)
-  :  lastv(lastvariab), k(partialnv), p(numbvar), gdt(data), varin(active), orgvar(origvarlist), crt(criterion), e(0)
+partialrvdata::partialrvdata(vind nvariables)
+  :   p(nvariables)
+{
+	tmpv.reserve(p);
+	cndv.reserve(p);
+	vin.resize(p);
+	m1t.assign(p,vector<real>(p));
+}
+
+rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<bool>& active,vind *origvarlist,real criterion)
+  :  lastv(lastvariab), k(nvtopiv), p(tnv), gdt(data), varin(active), orgvar(origvarlist), crt(criterion), e(0)
 {
 	try {
 		if (k > 0)  {
@@ -51,119 +57,230 @@ rvdata::~rvdata()
 	delete e;
 }
 
-real rvdata::updatecrt(vind *plist,vind *flist,vind var,vind fvarind) const
-{
-	assert(flist[var-1] >= fvarind && flist[var-1]  < p);
+void  rvdata::getpdata(partialdata* pd)  
+{ 
+	partialrvdata *pdasrv = static_cast<partialrvdata *>(pd);    
+	
+	// Attention: pd MUST point to partialrvdata object !!!
+	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	
+//	partialrvdata *pdasrv = dynamic_cast<partialrvdata *>(pd);    
+//	assert(pdasrv);
 
-	vind irowi,varind; 
-	if (plist) varind = plist[var-fvarind-1];
-	else varind = var-fvarind-1;
+	setcriterion(pdasrv->getcrt());
+	{ for (vind j=0;j<p;j++) varin[j] = pdasrv->vin[j]; }
+	for (vind i=0;i<p;i++) if (varin[i])
+		for (vind j=0;j<p;j++)  if (varin[j]) { 
+			real tmp = pdasrv->m1t[i][j]; 
+			s2m1[i][j] = tmp; 
+		}
+}
+
+inline real rvdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+{ 
+	if (mmind.direct()) return updatecrt(d,*(mmind.idpm()),*(mmind.idfm()),var,pdt); 
+	else return updatecrt(d,*(mmind.iipm()),*(mmind.iifm()),var,pdt); 
+}
+		
+inline void rvdata::pivot(direction d,mindices& mmind,vind vp,vind t,
+						   partialdata* pdt,subsetdata* fdt,bool last)
+{ 
+	if (mmind.direct()) pivot(d,*(mmind.idpm()),*(mmind.idfm()),vp,t,pdt,fdt,last); 
+	else pivot(d,*(mmind.iipm()),*(mmind.iifm()),vp,t,pdt,fdt,last); 
+}
+
+template<accesstp tp> 
+real rvdata::updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind var,partialdata* newdtpnt) const
+{
+	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
+	
+	// Attention: newdtpnt MUST point to partialrvdata object !!!
+	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	
+//	partialrvdata *newdata = dynamic_cast<partialrvdata *>(newdtpnt);    
+//	assert(newdata);
+	
+	vind varind = prtmmit[var-1];;                                 
 	real newcrt,e1 = (*e)(varind,varind);
-	real *cv=gdt->getcndv();
-	static deque<bool> vin(p);
+	real *cv = newdata->getcndv();
+	deque<bool>& vin = newdata->vin;
 
 	vin = varin;
-	if (varin[var-1]) vin[var-1] = false;
-	else vin[var-1] = true;
-	{  for (vind i=0;i<var-1;i++)	if (vin[i])  {
-		irowi = flist[i];
-		cv[i] = (*ivct[irowi])[varind]/e1;  
-	} } 
-	{  for (vind i=var;i<p;i++)  if (vin[i])  {
-		irowi = flist[i];
-		cv[i] = (*ivct[irowi])[varind]/e1;  
-	} }
-	if (vin[var-1]) cv[var-1] = 1./e1;
-	cmpts2sm1(plist,flist,gdt->getm1t(),&vin[0],orgvar,var,var+1,var);
-	newcrt = frobenius(gdt->getm1t(),&vin[0]);
+	if (d == forward) vin[var-1] = true;
+	else vin[var-1] = false;
+	fmmind.reset();
+	for (vind i=0;i<p;fmmind++,i++)	
+		if (vin[i] && (i!=var-1) )  cv[i] = (*ivct[fmmind()])[varind]/e1;
+	if (d == forward) cv[var-1] = 1./e1;
+	cmpts2sm1(prtmmit,fmmind,newdata,newdata->getm1t(),orgvar,var,&vin[0],&vin[0]);
+	newcrt = frobenius(newdata->getm1t(),&vin[0]);
 	#ifdef COUNTING  
 	fpcnt1 += p;
 	#endif
+
+	newdata->setpivotval(e1);
+	newdata->setcrt(newcrt);
 	return newcrt;
 }
 
-void rvdata::pivot(vind vp,vind v1,vind vl,vind fvarind,real newcrt,vind* plist,vind* flist,subsetdata* newdtgpnt,bool last)
+template<accesstp tp> 
+void rvdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {
-	vind inrowi,incoli,pivotind,fpivotind = flist[vp-1];
-	if (plist) pivotind = plist[vp-fvarind-1];
-	else pivotind = vp-fvarind-1;
-	real pivotval = (*e)(pivotind,pivotind);
-	real *cv = getgdata()->getcndv();
+	vind pivotind,fpivotind = fmmind[vp-1];              
+	pivotind = prtmmit[vp-1];
 
-	rvdata *newdata = static_cast<rvdata *>(newdtgpnt);    // Attention: newdtgtpnt MUST point to rvdata object !!!
+	partialrvdata* pdata = static_cast<partialrvdata *>(newpdtpnt);    
+	rvdata* newdata = static_cast<rvdata *>(newfdtpnt);    
+	
+	//Attention: pdtpnt and newdttpnt MUST point to partialrvdata and rvdata objects !!!
 
 	// For safety, in debug mode use the alternative code with dynamic_cast and assert
 	
-//	rvdata *newdata = dynamic_cast<rvdata *>(newdtgpnt);    
-//	assert(newdata);
+//	partialrvdata* pdata = dynamic_cast<partialrvdata *>(newpdtpnt);    
+//	rvdata* newdata = dynamic_cast<rvdata *>(newfdtpnt);    
+//	assert(pdata && newdata);
 
-	newdata->crt = newcrt;
+	real pivotval = pdata->getpivotval();
+	real *cv = pdata->getcndv();
+	deque<bool>& colin = pdata->vin;
 
-	{ for (vind j=0;j<p;j++)  
-		if (j+1 != vp) newdata->varin[j] = varin[j]; }
-	if (varin[vp-1]) newdata->varin[vp-1] = false;
-	else newdata->varin[vp-1] = true;
-	{  for (vind j=0;j<v1-1;j++) 
-		if (j+1 != vp && newdata->varin[j])  {
-			inrowi = flist[j];
-			cv[j] = (*ivct[inrowi])[pivotind]/pivotval;
-			#ifdef COUNTING  
-			fpcnt ++;
-			#endif
-		}
+	symatpivot(prtmmit,pivotval,*e,*(newdata->e),vp,t);
+	fmmind.reset();
+	for (vind i=0;i<vp;fmmind++,i++)  
+	if (newdata->varin[i])  {
+		vectorpivot(prtmmit,*ivct[fmmind()],*newdata->ivct[i],*e,cv[i],vp,t); 
+		newdata->ivct[i]->switchtoowndata();
+	} 
+	if (d == forward)  {
+		prtmmit.reset(vp);
+		for (vind j=vp;j<vp+t;prtmmit++,j++)   
+			newdata->ivct[vp-1]->setvalue(j-vp,-(*ivct[fpivotind])[prtmmit()]/pivotval);  
+		#ifdef COUNTING  
+		fpcnt += t;
+		#endif
+		newdata->ivct[vp-1]->switchtoowndata();
 	}
-	{ for (vind j=vl;j<p;j++) 
-		if (newdata->varin[j])  {
-			inrowi = flist[j];
-			cv[j] = (*ivct[inrowi])[pivotind]/pivotval;
-			#ifdef COUNTING  
-			fpcnt ++;
-			#endif
-		}
-	}
-	
-	if (!last)  {
-		symatpivot(plist,pivotval,*e,*(newdata->e),vp-fvarind,v1-fvarind,vl-fvarind);
-		for (vind j=0;j<v1-1;j++)  
-			if (j+1 != vp && newdata->varin[j])  {
-				inrowi = flist[j];
-				vectorpivot(plist,*ivct[inrowi],*newdata->ivct[j],*e,cv[j],vp-fvarind,v1-fvarind,vl-fvarind); 
-				newdata->ivct[j]->switchtoowndata();
-			} 
-		if (newdata->varin[vp-1]) {
-			for (vind j=v1-1;j<vl;j++)  { 
-				if (plist) incoli = plist[j-fvarind];
-				else incoli = j-fvarind;
-				newdata->ivct[vp-1]->setvalue(j+1-v1,-(*ivct[fpivotind])[incoli]/pivotval);  
-			} 
-			#ifdef COUNTING  
-			fpcnt += (vl-v1+1);
-			#endif
-			newdata->ivct[vp-1]->switchtoowndata();
-		}
-
-		{ for (vind j=vl;j<p;j++)  
-			if (newdata->varin[j])  {
-				inrowi = flist[j];
-				vectorpivot(plist,*ivct[inrowi],*newdata->ivct[j],*e,cv[j],vp-fvarind,v1-fvarind,vl-fvarind); 
-				newdata->ivct[j]->switchtoowndata();
-			} 
-		}
+	fmmind.reset(vp+t);
+	{ for (vind i=vp+t;i<p;fmmind++,i++)  
+		if (newdata->varin[i])  {
+			vectorpivot(prtmmit,*ivct[fmmind()],*newdata->ivct[i],*e,cv[i],vp,t); 
+			newdata->ivct[i]->switchtoowndata();
+		} 
 	}
 
-	if (newdata->varin[vp-1])  cv[vp-1] = 1./pivotval;
-	{ for (vind j=v1-1;j<vl;j++)  
-		if (newdata->varin[j]) {
-			if (!plist) inrowi = j-fvarind;
-			else inrowi = plist[j-fvarind];
-			cv[j] = (*e)(inrowi,pivotind)/pivotval;
+	{ for (vind j=0;j<p;j++)
+		if (j+1 > vp && j+1 <= vp+t && !colin[j]) colin[j] = true;
+		else colin[j] = false;
+	}
+	cmpts2sm1(prtmmit,fmmind,pdata,newdata->s2m1,orgvar,vp,&(newdata->varin[0]),&colin[0]);
+}
+
+void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const
+{
+	vind fvarind=lastv-k,pivotind=vp-fvarind-1,fpivotind=vp-1;         
+	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
+
+	for (vind j=0;j<p;j++) if (collst[j] ) {
+		tv[j] = 0.;
+		for (vind a=0;a<p;a++) { 
+			if ( !rowlst[a] || a+1 == vp ) continue;
+			tv[j] += -(*ivct[a])[pivotind]*gdt->gets2(orgvlst[a],orgvlst[j]);  
 			#ifdef COUNTING  
-			fpcnt += (vl-v1+1);
+			fpcnt++;
 			#endif
 		}
-	}
-	cmpts2sm1(plist,flist,newdata->s2m1,&(newdata->varin[0]),orgvar,vp,v1,vl);
+	} 
 
+	if (rowlst[vp-1]) {
+		for (vind i=0;i<p;i++)  {  
+			if ( !rowlst[i] || i+1 == vp ) continue;
+			for (vind j=0;j<p;j++)  if (collst[j] ) {
+				outmat[i][j] = 
+					s2m1[i][j] +  fl[i] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
+				#ifdef COUNTING  
+				fpcnt++;
+				#endif
+			}
+		} 
+		for (vind j=0;j<p;j++)  if (collst[j] ) {
+			outmat[vp-1][j] = 
+				fl[vp-1] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
+			#ifdef COUNTING  
+			fpcnt++;
+			#endif
+		} 
+	}
+
+	else {
+		for (vind i=0;i<p;i++)  {  
+			if (!rowlst[i] ) continue;
+			for (vind j=0;j<p;j++)  if (collst[j] ) {
+				outmat[i][j] =  s2m1[i][j] + 
+					  (*ivct[i])[pivotind] * gdt->gets2(orgvlst[j],orgvlst[vp-1]) - fl[i]*tv[j];
+				#ifdef COUNTING  
+				fpcnt += 2;
+				#endif
+			}
+		}
+	}
+}
+
+void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const
+{
+	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
+	vind inrowi,fvarind=lastv-k;
+	vind pivotind=prtmmit[vp-1],fpivotind=fmmind[vp-1];                
+	itindex<i>& rowind = fmmind;
+	itindex<i> colind(fmmind);
+
+	for (vind j=0;j<p;j++) if (collst[j] ) {
+		tv[j] = 0.;
+		rowind.reset();
+		for (vind a=0;a<p;rowind++,a++) { 
+			if ( !rowlst[a] || a+1 == vp ) continue;
+			tv[j] += -(*ivct[rowind()])[pivotind]*gdt->gets2(orgvlst[a],orgvlst[j]);  
+			#ifdef COUNTING  
+			fpcnt++;
+			#endif
+		}
+	} 
+
+	if (rowlst[vp-1]) {
+		rowind.reset();
+		for (vind i=0;i<p;rowind++,i++)  {  
+			if ( !rowlst[i] || i+1 == vp ) continue;
+			inrowi = rowind();
+			colind.reset();
+			for (vind j=0;j<p;colind++,j++)  if (collst[j] ) {
+				outmat[i][j] =
+					s2m1[inrowi][colind()] +  fl[i] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
+				#ifdef COUNTING  
+				fpcnt++;
+				#endif
+			}
+		} 
+		for (vind j=0;j<p;j++)  if (collst[j] ) {
+			outmat[vp-1][j] = fl[vp-1] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
+			#ifdef COUNTING  
+			fpcnt++;
+			#endif
+		} 
+	}
+
+	else {
+		rowind.reset();
+		for (vind i=0;i<p;rowind++,i++)  if (rowlst[i] ) {
+			inrowi = rowind();
+			colind.reset();
+			for (vind j=0;j<p;colind++,j++)  if (collst[j] ) {
+				outmat[i][j] = s2m1[inrowi][colind()] +
+					  (*ivct[inrowi])[pivotind] * gdt->gets2(orgvlst[j],orgvlst[vp-1]) - fl[i]*tv[j];
+				#ifdef COUNTING  
+				fpcnt += 2;
+				#endif
+			}
+		}
+	}
 }
 
 real rvdata::frobenius(twodarray& m,bool *inlst) const
@@ -185,67 +302,4 @@ real rvdata::frobenius(twodarray& m,bool *inlst) const
 	return tmp;
 }
 
-void rvdata::cmpts2sm1(vind *plist,vind *flist,twodarray& outmat,bool *inlst,vind *orgvlst,vind vp,vind v1,vind vl) const
-{
-	real val,*tv=gdt->gettmpv(),*fl=gdt->getcndv();
-	vind pivotind,fpivotind,inrowi,incoli,fvarind=lastv-k;
-	if (plist) pivotind = plist[vp-fvarind-1];
-	else pivotind = vp-fvarind-1;
-	fpivotind = flist[vp-1];
-
-	{ for (vind j=0;j<p;j++) {
-		if ( (j+1 < v1 || j+1 > vl) && !inlst[j]) continue;
-		incoli = flist[j];
-		tv[j] = 0.;
-		for (vind a=0;a<p;a++) 
-			if (inlst[a] && a+1 != vp)  {
-				inrowi = flist[a];
-				tv[j] += -(*ivct[inrowi])[pivotind]*gdt->gets2(orgvlst[a],orgvlst[j]);  
-				#ifdef COUNTING  
-				fpcnt++;
-				#endif
-			}
-	} }
-
-	if (inlst[vp-1]) {
-		{ for (vind i=0;i<p;i++)  
-			if (inlst[i] && i+1 != vp) {
-				inrowi = flist[i];
-				for (vind j=0;j<vl;j++)  {
-					if (j+1 < v1 && !inlst[j]) continue;
-					incoli = flist[j];
-					val = s2m1[inrowi][incoli] +  fl[i] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
-					outmat[i][j] = val;
-					#ifdef COUNTING  
-					fpcnt++;
-					#endif
-				}
-		} }
-		{ for (vind j=0;j<vl;j++)  {
-			if (j+1 < v1 && !inlst[j]) continue;
-			incoli = flist[j];
-			val = fl[vp-1] * ( gdt->gets2(orgvlst[vp-1],orgvlst[j]) - tv[j] );
-			outmat[vp-1][j] = val;
-			#ifdef COUNTING  
-			fpcnt++;
-			#endif
-		} }
-  }
-
-  else {
-	for (vind i=0;i<p;i++)  
-		if (inlst[i]) {
-			inrowi = flist[i];
-			for (vind j=0;j<p;j++)  {
-				if ( (j+1 < v1 || j+1 > vl) && !inlst[j] ) continue;
-				incoli = flist[j];
-				val = s2m1[inrowi][incoli] + 
-					  (*ivct[inrowi])[pivotind] * gdt->gets2(orgvlst[j],orgvlst[vp-1]) - fl[i]*tv[j];
-				outmat[i][j] = val;
-				#ifdef COUNTING  
-				fpcnt += 2;
-				#endif
-			}
-		}
-  }
 }

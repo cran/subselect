@@ -1,15 +1,36 @@
 genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="RM", pcindices="first_k",
-initialpop=NULL, force=FALSE, tolval=10*.Machine$double.eps){
+initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
+
+
+        
+#####################################
+#  set parameters to default values #
+#####################################
+
+	if (r==0 && criterion=="default")  criterion <- "RM"
+        if (r>0  && criterion=="default")  criterion <- "TAU_2"
+        p <- nrow(mat)
+
 
 ###############################
 # general validation of input #
 ###############################
 
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
+
+
+######################################################################
+# Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
+# "ZETA_2" or "CCR1_2"                                               #
+######################################################################
+
+if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
+"ZETA_2" || criterion == "CCR1_2") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+
 
 ##############################################################
 # more specific validation of input for the genetic function #
@@ -38,6 +59,7 @@ initialpop=NULL, force=FALSE, tolval=10*.Machine$double.eps){
               vecp<-matrix(nrow=p,ncol=p,rep(0,p*p))
                  }
 
+
 ##################################
 # call to the Fortran subroutine #
 ##################################
@@ -53,8 +75,7 @@ initialpop=NULL, force=FALSE, tolval=10*.Machine$double.eps){
           as.integer(length(pcindices)),as.integer(pcindices),as.logical(esp),
           as.integer(kabort),as.logical(pilog),
           as.integer(as.vector(initialpop)),as.double(valp),
-          as.double(as.vector(vecp)),
-          PACKAGE="subselect")
+          as.double(as.vector(vecp)),as.double(as.vector(H)),as.integer(r),PACKAGE="subselect")
 
 ########################
 # preparing the output #
@@ -72,5 +93,4 @@ initialpop=NULL, force=FALSE, tolval=10*.Machine$double.eps){
         output<-list(variaveis[,1:(kabort-1),1:(kabort-kmin)],valores[,1:(kabort-kmin)],bestval[1:(kabort-kmin)],bestvar[1:(kabort-kmin),1:(kabort-1)],match.call())
         names(output)<-c("subsets","values","bestvalues","bestsets","call")
         if (kabort > kmin) output}
-
 

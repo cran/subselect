@@ -3,20 +3,21 @@
 #include "Sscma.h"
 #include "Subsets.h"
 
-namespace leapsnbnds  {
-long unsigned sbsetind,maxsbst;
-}                                                  
+
+namespace extendedleaps {
+
+extern long unsigned sbsetind,maxsbst;
+
 extern sbset    **sbsarr;
 
-using namespace leapsnbnds;
-
-sbset *csbset(vind n,vind* v,real c)
+sbset *csbset(vind n,vind* v,real c,real ind)
 {
 	assert(sbsetind < maxsbst);
 	sbset    *s = sbsarr[sbsetind++];
 	s->nvar_ = n; 
 	for (vind i=0;i<n;i++) s->actvar_[i] = v[i];
 	s->crt_ = c;
+	s->ind_ = ind;
 	return s;
 }
 
@@ -28,7 +29,7 @@ void dsbset(sbset *s)
 	return;
 }
 
-sbset::sbset(vind p,unsigned n)
+sbset::sbset(long unsigned p,vind n)
 :  pos(p), nvar_(n)
 {
 	actvar_ = new vind[nvar_];
@@ -38,3 +39,6 @@ sbset::~sbset(void)
 {
 	delete[] actvar_;
 }
+
+}
+

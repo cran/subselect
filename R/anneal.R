@@ -2,16 +2,38 @@ anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,
 exclude=NULL, include=NULL, improvement=TRUE, 
 setseed = FALSE, cooling=0.05, temp=1,
 coolfreq=1, criterion="RM", pcindices="first_k", initialsol=NULL,
-force=FALSE, tolval=10*.Machine$double.eps){
+force=FALSE,H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
+
+        
+#####################################
+#  set parameters to default values #
+#####################################
+
+	if (r==0 && criterion=="default")  criterion <- "RM"
+        if (r>0  && criterion=="default")  criterion <- "TAU_2"
+        p <- nrow(mat)
+
 
 ###############################
 # general validation of input #
 ###############################
 
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
         
+
+
+######################################################################
+# Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
+# "ZETA_2" or "CCR1_2"                                               #
+######################################################################
+
+if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
+"ZETA_2" || criterion == "CCR1_2") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+
+
+
 ##########################################################################
 # more specific validation of input for the anneal and improve functions #
 ##########################################################################
@@ -24,8 +46,8 @@ force=FALSE, tolval=10*.Machine$double.eps){
 # validation specific for the input to the anneal function  #
 #############################################################
 
-        if (!(as.integer(coolfreq) == coolfreq) | (coolfreq < 1)) stop("\n The cooling frequency must be a non-negative integer")
-        if (cooling<=0 || cooling >=1) stop("\n values of cooling must be between 0 and 1")
+        if (!(as.integer(coolfreq) == coolfreq) | (coolfreq < 1)) stop("\n The 'cooling frequency' parameter must be a non-negative integer")
+        if (cooling<=0 || cooling >=1) stop("\n values of the 'cooling' parameter must be between 0 and 1")
 
 
 
@@ -47,7 +69,7 @@ force=FALSE, tolval=10*.Machine$double.eps){
               valp<-rep(0,p)
               vecp<-matrix(nrow=p,ncol=p,rep(0,p*p))
                  }
-           
+     
 
 ##################################
 # call to the Fortran subroutine #
@@ -64,7 +86,7 @@ force=FALSE, tolval=10*.Machine$double.eps){
           as.integer(coolfreq),as.integer(length(pcindices)),
           as.integer(pcindices),as.logical(esp),as.logical(silog),
           as.integer(as.vector(initialsol)), as.double(valp),
-          as.double(as.vector(vecp)), PACKAGE="subselect")
+          as.double(as.vector(vecp)), as.double(as.vector(H)),as.integer(r),PACKAGE="subselect")
 
 ########################
 # preparing the output #
@@ -81,5 +103,4 @@ force=FALSE, tolval=10*.Machine$double.eps){
         output<-list(variaveis,valores,bestval,bestvar,match.call())
         names(output)<-c("subsets","values","bestvalues","bestsets","call")
         output}
-
 

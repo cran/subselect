@@ -1,15 +1,36 @@
 improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
 include=NULL, setseed = FALSE, criterion="RM", pcindices="first_k",
-initialsol=NULL, force=FALSE, tolval=10*.Machine$double.eps){
+initialsol=NULL, force=FALSE, H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
+
+
+        
+#####################################
+#  set parameters to default values #
+#####################################
+
+	if (r==0 && criterion=="default")  criterion <- "RM"
+        if (r>0  && criterion=="default")  criterion <- "TAU_2"
+        p <- nrow(mat)
+
 
 
 ###############################
 # general validation of input #
 ###############################
 
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval)
+        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
+
+
+######################################################################
+# Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
+# "ZETA_2" or "CCR1_2"                                               #
+######################################################################
+
+if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
+"ZETA_2" || criterion == "CCR1_2") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+
 
 ##########################################################################
 # more specific validation of input for the anneal and improve functions #
@@ -52,7 +73,8 @@ initialsol=NULL, force=FALSE, tolval=10*.Machine$double.eps){
           as.integer(length(pcindices)),as.integer(pcindices),
           as.logical(esp),as.logical(silog),
           as.integer(as.vector(initialsol)),as.double(valp),
-          as.double(as.vector(vecp)),PACKAGE="subselect")
+          as.double(as.vector(vecp)),as.double(as.vector(H)),as.integer(r),PACKAGE="subselect")
+
 
 ########################
 # preparing the output #
@@ -69,6 +91,4 @@ initialsol=NULL, force=FALSE, tolval=10*.Machine$double.eps){
         output<-list(variaveis,valores,bestval,bestvar,match.call())
         names(output)<-c("subsets","values","bestvalues","bestsets","call")
         output}
-
-
 

@@ -1,6 +1,7 @@
 \name{anneal}
 
 \alias{anneal}
+\concept{Simulated annealing}
 
 \title{Simulated Annealing Search for an optimal k-variable subset} 
 
@@ -57,17 +58,60 @@ smallest and largest eigenvalues is less than \code{tolval}). For an
 ill-conditioned input matrix, execution is aborted. The function
 \code{\link{trim.matrix}} may be used to obtain a well-conditioned input
 matrix.
+
+In a general descriptive (Principal Components Analysis) setting, the
+three criteria Rm, Rv and Gcd can be used to select good k-variable
+subsets. Arguments \code{H} and \code{r} are not used in this context.
+See references [1] and [2] and the \code{Examples} for a more detailed
+discussion. 
+
+In the setting of a multivariate linear model, \eqn{X = A \Psi  +
+U}{X = A B + U},
+criteria Ccr12, Tau2, Xi2 and Zeta2 can be used to select subsets
+according to their  contribution to an effect characterized by the
+violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
+reference [3] for 
+further details). In this setting, arguments \code{mat} and \code{H}
+should be set respectively to the usual Total (Hypothesis + Error) and
+Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices given by: 
+\eqn{\code{mat}  = X' (I - P_{\omega}) X }{mat  = X' (I - P_w) X }
+and
+\eqn{\code{H}  = X' (P_{\Omega} - P_{\omega}) X}{H  = X' (P_O - P_w) X}
+where
+\eqn{P_{\Omega} =  A(A'A)^- A'}{P_O =  A(A'A)^- A'}
+and
+\deqn{P_{\omega} =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
+A'}{P_w =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
+A'}
+are projection matrices on the spaces spanned by the columns of A
+(space \eqn{\Omega}{O}) and by the linear combinations of these columns that
+satisfy the reference hypothesis (space \eqn{\omega}{w}). In these formulae,
+\eqn{M'} denotes the transpose of \eqn{M} and
+\eqn{M^-} a generalized inverse.   
+Argument \code{r} should be set to the expected rank of \code{H},
+which equals the difference between the dimensions of \eqn{\Omega}{O} and
+\eqn{\omega}{w}. 
+Particular cases in this setting include Linear Discriminant Analyis
+(LDA), Linear Regression Analysis (LRA), Canonical Correlation
+Analysis (CCA) with one set of variables fixed  and several extensions of
+these and other classical multivariate methodologies. For LDA, LRA and CCA,
+the reference hypothesis merely states that all observation vectors
+should have the same expected value and the mat matrix reduces to the
+SSCP of the deviations from their global mean. In this case, \code{mat} can
+be converted into a covariance matrix if \code{H} is likewise divided by the
+same degrees of freedom.  
 }
 
 \usage{anneal( mat, kmin, kmax = kmin, nsol = 1, niter = 1000, exclude
 = NULL, include = NULL, improvement = TRUE, setseed = FALSE,
 cooling = 0.05,  temp = 1, coolfreq = 1, criterion = "RM",
-pcindices = "first_k", initialsol=NULL, force=FALSE, tolval=10*.Machine$double.eps)} 
+pcindices = "first_k", initialsol=NULL, force=FALSE, H=NULL, r=0, 
+tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)} 
 
 \arguments{
 
-  \item{mat}{a covariance or correlation matrix of the variables from
-  which the k-subset is to be selected.}
+  \item{mat}{a covariance/correlation or sums of squares and products
+    matrix of the variables from which the k-subset is to be selected. See the \code{Details} section below.}
 
   \item{kmin}{the cardinality of the smallest subset that is wanted.}
 
@@ -105,11 +149,13 @@ pcindices = "first_k", initialsol=NULL, force=FALSE, tolval=10*.Machine$double.e
   the temperature is cooled at every iteration.}
 
   \item{criterion}{Character variable, which indicates which criterion
-  is to be used in judging the quality of the subsets. Currently, only
-  the RM, RV and GCD criteria are supported, and referenced as "RM",
-  "RV" or "GCD" (see References, \code{\link{rm.coef}}, 
-  \code{\link{rv.coef}} and \code{\link{gcd.coef}} for further
-  details).}
+  is to be used in judging the quality of the subsets. Currently, 
+  the "RM", "RV", "GCD", "Tau2", "Xi2", "Zeta2" and "ccr12" criteria are
+  supported  (see the \code{Details} section, the \code{References} and
+  the links   \code{\link{rm.coef}},  
+  \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
+  \code{\link{xi2.coef}}, \code{\link{zeta2.coef}} and
+ \code{\link{ccr12.coef}} for further details).}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the GCD
@@ -148,8 +194,28 @@ pcindices = "first_k", initialsol=NULL, force=FALSE, tolval=10*.Machine$double.e
     sets (currently \code{p} > 400) the algorithm should proceed
     anyways, regardless of possible memory problems which may crash the
     R session.}
+ 
+  \item{H}{Effect description matrix. Not used with the RM, RV or GCD
+    criteria, hence the NULL default value. See the \code{Details} section below.}
+  
+  \item{r}{Expected rank of the effects (\code{H}) matrix. Not used with the
+    RM, RV or GCD criteria. See the \code{Details} section below.}
 
-  \item{tolval}{the tolerance level for the reciprocal of the 2-norm condition number of the correlation/covariance matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. Matrices with a reciprocal of the condition number smaller than \code{tolval} will abort the search algorithm.} 
+
+  \item{tolval}{the tolerance level for the reciprocal of the 2-norm
+    condition number of the correlation/covariance matrix, i.e., for the
+    ratio of the smallest to the largest eigenvalue of the input
+    matrix. Matrices with a reciprocal of the condition number smaller
+    than \code{tolval} will abort the search algorithm.}
+
+ \item{tolsym}{the tolerance level for symmetry of the
+   covariance/correlation/total matrix and for the effects (\code{H})
+   matrix. If corresponding matrix entries differ by more than this
+   value, the input matrices will be considered asymmetric and execution
+   will be aborted. If corresponding entries are different, but by less
+   than this value, the input matrix will be replaced by its symmetric
+   part, i.e., input matrix A becomes (A+t(A))/2.}
+
 }
 
 \value{A list with five items:
@@ -181,22 +247,34 @@ pcindices = "first_k", initialsol=NULL, force=FALSE, tolval=10*.Machine$double.e
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
-\code{\link{gcd.coef}}, \code{\link{genetic}}, \code{\link{improve}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
+\code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
+\code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
+ \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
+
 
 \references{
-1) Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
+[1] Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
 Computational aspects of algorithms for variable selection in the
 context of principal components. \emph{Computational Statistics \& Data Analysis}, 47, 225-236.
 
-2) Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
+[2] Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,
 Biological and Environmental Statistics}, Vol. 6, 62-79.
+
+[3] Duarte Silva, A.P. (2001) Efficient Variable Screening for
+Multivariate Analysis, 
+\emph{Journal of Multivariate Analysis}, Vol. 76, 35-62.
+
 }
 
 \examples{
 
-# For illustration of use, a small data set with very few iterations
-# of the algorithm. 
+## --------------------------------------------------------------------
+
+##
+## (1) For illustration of use, a small data set with very few iterations
+## of the algorithm, using the RM criterion.
+##
 
 data(swiss)
 anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM")
@@ -238,11 +316,11 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM")
 ##$call
 ##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "RM")
 
+## --------------------------------------------------------------------
 
-#
-#
-# Excluding variable number 6 from the subsets.
-# 
+##
+## (2) An example excluding variable number 6 from the subsets.
+## 
 
 data(swiss)
 anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM",exclude=c(6))
@@ -285,9 +363,11 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM",exclude=c(6))
 ##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "RM",
 ##     exclude=c(6))
 
-# specifying initial solutions: using the subsets produced by
-# simulated annealing for one criterion (RM, by default) as initial
-# solutions for the simulated annealing search with a different criterion.
+## --------------------------------------------------------------------
+
+## (3) An example specifying initial solutions: using the subsets produced
+## by simulated annealing for one criterion (RM, by default) as initial
+## solutions for the simulated annealing search with a different criterion.
 
 data(swiss)
 rmresults<-anneal(cor(swiss),2,3,nsol=4,niter=10, setseed=TRUE)
@@ -330,5 +410,214 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd", initialsol=rmresults$subs
 ##$call
 ##anneal(cor(swiss), 2, 3, nsol = 4, niter = 10, criterion = "gcd", 
 ##    initialsol = rmresults$subsets)
-}
+
+## --------------------------------------------------------------------
+
+## (4) An example of subset selection in the context of Multiple Linear
+## Regression. Variable 5 in the Cars93 MASS library data set is
+## regressed on 13 other variables.  A best subset of linear predictors is
+## sought, using the "TAU_2" criterion which, in the case of a Linear 
+## Regression, is merely  the standard Coefficient of Determination, R^2 
+## (like the other three criteria for the multivariate linear hypothesis, 
+## "XI_2", "CCR1_2" and "ZETA_2"). 
+
+library(MASS)
+data(Cars93)
+Y <- Cars93[,5]
+X <- Cars93[,c(7:8,12:15,17:22,25)]
+Sy <- var(Y)
+Sx <- var(X)
+Sxy <- var(X,Y)
+Carsmat <- Sx
+CarsH <- Sxy \%*\% t(Sxy)/Sy
+colnames(X)
+
+##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
+##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
+##  [7] "Fuel.tank.capacity" "Passengers"         "Length"            
+## [10] "Wheelbase"          "Width"              "Turn.circle"       
+## [13] "Weight"            
+
+anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="tau2")
+
+## $subsets
+## , , Card.4
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     4     5    10    11     0     0
+## 
+## , , Card.5
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     4     5    10    11    12     0
+## 
+## , , Card.6
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     4     5     9    10    11    12
+## 
+## 
+## $values
+##               card.4    card.5   card.6
+## Solution 1 0.7143794 0.7241457 0.731015
+## 
+## $bestvalues
+##    Card.4    Card.5    Card.6 
+## 0.7143794 0.7241457 0.7310150 
+## 
+## $bestsets
+##        Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Card.4     4     5    10    11     0     0
+## Card.5     4     5    10    11    12     0
+## Card.6     4     5     9    10    11    12
+## 
+## $call
+## anneal(mat = Carsmat, kmin = 4, kmax = 6, criterion = "xi2", 
+##     H = CarsH2, r = 1)
+##
+
+## The selected best variable subsets
+
+colnames(X)[c(4,5,10,11)]
+
+## [1] "Horsepower" "RPM"        "Wheelbase"  "Width"     
+
+colnames(X)[c(4,5,10,11,12)]
+
+## [1] "Horsepower"  "RPM"         "Wheelbase"   "Width"       "Turn.circle"
+
+colnames(X)[c(4,5,9,10,11,12)]
+
+## [1] "Horsepower"  "RPM"         "Length"      "Wheelbase"   "Width"      
+## [6] "Turn.circle"
+
+## --------------------------------------------------------------------
+
+## (5) A Linear Discriminant Analysis example with a very small data set. 
+## We consider the Iris data and three groups, defined by species (setosa, 
+## versicolor and virginica). The goal is to select the 2- and 3-variable
+## subsets that are optimal for the linear discrimination (as measured 
+## by the "CCR1_2" criterion).
+## Both the 'iris' and the 'iris3' R objects are used, for convenience in  
+## computing the Total matrix (T=irismat) and the Effects matrix (H=irish).
+
+ 
+data(iris)
+data(iris3) 
+irismat <-149*var(iris[,1:4])
+weights<-c(49,49,49)
+irish <- irismat - matrix(weights\%*\% t(apply(iris3,3,var)),4,4)
+anneal(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
+
+## $subsets
+## , , Card.2
+## 
+##            Var.1 Var.2 Var.3
+## Solution 1     1     3     0
+## 
+## , , Card.3
+## 
+##            Var.1 Var.2 Var.3
+## Solution 1     2     3     4
+## 
+## 
+## $values
+##               card.2   card.3
+## Solution 1 0.9589055 0.967897
+## 
+## $bestvalues
+##    Card.2    Card.3 
+## 0.9589055 0.9678971 
+## 
+## $bestsets
+##        Var.1 Var.2 Var.3
+## Card.2     1     3     0
+## Card.3     2     3     4
+## 
+## $call
+## anneal(mat = 149 * var(iris[, c(1, 2, 3, 4)]), kmin = 2, kmax = 3, 
+##     criterion = "ccr12", H = irish, r = 2)
+## 
+
+## --------------------------------------------------------------------
+
+## (6) An example of subset selection in the context of a Canonical
+## Correlation Analysis. Two groups of variables within the Cars93
+## MASS library data set are compared. The goal is to select 4- to
+## 6-variable subsets of the 13-variable 'X' group that are optimal in
+## terms of preserving the canonical correlations, according to the
+## "XI_2" criterion (Warning: the 3-variable 'Y' group is kept
+## intact; subset selection is carried out in the 'X' 
+## group only).  The 'tolsym' parameter is used to relax the symmetry
+## requirements on the effect matrix H which, for numerical reasons,
+## is slightly asymmetric. Since corresponding off-diagonal entries of
+## matrix H are different, but by less than tolsym, H is replaced  
+## by its symmetric part: (H+t(H))/2.
+
+library(MASS)
+data(Cars93)
+Y <- Cars93[,4:6]
+X <- Cars93[,c(7:8,12:15,17:22,25)]
+Sy <- var(Y)
+Sx <- var(X)
+Sxy <- var(X,Y)
+Carsmat <- Sx
+CarsH <- Sxy \%*\% solve(Sy,t(Sxy))
+colnames(X)
+
+##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
+##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
+##  [7] "Fuel.tank.capacity" "Passengers"         "Length"            
+## [10] "Wheelbase"          "Width"              "Turn.circle"       
+## [13] "Weight"            
+
+
+anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="xi2", tolsym=1e-9)
+
+## $subsets
+## , , Card.4
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     4     9    10    11     0     0
+## 
+## , , Card.5
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     3     4     9    10    11     0
+## 
+## , , Card.6
+## 
+##            Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Solution 1     3     4     5     9    10    11
+## 
+## 
+## $values
+##               card.4    card.5    card.6
+## Solution 1 0.2818772 0.2943742 0.3057831
+## 
+## $bestvalues
+##    Card.4    Card.5    Card.6 
+## 0.2818772 0.2943742 0.3057831 
+## 
+## $bestsets
+##        Var.1 Var.2 Var.3 Var.4 Var.5 Var.6
+## Card.4     4     9    10    11     0     0
+## Card.5     3     4     9    10    11     0
+## Card.6     3     4     5     9    10    11
+## 
+## $call
+## anneal(mat = Carsmat, kmin = 4, kmax = 6, criterion = "xi2", 
+##     H = CarsH, r = 3, tolsym = 1e-09)
+## 
+## Warning message:
+## 
+##  The effect description matrix (H) supplied was slightly asymmetric: 
+##  symmetric entries differed by up to 1.20053300634027e-10.
+##  (less than the 'tolsym' parameter).
+##  The H matrix has been replaced by its symmetric part.
+##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 
+
+## --------------------------------------------------------------------
+
+   }
 \keyword{manip}

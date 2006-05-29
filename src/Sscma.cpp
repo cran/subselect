@@ -2,35 +2,49 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <vector> 
 #include "Sscma.h"
 #include "Subsets.h"
 #include "Vsmabo.h"
 
-namespace leapsnbnds  {
+using std::vector;
+
+
+namespace extendedleaps {
 
 vind		p,q,fp,lp,mindim,flst,lastvar,*actv;  
 real		trs,trs2,*lbnd,*ubnd;
-int		pcrt; 
+double 		btime,maxtime; 
+int			pcrt; 
 long unsigned   ms,*sbsetcnt;                      
-pcskept		pcsets;
+pcskept			pcsets;
 std::string 	memmsg("Unable to find enough memory to run leaps with this data\n");
 
+long unsigned sbsetind,maxsbst;
 
 #ifdef COUNTING 
 long unsigned cntg,fpcnt,fpcnt1;	//  Floating point operations counters   
-#endif                
+#endif    
 
-}
-
-using namespace leapsnbnds;
-
+     /*  Comparison criteria */
+ 
+const int  GCD      = 1;
+const int  RV       = 2;
+const int  MCB2     = 3;
+const int  TAU      = 4;	
+const int  XI       = 5;	
+const int  ZETA     = 6;	
+const int  CCR1     = 7;	
+const int  NOTFOUND = 99;
+            
 subsetdata *idata,*fulldata;
 globaldata *gidata,*gfulldata;
-auxmemory *dataam;
+vector<partialdata *> pdata;
 vind ndim,maxdim,*prvks,*dmyv,*cmpl,*Flp,*ivlst,*ovlst;                
-extern vind flsts,flsti;
+vind flsts,flsti;
 int	pcrttp;                                         
-wrkspace   *SW,*IW;   
+SRCwrkspace*   SW;   
+INVwrkspace*   IW;   
 real  c0,v0,*vc0,*Fl;                               				                   
 long unsigned m0,maxsbqe,maxcmp;
 
@@ -42,13 +56,13 @@ psbst*		sbsarr;
 psbstlist*	bsts;
 
 void resetvar(void);
-int getpcrt(char *,int *);
+int getpcrt(char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
 void cleanlists(void);
-void fillres(vind,vind,long unsigned,int *,int *,real *,real *);
+void fillres(vind fk,vind nk,long unsigned ns,int* bst,int* st,real* bvl,real* vl);
 void saveset(psbstlist,int *,real *l,long unsigned,vind);
 int trivialcmp(const void *,const void *);
-void matasvcttranspose(int,int,int *);
+void matasvcttranspose(long unsigned m,long unsigned n,int* data);
 void asgmemory(void);
 void cleanup(void);
 
@@ -59,7 +73,6 @@ void resetvar()
 	actv = prvks = dmyv = cmpl = Flp = ivlst = ovlst= 0;
 	idata = fulldata = 0;
 	gidata = gfulldata = 0;
-	dataam = 0;
 	lbnd = ubnd = vc0 = Fl = 0;
 	c0 = v0 = 0.;                   
 	sbsarr = 0;
@@ -70,17 +83,21 @@ void resetvar()
 	#endif
 }
 
-int getpcrt(char *st,int *fixed)
+int getpcrt(char* st,bool fixed)
 {
-	if ( !strncmp(st,"rm",2) || !strncmp(st,"RM",2) || !strncmp(st,"Rm",2) )        return MCB2;    
-	else if ( !strncmp(st,"rv",2) || !strncmp(st,"RV",2) || !strncmp(st,"Rv",2) )   return RV;
-	else if ( !strncmp(st,"gcd",3) || !strncmp(st,"GCD",3) || !strncmp(st,"Gcd",3)) 
-		{
-			assert(fixed);
-			if (*fixed) pcsets = given;
-			else pcsets = firstk;
-			return GCD;  
-		}
+	if ( !strncmp(st,"TAU_2",5)  )		return TAU;
+	else if ( !strncmp(st,"XI_2",4)  )	return XI;
+	else if ( !strncmp(st,"ZETA_2",6) )	return ZETA;
+	else if ( !strncmp(st,"CCR1_2",6) )	return CCR1;
+
+	else if ( !strncmp(st,"RM",2) )		return MCB2;    
+	else if ( !strncmp(st,"RV",2) )		return RV;
+	else if ( !strncmp(st,"GCD",3) ) 
+	{
+		if (fixed) pcsets = given;
+		else pcsets = firstk;
+		return GCD;  
+	}
 	else return NOTFOUND;
 }
 
@@ -126,11 +143,10 @@ void cleanlists() {
 	delete[] cmpl;
 }
 
-
 bool sscma(bool fullwrksp,subsetdata *nullsetdt,subsetdata *fullsetdt)
 {
-	SW = new wrkspace(fullwrksp,SRC,p,nullsetdt);
-	IW = new wrkspace(fullwrksp,INV,p,fullsetdt);
+	SW = new SRCwrkspace(fullwrksp,p,nullsetdt,ivlst,ovlst);
+	IW = new INVwrkspace(fullwrksp,p,fullsetdt,ivlst,ovlst);
 	flst = flsts;
 	#ifdef COUNTING  
 	fpcnt1 = 0;
@@ -218,6 +234,7 @@ void fillres(vind fk,vind nk,long unsigned ns,int *bst,int *st,real *bvl,real *v
 	return;
 }
 
+
 void saveset(psbstlist pset,int *bvar,real *bcrtval,long unsigned nel,vind dim)
 {
 	int i=0,j,*var;
@@ -227,24 +244,14 @@ void saveset(psbstlist pset,int *bvar,real *bcrtval,long unsigned nel,vind dim)
 		for (j=0;j<(*qep)->nvar();j++) var[j] = (*qep)->actvar()[j];  
 		qsort(static_cast<void *>(var),(*qep)->nvar(),sizeof(*var),trivialcmp);
 		for (j=(*qep)->nvar();j<dim;j++) var[j] = 0; 
-		switch (pcrt)  {
-			case MCB2:
-				*bcrtval++ = sqrt(1. - (*qep)->crt()/trs);
-				break;
-			case GCD:
-				if (pcsets == given) *bcrtval++ = (*qep)->crt()/sqrt(q*(*qep)->nvar());
-				else if (pcsets == firstk) *bcrtval++ = (*qep)->crt()/(*qep)->nvar();
-				break;
-			case RV:
-				*bcrtval++ = sqrt((*qep)->crt()/trs2);
-				break;
-		}
+		*bcrtval++ = (*qep)->indice();
 	}
-	for (i=pset->size();i<nel;i++)  {
+  for (i=pset->size();i<nel;i++)  {
 		for (vind j=0;j<dim;j++) bvar[i*dim+j] = 0;
 		*bcrtval++ = 0.;
 	} 
 }
+
 
 int trivialcmp(const void *a,const void *b)
 {
@@ -257,19 +264,19 @@ int trivialcmp(const void *a,const void *b)
 		 else return 0;
 }
 
-void matasvcttranspose(int m,int n,int *data)
+void matasvcttranspose(long unsigned m,long unsigned n,int* data)
 {
-	vind mn=m*n;
-	int  *tmp=0;
+	long unsigned mn=m*n;
+	int* tmp=0;
 	
 	try { tmp = new int[mn]; }
 	catch (std::bad_alloc)   {
 		cleanup();
 		errmsg(memmsg);
 	}
-	{ for (vind i=0;i<m;i++)
-		for (vind j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
-	{ for (vind i=0;i<mn;i++) data[i] = tmp[i]; }
+	{ for (long unsigned i=0;i<m;i++)
+		for (long unsigned j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
+	{ for (long unsigned i=0;i<mn;i++) data[i] = tmp[i]; }
 	delete[] tmp;
 }
 
@@ -292,7 +299,7 @@ void asgmemory()
 		sbsarr = new psbst[maxsbst];
 		{ for (long unsigned i=0;i<maxsbst;i++) sbsarr[i]=new sbset(i,p);  }
 
-		if ( pcrt == MCB2 ) {
+		if ( pcrt == MCB2 || pcrt == TAU) {
 			pcrttp = MINIMZ;
 			if (ms > 0) 
 				{ for (vind i=0;i<ndim;i++) bsts[i] = new sbstlist(sbstsort::descending);  }
@@ -361,6 +368,8 @@ void cleanup(void)
 	delete fulldata;
 	delete gidata;
 	delete gfulldata;
-	delete dataam;
+	for (vind j=0;j<=p;j++) delete pdata[j];
 	cleanlists();
+}
+
 }

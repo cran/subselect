@@ -3,13 +3,14 @@
        SUBROUTINE anneal(criterio,p,svector,kmin,kmax,valores,vars,
      + bestval,bestvar,nfora,fora,ndentro,dentro,nsol,niter,
      + improvement,beta,temp,coolfreq,nqsi,qsi,esp,silog,solinit,valp,
-     + vecvecp)
+     + vecvecp,hvector,rh)
 *#######################################################################
 
 * Routine to perform a Simulated Annealing search for a k-variable subset
 * of a set of p original variables, which maximizes one of several criteria.
-* (The criteria currently considered are RM, RV and GCD). The user may force
-*  the inclusion and/or exclusion of certain variables from the k-subset.
+* (The criteria currently considered are RM, RV, GCD, TAU_2,XI_2,ZETA_2 and 
+*  CCR1_2). The user may force the inclusion and/or exclusion of certain 
+*  variables from the k-subset.
 * 
 * Designed to be called by an R/S function "anneal" (included in the package 
 * "subselect", available from CRAN). 
@@ -66,7 +67,13 @@
 *            (correlation) matrix, computed in R.
 * vecvecp  - double precision vector, giving the eigenvectors of the 
 *            covariance (or correlation) matrix of the p variables (given 
-*            as a vector for convenience in passing from R to Fortran). 
+*           as a vector for convenience in passing from R to Fortran). 
+* hvector  - double precision vector, giving the full effect descrption 
+*            matrix (H) of the p variables (given as a vector for
+*            convenience in passing from R to Fortran). 
+*   rh     - integer variable giving the expected rank of H matrix.
+* 
+*
 *
 * OUTPUT: 
 *
@@ -93,14 +100,14 @@
 *
 
 * general declarations
-       INTEGER p,criterio,niter,poriginal
+       INTEGER p,criterio,niter,poriginal,rh
        INTEGER fora(0:nfora),fica(0:p),dentro(0:ndentro),auxw(kmax)
        INTEGER vars(nsol*(kmax-kmin+1)*kmax)
        INTEGER bestvar((kmax-kmin+1)*kmax)
        LOGICAL setk(p),setkmax(p),improvement
-       DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p),vecvecp(p*p)
+       DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p),vecvecp(p*p),h(p,p)
        DOUBLE PRECISION vmax,vactual,vcorrente
-       DOUBLE PRECISION valores((kmax-kmin+1)*nsol)
+       DOUBLE PRECISION valores((kmax-kmin+1)*nsol),hvector(p*p)
        DOUBLE PRECISION beta,temp,critvalue
        integer coolfreq 
        DOUBLE PRECISION bestval(kmax-kmin+1)
@@ -114,18 +121,21 @@
        DOUBLE PRECISION valp(p), vecp(p,p),dobjgcd
        INTEGER nqsi,qsi(p)
        LOGICAL esp
+* declarations for tau2,xi2,zeta2 e ccr12
+       Double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 
-       external randsk1,dobjrm,dobjrv,dobjgcd
-       external dcorrigesk,dannealing
-       external dmelhoramentogen,inicializar
+       external randsk1,dobjrm,dobjrv,dobjgcd,dobjtau2,dobjxi2
+       external dcorrigesk,dannealing,dobjzeta2,dobjccr12
+       external dmelhoramentogen,newinicializar
 
 
 
 * initializations 
 
-      call inicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
-     +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp)
+      call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
+     +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
+     +  h,hvector,rh)
 
 
 **********************************
@@ -182,11 +192,25 @@
                vactual=dobjgcd(nqsi,qsi,valp,vecp,k,setk,p,s,
      +           fica,poriginal)
            end if
-
+           if (criterio.eq.4) then
+               vactual=dobjtau2(k,setk,p,s,poriginal,h,rh)
+           end if
+		 
+		 if (criterio.eq.5) then
+               vactual=dobjxi2(k,setk,p,s,poriginal,h,rh)
+           end if
+		 
+		 if (criterio.eq.6) then
+               vactual=dobjzeta2(k,setk,p,s,poriginal,h,rh)
+           end if
+		 
+		 if (criterio.eq.7) then
+               vactual=dobjccr12(k,setk,p,s,poriginal,h,rh)
+           end if
        
            call dannealing(criterio,p,k,s,sq,setk,vactual,ndentro,
      +       dentro,niter,beta,temp,coolfreq,tracos,tracosq,
-     +       nqsi,qsi,valp,vecp,fica,poriginal)
+     +       nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
 
 
            if (criterio.eq.1) then
@@ -197,6 +221,20 @@
            end if
            if (criterio.eq.3) then
               critvalue = vactual/dsqrt(DBLE(nqsi*k))
+           end if
+           if (criterio.eq.4) then
+              critvalue = vactual
+           end if
+
+	     if (criterio.eq.5) then
+               critvalue = vactual
+           end if
+		  if (criterio.eq.6) then
+              critvalue = vactual
+           end if
+
+	     if (criterio.eq.7) then
+               critvalue = vactual
            end if
 
 * preparing the output for R/S
@@ -232,7 +270,21 @@
          if (criterio.eq.3) then
               critvalue = vmax/dsqrt(DBLE(nqsi*k))
          end if
+         if (criterio.eq.4) then
+            critvalue=vmax
+         end if
 
+         if (criterio.eq.5) then
+             critvalue=vmax  
+           end if
+		 
+          if (criterio.eq.6) then
+            critvalue=vmax
+         end if
+
+         if (criterio.eq.7) then
+             critvalue=vmax  
+           end if
 
 * If improvement is "true" runs a restricted local improvement algorithm
 * on the best of the nsol solutions produced by Simulated Annealing.  
@@ -242,7 +294,7 @@
 
 
             call dmelhoramentogen(criterio,p,setkmax,vmax,ndentro,
-     +        dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal)
+     +        dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
 
 
             if (vmax .GT. vcorrente) then 
@@ -262,7 +314,21 @@
                    if (criterio.eq.3) then
                        critvalue = vmax/dsqrt(DBLE(nqsi*k))
                    end if
+                   if (criterio.eq.4) then
+					 critvalue=vmax
+				end if
 
+				if (criterio.eq.5) then
+				critvalue=vmax  
+				end if
+		 
+				if (criterio.eq.6) then
+				critvalue=vmax
+				end if
+
+				if (criterio.eq.7) then
+				critvalue=vmax  
+				end if
             end if      
          end if
 

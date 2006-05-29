@@ -3,25 +3,25 @@
 
 #include <set>
 
-using leapsnbnds::vind;
-using leapsnbnds::real;
-
+namespace extendedleaps {
 
 class sbset  {
 	public:
-		sbset(vind,unsigned);
+		sbset(long unsigned p,vind n);
 		virtual ~sbset(void);
 		vind*  actvar(void)	const	{ return actvar_; }
 		vind   nvar(void)	const	{ return nvar_;  }
 		real   crt(void)	const	{ return crt_;   }
+		real   indice(void)	const	{ return ind_;   }
 	private:
-		unsigned   pos;
-		vind       nvar_;
-		vind*      actvar_;
-		real	   crt_;
-		sbset(const sbset&);		// Disallow copy constructur by clients
-		sbset& operator=(const sbset&);	// Disallow assignment by clients
-	friend sbset *csbset(vind,vind *,real);
+		long unsigned   pos;
+		vind       	nvar_;
+		vind*      	actvar_;
+		real	   	crt_;
+		real	   	ind_;
+		sbset(const sbset&);					// Disallow copy constructur by clients
+		sbset& operator=(const sbset&);	    	// Disallow assignment by clients
+	friend sbset *csbset(vind,vind *,real,real);
 	friend void dsbset(sbset *);
 };
 
@@ -35,10 +35,10 @@ class sbstsort {
 		cmp_mode  mode;
 };
 
-
 typedef  sbset*				psbst;
 typedef  std::set<sbset *,sbstsort>	sbstlist;
 typedef  sbstlist*			psbstlist;
 
-#endif
+}
 
+#endif

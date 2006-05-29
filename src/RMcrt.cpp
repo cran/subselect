@@ -4,20 +4,20 @@
 #include "Vsmabo.h"
 #include "RMcrt.h"
 
-using namespace leapsnbnds;
+namespace extendedleaps {
 
 #ifdef COUNTING  
 extern long unsigned fpcnt1;
 #endif
 
-rmgdata::rmgdata(vind nvariables)
+partialrmdata::partialrmdata(vind nvariables)
   :   p(nvariables)
 {
 	tmpv.reserve(p);
 }
 
-rmdata::rmdata(vind lastvariab,vind partialnv,vind numbvar,rmgdata *data,const deque<bool>& active,real criterion)
-  :  lastv(lastvariab), k(partialnv), p(numbvar), gdt(data), crt(criterion), e(0), varin(active)
+rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<bool>& active,real criterion)
+  :  lastv(lastvariab), k(nvtopiv), p(tnv), gdt(data), crt(criterion), e(0), varin(active)
 {
 	if (k > 0) try {
 		e = new symtwodarray(k);
@@ -40,101 +40,95 @@ rmdata::~rmdata()
 	delete e;
 }
 
-real rmdata::updatecrt(vind *,vind *flist,vind var,vind fvarind) const
+inline real rmdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+{ 
+	if (mmind.direct()) return updatecrt(d,(*(mmind.idfm())),var,(*(mmind.idpm()))[var-1],pdt); 
+	else return updatecrt(d,*(mmind.iifm()),var,(*(mmind.iipm()))[var-1],pdt); 
+}
+		
+inline void rmdata::pivot(direction d,mindices& mmind,vind vp,vind t,
+						   partialdata* pdt,subsetdata* fdt,bool last)
+{ 
+	if (mmind.direct()) pivot(d,*(mmind.idpm()),*(mmind.idfm()),vp,t,pdt,fdt,last); 
+	else pivot(d,*(mmind.iipm()),*(mmind.iifm()),vp,t,pdt,fdt,last); 
+}
+
+template<accesstp tp> 
+real rmdata::updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,partialdata* newdtpnt) const
 {
-
-	assert(flist[var-1] >= fvarind && flist[var-1]  < p);
-
-	vind irowi,varind = flist[var-1]-fvarind;
+	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
+	
+	// Attention: newdtpnt MUST point to partialrmdata object !!!
+	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	
+//	partialrmdata *newdata = dynamic_cast<partialrmdata *>(newdtpnt);    
+//	assert(newdata);
+	
+	real *tv = newdata->gettmpv();
 	real newcrt=crt,e1 = (*e)(varind,varind);
 
-	if (!varin[var-1]) newcrt -= e1;
+	if (d == forward) newcrt -= e1;
 	else newcrt -= 1./e1;
-	{ for (vind i=0;i<var-1;i++) if (!varin[i]) {
-		irowi = flist[i] ;
-		newcrt -= pow((*ovct[irowi])[varind],2)/e1;
-		#ifdef COUNTING  
-		fpcnt1 += 2;
-		#endif
-	}}
-	{ for (vind i=var;i<p;i++) if (!varin[i]) {
-		irowi = flist[i] ;
-		newcrt -= pow((*ovct[irowi])[varind],2)/e1;
-		#ifdef COUNTING  
-		fpcnt1 += 2;
-		#endif
-	}}
-
+	fmmind.reset();
+	for (vind i=0;i<p;fmmind++,i++) {
+		if (!varin[i] && (i!=var-1) ) {
+			tv[i] = (*ovct[fmmind()])[varind]/e1;
+			newcrt -= tv[i] * (*ovct[fmmind()])[varind];
+			#ifdef COUNTING  
+			fpcnt1 += 2;
+			#endif
+	}
+	}
+	newdata->setpivotval(e1);
+	newdata->setcrt(newcrt);
 	return newcrt;
 }
 
-void rmdata::pivot(vind vp,vind v1,vind vl,vind fvarind,real newcrt,vind* plist,vind* flist,subsetdata * newdtgpnt,bool last)
+template<accesstp tp> 
+void rmdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {
-	vind irowi,icoli,pivotind;
-	if (plist) pivotind = plist[vp-fvarind-1];
-	else pivotind = vp-fvarind-1;
-	real tmp,pivotval = (*e)(pivotind,pivotind);
-	real *tv = getgdata()->gettmpv();
+	vind pivotind = prtmmit[vp-1];
 
-	rmdata *newdata = static_cast<rmdata *>(newdtgpnt);    //Attention: newdtgtpnt MUST point to rmdata object !!!
+	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    
+	rmdata* newfdata = static_cast<rmdata *>(newfdtpnt);    
+	
+	//Attention: newpdtpnt and newfdttpnt MUST point to partialrmdata and rmdata objects !!!
 
 	// For safety, in debug mode use the alternative code with dynamic_cast and assert
 	
-//	rmdata *newdata = dynamic_cast<rmdata *>(newdtgpnt);    
-//	assert(newdata);
+//	partialrmdata* newpdata = dynamic_cast<partialrmdata *>(newpdtpnt);    
+//	rmdata* newfdata = dynamic_cast<rmdata *>(newfdtpnt);    
+//	assert(newpdata && newfdata);
 
-	newdata->crt = newcrt;
+	real pivotval = newpdata->getpivotval();
+	real *tv = newpdata->gettmpv();
 
-	{ for (vind j=0;j<p;j++)  
-		if (j+1 != vp) newdata->varin[j] = varin[j]; }
-	if (varin[vp-1]) newdata->varin[vp-1] = false;
-	else newdata->varin[vp-1] = true;
-	{  for (vind j=0;j<v1-1;j++) 
-		if (j+1 != vp && !newdata->varin[j])  {
-			irowi = flist[j];
-			tmp = (*ovct[irowi])[pivotind];
-			tv[j] = tmp/pivotval;
-			#ifdef COUNTING  
-			fpcnt ++;
-			#endif
-		}
+	{ for (vind i=0;i<p;i++)  
+		if (i+1 != vp) newfdata->varin[i] = varin[i]; }
+	if (d == backward) newfdata->varin[vp-1] = false;
+	else newfdata->varin[vp-1] = true;
+	symatpivot(prtmmit,pivotval,*e,*(newfdata->e),vp,t);
+	fmmind.reset();
+	{ for (vind i=0;i<vp;fmmind++,i++)  
+		if (i+1 != vp && !newfdata->varin[i])  {
+			vectorpivot(prtmmit,*ovct[fmmind()],*newfdata->ovct[i],*e,tv[i],vp,t); 
+			newfdata->ovct[i]->switchtoowndata();
+	} }
+	if (d == backward) {
+		prtmmit.reset(vp);
+		for (vind j=vp;j<vp+t;prtmmit++,j++) 
+			newfdata->ovct[vp-1]->setvalue(j-vp,-(*ovct[fmmind[vp-1]])[prtmmit()]/pivotval); 
+		#ifdef COUNTING  
+		fpcnt += t;
+		#endif
+		newfdata->ovct[vp-1]->switchtoowndata();
 	}
-	{ for (vind j=vl;j<p;j++) 
-		if (!newdata->varin[j])  {
-			irowi = flist[j];
-			tmp = (*ovct[irowi])[pivotind];
-			tv[j] = tmp/pivotval;
-			#ifdef COUNTING  
-			fpcnt ++;
-			#endif
-		}
-	}
+	fmmind.reset(vp+t);
+	{ for (vind i=vp+t;i<p;fmmind++,i++)  
+		if (!newfdata->varin[i])  {
+			vectorpivot(prtmmit,*ovct[fmmind()],*newfdata->ovct[i],*e,tv[i],vp,t); 
+			newfdata->ovct[i]->switchtoowndata();
+	} }
+}
 
-	if (!last)  {
-		symatpivot(plist,pivotval,*e,*(newdata->e),vp-fvarind,v1-fvarind,vl-fvarind);
-		{ for (vind j=0;j<v1-1;j++)  
-			if (j+1 != vp && !newdata->varin[j])  {
-				irowi = flist[j];
-				vectorpivot(plist,*ovct[irowi],*newdata->ovct[j],*e,tv[j],vp-fvarind,v1-fvarind,vl-fvarind); 
-				newdata->ovct[j]->switchtoowndata();
-		} }
-		if (!newdata->varin[vp-1]) {
-			{ for (vind j=v1-1;j<vl;j++) {
-				irowi = flist[vp-1];
-				if (plist) icoli = plist[j-fvarind];
-				else icoli = j-fvarind;
-				newdata->ovct[vp-1]->setvalue(j+1-v1,-(*ovct[irowi])[icoli]/pivotval); 
-			} }
-			#ifdef COUNTING  
-			fpcnt += (vl-v1+1);
-			#endif
-			newdata->ovct[vp-1]->switchtoowndata();
-		}
-		{ for (vind j=vl;j<p;j++)  
-			if (!newdata->varin[j])  {
-				irowi = flist[j];
-				vectorpivot(plist,*ovct[irowi],*newdata->ovct[j],*e,tv[j],vp-fvarind,v1-fvarind,vl-fvarind); 
-				newdata->ovct[j]->switchtoowndata();
-		} }
-	}
 }
