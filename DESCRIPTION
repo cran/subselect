@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.9-9
-Date: 2006-05-29
+Version: 0.9-99
+Date: 2006-06-09
 Title: Selecting variable subsets 
 Author: Jorge Orestes Cerdeira <orestes@isa.utl.pt>
         Pedro Duarte Silva <psilva@porto.ucp.pt>
@@ -9,4 +9,4 @@ Author: Jorge Orestes Cerdeira <orestes@isa.utl.pt>
 Maintainer: Jorge Cadima <jcadima@isa.utl.pt>
 Description: A collection of functions which (i) assess the quality of variable subsets as surrogates for a full data set, in either an exploratory data analysis or in the context of a multivariate linear model, and (ii) search for subsets which are optimal under various criteria.  
 License: GPL
-Packaged: Wed May 31 00:19:29 2006; root
+Packaged: Thu Jun  8 02:29:47 2006; root

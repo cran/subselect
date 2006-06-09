@@ -1,3 +1,4 @@
 useDynLib(subselect)
 exportPattern(".*\[.]coef$")
+exportPattern(".*Hmat")
 export(anneal,genetic,improve,leaps,trim.matrix)

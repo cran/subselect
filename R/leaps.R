@@ -157,8 +157,8 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
             NULL
          }
 	 else {
-           output <- Cout[30:33]
-           names(output) <- c("subsets","values","bestvalues","bestsets")
+           output <- c(Cout[30:33],match.call())
+           names(output) <- c("subsets","values","bestvalues","bestsets","call")
            output
          } 
 }

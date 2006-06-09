@@ -1,4 +1,19 @@
 
+
+########## Version 0.9.99 (June 2006) ############
+
+1) Three new functions have been added to "pre-process" the data for
+submission to the search algorithms using any of the four new
+"multivariate linear hypothesis" criteria: function \code{lmHmat}
+creates the input for a linear model (linear regression), function
+\code{ldaHmat} does the same for a linear discriminant analysis and
+\code{glhHmat} does likewise for the general linear hypothesis.
+
+2) The \code{call} item in the output list of the \code{leaps}
+function (which had been mistakenly dropped in version 0.9-9) was
+re-added. 
+
+
 ########## Version 0.9.9 (May 2006) ############
 
 Some major changes, as well as some minor ones.

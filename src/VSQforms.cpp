@@ -12,6 +12,13 @@ namespace extendedleaps {
 extern long unsigned fpcnt1;
 #endif
 
+partialvsqfdata::partialvsqfdata(vind nparcels,real vc0)
+  :  partialsqfdata(nparcels)
+{
+	tmpvc.reserve(nparcels);
+	tmpvc.assign(nparcels,vc0);
+}
+
 vsqfdata::vsqfdata(vind tnv,vind nvtopiv,vind nparcels,real vc0,real sum)
   :  sqfdata(tnv,nvtopiv,nparcels,sum)
 {
@@ -28,9 +35,9 @@ vsqfdata::vsqfdata(vind tnv,vind nvtopiv,vind nparcels,const vector<real>& ovc,r
 
 vsqfdata::~vsqfdata()  {  }
 
-void  vsqfdata::setvc(double* x)  
+void  vsqfdata::setvc(real* x,vind nparcels)  
 { 
-	for (vind j=0;j<r;j++) vc[j] = x[j];
+	for (vind j=0;j<nparcels;j++) vc[j] = x[j];
 }
 
 inline real vsqfdata::updatesum(direction d,mindices& mmind,vind var,vind dim,partialvsqfdata* pdt) const

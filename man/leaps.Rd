@@ -272,7 +272,7 @@ leaps(cor(swiss),nsol=3, criterion="RM")
 ## 
 
 data(swiss)
-leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="gcd")
+leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="rm")
 
 ##$subsets
 ##, , Card.2
@@ -360,10 +360,10 @@ leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 ## 4) An example of subset selection in the context of Multiple Linear
 ## Regression. Variable 5 in the Cars93 MASS library data set is
 ## regressed on 13 other variables. A best subset of linear predictors
-## is sought, using the "ZETA_2" criterion which, in the case 
+## is sought, using the default criterion ("TAU_2") which, in the case 
 ## of a Linear Regression, is merely  the standard Coefficient of
 ## Determination, R^2 (as are the other three criteria for the
-## multivariate linear hypothesis, "XI_2", "CCR1_2" and "TAU_2").
+## multivariate linear hypothesis, "XI_2", "CCR1_2" and "ZETA_2").
 ##
 
 library(MASS)
@@ -384,7 +384,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="zeta2")
+leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=1)
 
 ## $subsets
 ## , , Card.4
