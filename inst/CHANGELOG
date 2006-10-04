@@ -1,4 +1,16 @@
 
+########## Version 0.9.999 (October 2006) ############
+
+1) Changes in the C code required by the transition to R 2.4 (and the
+use of new C compiler).
+
+2) The leaps.R, lmHmat.default and glhHmat.default functions have
+suffered minor changes for greater numerical stability.
+
+3) The "qr" criterion used when checking for positive definiteness of
+the input matrix in the validmat.R function was removed for coherence
+with the use of the "tolval" argument. 
+
 
 ########## Version 0.9.99 (June 2006) ############
 

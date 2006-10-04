@@ -24,10 +24,8 @@ validmat<-function(mat,p,tolval,tolsym)
                     warning("\n The covariance/total matrix supplied was slightly asymmetric: \n symmetric entries differed by up to ",maxabssym,".\n (less than the 'tolsym' parameter).\n It has been replaced by its symmetric part.\n")
 }
 
-  # Positive definiteness, etc.
+  # Positive definiteness
   
-        if (qr(mat)$rank != p) 
-            stop("\n The covariance/correlation matrix supplied is not of full rank") 
  	if ( eigen(mat,symmetric=TRUE,only.values=TRUE)$values[p] < -1*tolval )
             stop("\n The covariance/correlation matrix supplied is not positive definite")
 

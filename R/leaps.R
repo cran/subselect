@@ -77,17 +77,17 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 	  else Hegvct <- HSpectd$vectors[,1] * sqrt(HSpectd$values[1]) 
         }
 	else  Hegvct <- NULL
-	if (criterion == "XI_2" || criterion == "CCR1_2") HegvctTinv <- Si %*% Hegvct
+	if (criterion == "XI_2" || criterion == "CCR1_2") HegvctTinv <- solve(mat,Hegvct)
 	else HegvctTinv <- NULL
-	if (criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3)) HegvctEinv <- Ei %*% Hegvct  
+	if (criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3)) HegvctEinv <- solve(E,Hegvct) 
 	else HegvctEinv <- NULL
 
 	if ( criterion == "TAU_2" || (criterion == "CCR1_2" && r > 1) ) Wilksval <- det(E) / det(mat)
 	else Wilksval <- 0.
-	if ( criterion == "XI_2" || criterion == "CCR1_2"  ) HSi <- H %*% Si	
+	if ( criterion == "XI_2" || criterion == "CCR1_2"  ) HSi <- t(solve(mat,H))
 	if ( criterion == "XI_2" || (criterion == "CCR1_2" && r > 1) ) BartPival <- sum(diag(HSi))	
 	else BartPival <- 0.
-	if ( criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3) ) LawHotval <- sum(diag(H %*% Ei))	
+	if ( criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3) ) LawHotval <- sum(diag(solve(E,H)))	
 	else LawHotval <- 0.
 	if ( criterion == "CCR1_2") CCR12val <- as.numeric(eigen(HSi,symmetric=FALSE,only.values=TRUE)$values[1])	
 	else CCR12val <- 0.
@@ -111,47 +111,47 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 # Call to the C subroutine #
 ############################
 
- 	 Cout <- .C("leaps",
-            as.double(mat),
-            as.double(S2),
-            as.double(Si),
-            as.double(Segval),
-            as.double(Segvct),
-            as.double(E),
-            as.double(Ei),
-            as.double(Hegvct),
-            as.double(HegvctTinv),
-            as.double(HegvctEinv),
-	    as.double(Wilksval),			
-	    as.double(BartPival),			
-	    as.double(LawHotval),			
-	    as.double(CCR12val),			
-	    as.integer(r),
-            as.integer(kmin),
-            as.integer(kmax),
-            as.integer(nsol),
-            as.integer(exclude),
-            as.integer(include),
-            as.integer(nexclude),
-            as.integer(ninclude),
-            as.character(criterion),
-            as.logical(esp),
-            as.integer(pcindices),
-            as.integer(length(pcindices)),
-            as.integer(p),
-	    as.double(timelimit),
-	    found = logical(1),	    
-            subsets,
-            values,
-            bestvalues,
-            bestsets,  
-            PACKAGE="subselect"   
+	 Cout <- .C("leaps",
+           as.double(mat),
+           as.double(S2),
+           as.double(Si),
+           as.double(Segval),
+           as.double(Segvct),
+           as.double(E),
+           as.double(Ei),
+           as.double(Hegvct),
+           as.double(HegvctTinv),
+           as.double(HegvctEinv),
+           as.double(Wilksval),	
+           as.double(BartPival),
+           as.double(LawHotval),
+           as.double(CCR12val),
+	   as.integer(r),
+           as.integer(kmin),
+           as.integer(kmax),
+           as.integer(nsol),
+           as.integer(exclude),
+           as.integer(include),
+           as.integer(nexclude),
+           as.integer(ninclude),
+           as.character(criterion),
+           as.logical(esp),
+           as.integer(pcindices),
+           as.integer(length(pcindices)),
+           as.integer(p),
+	   as.double(timelimit),
+	   found = logical(1),	    
+           subsets,
+           values,
+           bestvalues,
+           bestsets,  
+           PACKAGE="subselect"   
         ) 
 
 #######################################
 # Preparing and returning the output  #
 #######################################
-        
+ 
 	 if (Cout$found == FALSE) {
 	    warning("\n Leaps was not able to complete the search within the specified time limit.\n Either increase this limit or try one of the available meta-heuristics\n") 
             NULL

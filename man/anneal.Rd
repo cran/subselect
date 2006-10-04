@@ -87,7 +87,8 @@ are projection matrices on the spaces spanned by the columns of A
 (space \eqn{\Omega}{O}) and by the linear combinations of these columns that
 satisfy the reference hypothesis (space \eqn{\omega}{w}). In these formulae,
 \eqn{M'} denotes the transpose of \eqn{M} and
-\eqn{M^-} a generalized inverse.   
+\eqn{M^-} a generalized inverse.
+
 Argument \code{r} should be set to the expected rank of \code{H},
 which equals the difference between the dimensions of \eqn{\Omega}{O} and
 \eqn{\omega}{w}. 
@@ -100,6 +101,10 @@ should have the same expected value and the mat matrix reduces to the
 SSCP of the deviations from their global mean. In this case, \code{mat} can
 be converted into a covariance matrix if \code{H} is likewise divided by the
 same degrees of freedom.  
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
+\code{\link{glhHmat}} are provided to automatically create the matrices 
+\code{mat} and \code{H} for linear regression/canonical correlation analyis,
+linear discriminant analysis and general linear hypothesis specified by the user.
 }
 
 \usage{anneal( mat, kmin, kmax = kmin, nsol = 1, niter = 1000, exclude
@@ -249,7 +254,8 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
- \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
+\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
 
 
 \references{
@@ -423,14 +429,8 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd", initialsol=rmresults$subs
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,5]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% t(Sxy)/Sy
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -438,7 +438,7 @@ colnames(X)
 ## [10] "Wheelbase"          "Width"              "Turn.circle"       
 ## [13] "Weight"            
 
-anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="tau2")
+anneal(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1, crit="tau2")
 
 ## $subsets
 ## , , Card.4
@@ -472,21 +472,21 @@ anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="tau2")
 ## Card.6     4     5     9    10    11    12
 ## 
 ## $call
-## anneal(mat = Carsmat, kmin = 4, kmax = 6, criterion = "xi2", 
-##     H = CarsH2, r = 1)
+## anneal(mat = CarsHmat$mat, kmin = 4, kmax = 6, criterion = "xi2", 
+##     H = CarsHmat$H, r = 1)
 ##
 
 ## The selected best variable subsets
 
-colnames(X)[c(4,5,10,11)]
+colnames(CarsHmat$mat)[c(4,5,10,11)]
 
 ## [1] "Horsepower" "RPM"        "Wheelbase"  "Width"     
 
-colnames(X)[c(4,5,10,11,12)]
+colnames(CarsHmat$mat)[c(4,5,10,11,12)]
 
 ## [1] "Horsepower"  "RPM"         "Wheelbase"   "Width"       "Turn.circle"
 
-colnames(X)[c(4,5,9,10,11,12)]
+colnames(CarsHmat$mat)[c(4,5,9,10,11,12)]
 
 ## [1] "Horsepower"  "RPM"         "Length"      "Wheelbase"   "Width"      
 ## [6] "Turn.circle"
@@ -498,16 +498,11 @@ colnames(X)[c(4,5,9,10,11,12)]
 ## versicolor and virginica). The goal is to select the 2- and 3-variable
 ## subsets that are optimal for the linear discrimination (as measured 
 ## by the "CCR1_2" criterion).
-## Both the 'iris' and the 'iris3' R objects are used, for convenience in  
-## computing the Total matrix (T=irismat) and the Effects matrix (H=irish).
 
  
 data(iris)
-data(iris3) 
-irismat <-149*var(iris[,1:4])
-weights<-c(49,49,49)
-irish <- irismat - matrix(weights\%*\% t(apply(iris3,3,var)),4,4)
-anneal(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
+irisHmat <- ldaHmat(iris[1:4],iris$Species)
+anneal(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 
 ## $subsets
 ## , , Card.2
@@ -535,8 +530,7 @@ anneal(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
 ## Card.3     2     3     4
 ## 
 ## $call
-## anneal(mat = 149 * var(iris[, c(1, 2, 3, 4)]), kmin = 2, kmax = 3, 
-##     criterion = "ccr12", H = irish, r = 2)
+## anneal(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 ## 
 
 ## --------------------------------------------------------------------
@@ -548,7 +542,7 @@ anneal(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
 ## terms of preserving the canonical correlations, according to the
 ## "XI_2" criterion (Warning: the 3-variable 'Y' group is kept
 ## intact; subset selection is carried out in the 'X' 
-## group only).  The 'tolsym' parameter is used to relax the symmetry
+## group only). The 'tolsym' parameter is used to relax the symmetry
 ## requirements on the effect matrix H which, for numerical reasons,
 ## is slightly asymmetric. Since corresponding off-diagonal entries of
 ## matrix H are different, but by less than tolsym, H is replaced  
@@ -556,14 +550,8 @@ anneal(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,4:6]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% solve(Sy,t(Sxy))
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -571,8 +559,7 @@ colnames(X)
 ## [10] "Wheelbase"          "Width"              "Turn.circle"       
 ## [13] "Weight"            
 
-
-anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="xi2", tolsym=1e-9)
+anneal(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=CarsHmat$r, crit="tau2" , tolsym=1e-9)
 
 ## $subsets
 ## , , Card.4
@@ -606,13 +593,13 @@ anneal(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="xi2", tolsym=1e-9)
 ## Card.6     3     4     5     9    10    11
 ## 
 ## $call
-## anneal(mat = Carsmat, kmin = 4, kmax = 6, criterion = "xi2", 
-##     H = CarsH, r = 3, tolsym = 1e-09)
+## anneal(mat = CarsHmat$mat, kmin = 4, kmax = 6, criterion = "xi2", 
+##     H = CarsHmat$H, r = CarsHmat$r, tolsym = 1e-09)
 ## 
 ## Warning message:
 ## 
 ##  The effect description matrix (H) supplied was slightly asymmetric: 
-##  symmetric entries differed by up to 1.20053300634027e-10.
+##  symmetric entries differed by up to 3.63797880709171e-12.
 ##  (less than the 'tolsym' parameter).
 ##  The H matrix has been replaced by its symmetric part.
 ##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 

@@ -76,7 +76,11 @@ the reference hypothesis merely states that all observation vectors
 should have the same expected value and the mat matrix reduces to the
 SSCP of the deviations from their global mean. In this case, \code{mat} can
 be converted into a covariance matrix if \code{H} is likewise divided by the
-same degrees of freedom. 
+same degrees of freedom.
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
+\code{\link{glhHmat}} are provided to automatically create the matrices 
+\code{mat} and \code{H} for linear regression/canonical correlation analyis,
+linear discriminant analysis and general linear hypothesis specified by the user.
 }
 
 \usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,
@@ -172,7 +176,8 @@ condition number of the correlation/covariance or sums of squares matrix, i.e., 
 \code{\link{gcd.coef}},  \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}},
 \code{\link{anneal}}, \code{\link{genetic}},  
-\code{\link{improve}}, \code{\link{trim.matrix}}.}
+\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
 
 \references{
 [1] Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
@@ -368,14 +373,8 @@ leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,5]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% t(Sxy)/Sy
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -384,7 +383,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=1)
+leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1)
 
 ## $subsets
 ## , , Card.4
@@ -420,15 +419,15 @@ leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=1)
 
 ## The selected best variable subsets
 
-colnames(X)[c(4,5,10,11)]
+colnames(CarsHmat$mat)[c(4,5,10,11)]
 
 ## [1] "Horsepower" "RPM"        "Wheelbase"  "Width"     
 
-colnames(X)[c(4,5,10,11,12)]
+colnames(CarsHmat$mat)[c(4,5,10,11,12)]
 
 ## [1] "Horsepower"  "RPM"         "Wheelbase"   "Width"       "Turn.circle"
 
-colnames(X)[c(4,5,9,10,11,12)]
+colnames(CarsHmat$mat)[c(4,5,9,10,11,12)]
 
 ## [1] "Horsepower"  "RPM"         "Length"      "Wheelbase"   "Width"      
 ## [6] "Turn.circle"
@@ -441,15 +440,10 @@ colnames(X)[c(4,5,9,10,11,12)]
 ## versicolor and virginica). The goal is to select the 2- and 3-variable
 ## subsets that are optimal for the linear discrimination (as measured 
 ## by the "CCR1_2" criterion).
-## Both the 'iris' and the 'iris3' R objects are used, for convenience in  
-## computing the Total matrix (T=irismat) and the Effects matrix (H=irish).
   
 data(iris)
-data(iris3) 
-irismat <-149*var(iris[,1:4])
-weights<-c(49,49,49)
-irish <- irismat - matrix(weights\%*\% t(apply(iris3,3,var)),4,4)
-leaps(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
+irisHmat <- ldaHmat(iris[1:4],iris$Species)
+leaps(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 
 ## $subsets
 ## , , Card.2
@@ -494,14 +488,9 @@ leaps(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="ccr12")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,4:6]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% solve(Sy,t(Sxy))
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+colnames(CarsHmat$mat)
+
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -510,7 +499,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
+leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9)
 
 ## $subsets
 ## , , Card.4
@@ -546,7 +535,7 @@ leaps(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
 ## Warning message:
 ## 
 ##  The effect description matrix (H) supplied was slightly asymmetric: 
-##  symmetric entries differed by up to 1.20053300634027e-10.
+##  symmetric entries differed by up to 3.63797880709171e-12.
 ##  (less than the 'tolsym' parameter).
 ##  The H matrix has been replaced by its symmetric part.
 ##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 

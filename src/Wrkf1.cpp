@@ -13,6 +13,7 @@ const unsigned INV  = 0;
 
 const real   NOBND = 1E99;
 
+sbset *csbset(vind n,vind* v,real c,real ind);
 void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vind maxvi);
 void getactv(wrkspace *,vind,vind,vind);
 void actvcnv(vind,vind,vind *,vind *);

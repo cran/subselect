@@ -19,7 +19,7 @@ partialccrdata::partialccrdata(vind nvars,vind hrank,real r2,real w,real bp)
 }
 
 ccrdata::ccrdata(vind nv,vind tnv,vind nvtopiv,vind hr,real w,real bp,real r2)
-  :  nvar(nv), p(tnv), k(nvtopiv), hrank(hr), wilksst(w), bartpist(bp), ccr12(r2)
+  :  p(tnv), k(nvtopiv), hrank(hr), nvar(nv), ccr12(r2), wilksst(w), bartpist(bp) 
 {
 	htinv.assign(hrank,vector<real>(k));
 	emat = new symtwodarray(k);

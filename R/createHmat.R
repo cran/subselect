@@ -15,32 +15,29 @@ glhHmat <- function(x,...) {
   
 lmHmat.default <- function(x,y,...)
 {
-   if  ( !is.matrix(x) || ( !is.matrix(y) && !is.vector(y) ) )  stop("Arguments of wrong type")
-   if ( (is.matrix(y) && nrow(y) != nrow(x)) || ( is.vector(y) && length(y) != nrow(x) )  )
+  if  ( !is.matrix(x) || ( !is.matrix(y) && !is.vector(y) ) )  stop("Arguments of wrong type")
+   n <- nrow(x)
+   p <- ncol(x)
+   if (is.vector(y)) q <- 1
+   else q <- ncol(y)
+   if ( (is.matrix(y) && nrow(y) != n) || ( is.vector(y) && length(y) != n )  )
      stop("Argument dimensions do not match")
+
    Sx <- var(x)
-   Sxy <- var(x,y)
-   Sy  <- var(y)
-   if (is.vector(y) || ncol(y) == 1)  {
-      Sy <- as.numeric(Sy)
-      if (Sy < .Machine$double.eps) 
-        stop("No associations can be found because the y vector is constant within the limits of machine precision")
-      else H <- Sxy %*% t(Sxy)/Sy
-      ry <- 1
+   dx <- x - matrix(rep(apply(x,2,mean),n),n,p,byrow=T)
+   if (q==1) {
+	dy <- y - rep(mean(y),n)
+	uy <- dy / sqrt(sum(dy^2))
+   }	
+   else  {
+	dy <- y - matrix(rep(apply(y,2,mean),n),n,q,byrow=T)
+   	uy <- svd(dy,nv=0)$u
    }
-   else {  
-      ry <- qr(Sy)$rank
-      if (ry == ncol(y)) H <- Sxy %*% solve(Sy,t(Sxy))
-      else  {
-         if (ry == 1) warning("The y matrix has only one lineary independent column.\n")
-         else warning("The y matrix has only ", ry, " lineary independent columns.\n")
-         if (ry < ncol(x)) warning(" The expected rank of the H matrix was  adjusted accordingly.\n")
-         library(MASS)
-	 H <- Sxy %*% ginv(Sy) %*% t(Sxy)
-      }
-   }
-   res <- list(mat=Sx,H=H,r=min(ncol(x),ry),call=match.call())
-   res
+   h <- t(uy) %*% dx
+   H <- t(h) %*% h / (n-1)
+
+  res <- list(mat=Sx,H=H,r=min(p,q),call=match.call())
+  res
 } 
 
 ldaHmat.default <- function(x,grouping,...)
@@ -63,14 +60,18 @@ glhHmat.default <- function(x,A,C,...)
    if  ( !is.matrix(x) || !is.matrix(A) || ( !is.matrix(C) && !is.vector(C) ) )   stop("Arguments of wrong type")
    if (is.vector(C))  C <- matrix(C,1,length(C))
    if (  nrow(A) != nrow(x) || ncol(C) != ncol(A) )  stop("Argument dimensions do not match")
-   library(MASS)
-   a0  <- A %*% ginv(t(A) %*% A) 
-   Pa  <- a0 %*% t(A)
-   ac  <- a0 %*% t(C)
-   Pac <- ac %*% ginv(t(ac) %*% ac) %*% t(ac)
-   T <- t(x) %*% (diag(1,nrow(x)) - Pa + Pac ) %*% x
-   H   <- t(x) %*% Pac %*% x
-   res <- list(mat=T,H=H,r=qr(C)$rank,call=match.call())
+
+   r <- qr(C)$rank
+   rA <- qr(A)$rank
+   if ( rA <= r) stop("There are not enough linearly independent columns in the desing matrix (A)")
+   svdA <- svd(A)
+   a <-  t(svdA$u) %*% x 
+   E <- t(x) %*% x - t(a) %*% a
+   M <- svdA$u[,1:rA] %*% diag(svdA$d[1:rA]^-1) %*% t(svdA$v[,1:rA]) %*% t(C)
+   h <- t(svd(M,nv=0)$u) %*% x
+   H <- t(h) %*% h
+
+   res <- list(mat=H+E,H=H,r=r,call=match.call())
    res
 }
 

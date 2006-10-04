@@ -193,7 +193,7 @@ typedef  subset* pkspc;
 class wrkspace  {  // General memory working space  
 	public:
 		void initwrkspace(vind nv,subsetdata *data0,vind lstind,vind nvattop,vind nvatbot,vind* vattop,vind* vatbot);
-		~wrkspace(void);
+		virtual ~wrkspace(void);
 		subset&    subsetat(vind i)           { return *(wrklst[i-1]); } 
 		bool	   usebounds(void)            { return usebounds_;}
 		virtual void pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound) = 0;
@@ -218,12 +218,14 @@ class wrkspace  {  // General memory working space
 class SRCwrkspace : public wrkspace  {	 // Memory working space for forward searches  
 	public:
 		SRCwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst);
+		virtual ~SRCwrkspace(void)     {   }
 		virtual void pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound);
 };
 
 class INVwrkspace : public wrkspace  {	// Memory working space for backward searches
 	public:
 		INVwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst);
+		virtual ~INVwrkspace(void)     {   }
 		virtual void pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound);
 };
 

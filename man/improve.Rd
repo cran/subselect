@@ -87,7 +87,11 @@ the reference hypothesis merely states that all observation vectors
 should have the same expected value and the mat matrix reduces to the
 SSCP of the deviations from their global mean. In this case, \code{mat} can
 be converted into a covariance matrix if \code{H} is likewise divided by the
-same degrees of freedom.  
+same degrees of freedom.
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
+\code{\link{glhHmat}} are provided to automatically create the matrices 
+\code{mat} and \code{H} for linear regression/canonical correlation analyis,
+linear discriminant analysis and general linear hypothesis specified by the user.
 }
 
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
@@ -223,7 +227,8 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
- \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
+\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
 
 \references{
 [1] Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
@@ -347,14 +352,8 @@ improve(cor(swiss),2,3,nsol=4,criterion="GCD")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,5]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% t(Sxy)/Sy
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -363,7 +362,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="xi2", nsol=3)
+improve(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1, crit="xi2", nsol=3)
 
 ## $subsets
 ## , , Card.4
@@ -405,8 +404,8 @@ improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="xi2", nsol=3)
 ## Card.6     4     5     9    10    11    12
 ## 
 ## $call
-## improve(mat = Carsmat, kmin = 4, kmax = 6, nsol = 3, criterion = "xi2", 
-##     H = CarsH2, r = 1)
+## improve(mat = CarsHmat$mat, kmin = 4, kmax = 6, nsol = 3, criterion = "xi2", 
+##     H = CarsHmat$H, r = 1)
 
 
 
@@ -417,15 +416,10 @@ improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=1, crit="xi2", nsol=3)
 ## versicolor and virginica). The goal is to select the 2- and 3-variable
 ## subsets that are optimal for the linear discrimination (as measured 
 ## by the "TAU_2" criterion).
-## Both the 'iris' and the 'iris3' R objects are used, for convenience in  
-## computing the Total matrix (T=irismat) and the Effects matrix (H=irish).
 
 data(iris)
-data(iris3) 
-irismat <-149*var(iris[,1:4])
-weights<-c(49,49,49)
-irish <- irismat - matrix(weights\%*\% t(apply(iris3,3,var)),4,4)
-improve(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="tau2")
+irisHmat <- ldaHmat(iris[1:4],iris$Species)
+improve(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 
 ## $subsets
 ## , , Card.2
@@ -453,8 +447,8 @@ improve(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="tau2")
 ## Card.3     2     3     4
 ## 
 ## $call
-## improve(mat = 149 * var(iris[, c(1, 2, 3, 4)]), kmin = 2, kmax = 3, 
-##     criterion = "tau2", H = irish, r = 2)
+## improve(mat = irisHmat$mat, kmin = 2, kmax = 3, 
+##     criterion = "tau2", H = irisHmat$H, r = 2)
 ## 
 
 ## --------------------------------------------------------------------
@@ -474,14 +468,8 @@ improve(149*var(iris[,c(1,2,3,4)]),kmin=2,kmax=3,H=irish,r=2,crit="tau2")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,4:6]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% solve(Sy,t(Sxy))
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -490,7 +478,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
+improve(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9)
 
 ## $subsets
 ## , , Card.4
@@ -524,13 +512,13 @@ improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
 ## Card.6     3     4     5     9    10    11
 ## 
 ## $call
-## improve(mat = Carsmat, kmin = 4, kmax = 6, criterion = "zeta2", 
-##     H = CarsH, r = 3, tolsym = 1e-09)
+## improve(mat = CarsHmat$mat, kmin = 4, kmax = 6, criterion = "zeta2", 
+##     H = CarsHmat$H, r = 3, tolsym = 1e-09)
 ## 
 ## Warning message:
 ## 
 ##  The effect description matrix (H) supplied was slightly asymmetric: 
-##  symmetric entries differed by up to 1.20053300634027e-10.
+##  symmetric entries differed by up to 3.63797880709171e-12.
 ##  (less than the 'tolsym' parameter).
 ##  The H matrix has been replaced by its symmetric part.
 ##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 
@@ -538,15 +526,15 @@ improve(Carsmat, kmin=4, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
 
 ## The selected best variable subsets
 
-colnames(X)[c(3,4,11,13)]
+colnames(CarsHmat$mat)[c(3,4,11,13)]
 
 ## [1] "EngineSize" "Horsepower" "Width"      "Weight"    
 
-colnames(X)[c(3,4,9,11,13)]
+colnames(CarsHmat$mat)[c(3,4,9,11,13)]
 
 ## [1] "EngineSize" "Horsepower" "Length"     "Width"      "Weight"    
 
-colnames(X)[c(3,4,5,9,10,11)]
+colnames(CarsHmat$mat)[c(3,4,5,9,10,11)]
 
 ## [1] "EngineSize" "Horsepower" "RPM"        "Length"     "Wheelbase" 
 ## [6] "Width"     

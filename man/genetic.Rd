@@ -99,7 +99,11 @@ the reference hypothesis merely states that all observation vectors
 should have the same expected value and the mat matrix reduces to the
 SSCP of the deviations from their global mean. In this case, \code{mat} can
 be converted into a covariance matrix if \code{H} is likewise divided by the
-same degrees of freedom.  
+same degrees of freedom.
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
+\code{\link{glhHmat}} are provided to automatically create the matrices 
+\code{mat} and \code{H} for linear regression/canonical correlation analyis,
+linear discriminant analysis and general linear hypothesis specified by the user.
 }
 
 \usage{genetic( mat, kmin, kmax = kmin, popsize = 100, nger = 100,
@@ -247,7 +251,8 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
- \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}}.}
+\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
 
 
 
@@ -336,14 +341,8 @@ genetic(cor(swiss),3,4,popsize=10,nger=5,criterion="Rv")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,5]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% t(Sxy)/Sy
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+colnames(CarsHmat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -352,7 +351,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-genetic(Carsmat, kmin=6,  H=CarsH, r=1, crit="CCR12")
+genetic(CarsHmat$mat, kmin=6,  H=CarsHmat$H, r=1, crit="CCR12")
 
 ## 
 ## (Partial results only)
@@ -403,7 +402,7 @@ genetic(Carsmat, kmin=6,  H=CarsH, r=1, crit="CCR12")
 ##     4     5     9    10    11    12 
 ## 
 ## $call
-## genetic(mat = Carsmat, kmin = 6, criterion = "CCR12", H = CarsH2, 
+## genetic(mat = CarsHmat$mat, kmin = 6, criterion = "CCR12", H = CarsHmat$H, 
 ##     r = 1)
 
 
@@ -424,14 +423,8 @@ genetic(Carsmat, kmin=6,  H=CarsH, r=1, crit="CCR12")
 
 library(MASS)
 data(Cars93)
-Y <- Cars93[,4:6]
-X <- Cars93[,c(7:8,12:15,17:22,25)]
-Sy <- var(Y)
-Sx <- var(X)
-Sxy <- var(X,Y)
-Carsmat <- Sx
-CarsH <- Sxy \%*\% solve(Sy,t(Sxy))
-colnames(X)
+CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
 ##  [4] "Horsepower"         "RPM"                "Rev.per.mile"      
@@ -440,7 +433,7 @@ colnames(X)
 ## [13] "Weight"            
 
 
-genetic(Carsmat, kmin=5, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
+genetic(CarsHmat$mat, kmin=5, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9)
 
 ##  (PARTIAL RESULTS ONLY)
 ## 
@@ -517,13 +510,13 @@ genetic(Carsmat, kmin=5, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
 ## Card.6     4     5     9    10    11    12
 ## 
 ## $call
-## genetic(mat = Carsmat, kmin = 5, kmax = 6, criterion = "zeta2", 
-##     H = CarsH, r = 3, tolsym = 1e-09)
+## genetic(mat = CarsHmat$mat, kmin = 5, kmax = 6, criterion = "zeta2", 
+##     H = CarsHmat$H, r = 3, tolsym = 1e-09)
 ## 
 ## Warning message:
 ## 
 ##  The effect description matrix (H) supplied was slightly asymmetric: 
-##  symmetric entries differed by up to 1.20053300634027e-10.
+##  symmetric entries differed by up to 3.63797880709171e-12.
 ##  (less than the 'tolsym' parameter).
 ##  The H matrix has been replaced by its symmetric part.
 ##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 
@@ -531,11 +524,11 @@ genetic(Carsmat, kmin=5, kmax=6, H=CarsH, r=3, crit="zeta2", tolsym=1e-9)
 
 ## The selected best variable subsets
 
-colnames(X)[c(4,5,9,10,11)]
+colnames(CarsHmat$mat)[c(4,5,9,10,11)]
 
 ## [1] "Horsepower" "RPM"        "Length"     "Wheelbase"  "Width"     
 
-colnames(X)[c(4,5,9,10,11,12)]
+colnames(CarsHmat$mat)[c(4,5,9,10,11,12)]
 
 ## [1] "Horsepower"  "RPM"         "Length"      "Wheelbase"   "Width"      
 ## [6] "Turn.circle"
