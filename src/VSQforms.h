@@ -5,7 +5,8 @@ using std::vector;
 
 namespace extendedleaps {
 
-class partialvsqfdata : public partialsqfdata    {   // Data used in updates of sums of quadratic forms with a variable number of parcels  
+class partialvsqfdata : public partialsqfdata    {
+/* Data used in updates of sums of quadratic forms with a variable number of parcels  */
 	public:
 		explicit partialvsqfdata(vind nparcels,real vc0=0.);
 		real*   gettmpvc(void)	{ return &tmpvc[0]; }
@@ -15,7 +16,8 @@ class partialvsqfdata : public partialsqfdata    {   // Data used in updates of 
 	friend class vsqfdata;
 };
 
-class vsqfdata :  public sqfdata {		// Subset data for sums of quadratic forms with a variable number of parcels  
+class vsqfdata :  public sqfdata {
+/* Subset data for sums of quadratic forms with a variable number of parcels  */
 	public:
 		vsqfdata(vind tnv,vind nvtopiv,vind nparcels,real vc0,real sum);
 		vsqfdata(vind tnv,vind nvtopiv,vind nparcels,const vector<real>& ovc,real sum);

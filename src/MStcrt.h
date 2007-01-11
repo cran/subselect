@@ -3,9 +3,9 @@
 
 namespace extendedleaps {
 
-class symtwodarray;  // forward declaration    
+class symtwodarray;  /* forward declaration     */
 
-class partialwilksdata :  public partialdata {     // Data used in Wilks statistic updates	     
+class partialwilksdata :  public partialdata {     /* Data used in Wilks statistic updates    */
 	public:
 		partialwilksdata(vind nv,real w)  : nvar(nv), wilksst(w)	{  }
 		virtual ~partialwilksdata(void)					{  }
@@ -48,16 +48,16 @@ class wilksdata :  public subsetdata {
 		real updatecrt(direction d,vind varind,partialdata* newdtpnt) const;   
 		template<accesstp tp> 
 			void pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		vind		nvar;
 		vind		p;
 		vind		k;
 		vind		hrank;
-		vind		nvar;
 		real		wilksst;
 		symtwodarray*	emat;
 		symtwodarray*	tmat;
 };
 
-class partialtracedata :  public partialdata {     // Data used in trace statistic updates	     
+class partialtracedata :  public partialdata {     /* Data used in trace statistic updates	*/
 	public:
 		partialtracedata(vind nvars,vind hrank);
 		virtual ~partialtracedata(void)			{ delete pqf;  }

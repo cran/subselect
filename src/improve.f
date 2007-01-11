@@ -111,6 +111,8 @@
 
 
 * initializations 
+       critvalue = 0.0
+
        call newinicializar(criterio,p,s,svector,sq,nfora,fora,
      +  ndentro, dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
      +  h,hvector,rh)

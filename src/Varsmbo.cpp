@@ -43,16 +43,16 @@ mindices::~mindices(void)
 }
 
 subset::subset(vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
-  :  frstvarpm(nvp-pnv), t(pnv), data(id), privatedata(pdt), p(tnv), k(0), var(0), pmemorypos(0), memii(0)
+  :  p(tnv), t(pnv), k(0), var(0), frstvarpm(nvp-pnv), pmemorypos(0), memii(0), data(id), privatedata(pdt)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  
 		fmemorypos[i] = orgvarind[i] =  orgvarpos[i] = i;
-	if (id) id->setorgvarl(orgvarind);                    // Attach list of original variable indicators to subsetdata
+	if (id) id->setorgvarl(orgvarind);            /* Attach list of original variable indicators to subsetdata */
 }
 
 subset::subset(vind * const ivar,vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
-  :  frstvarpm(nvp-pnv), t(pnv), data(id), privatedata(pdt), p(tnv), k(0), var(0), pmemorypos(0), memii(0)
+  :  p(tnv), t(pnv), k(0), var(0), frstvarpm(nvp-pnv), pmemorypos(0), memii(0), data(id), privatedata(pdt)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  {
@@ -60,7 +60,7 @@ subset::subset(vind * const ivar,vind nvp,vind pnv,subsetdata *id,bool pdt,vind 
 		orgvarpos[orgvarind[i]] = i;
 		fmemorypos[i] = i;
 	}
-	if (id) id->setorgvarl(orgvarind);          // Attach list of original variable indicators to subsetdata
+	if (id) id->setorgvarl(orgvarind);          /* Attach list of original variable indicators to subsetdata */
 }
 
 void subset::assgnmem()

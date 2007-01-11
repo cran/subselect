@@ -7,7 +7,7 @@
 namespace extendedleaps {
 
 #ifdef COUNTING  
-extern long unsigned fpcnt1;
+extern int fpcnt1;
 #endif
 
 partialrmdata::partialrmdata(vind nvariables)
@@ -17,7 +17,7 @@ partialrmdata::partialrmdata(vind nvariables)
 }
 
 rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<bool>& active,real criterion)
-  :  lastv(lastvariab), k(nvtopiv), p(tnv), gdt(data), crt(criterion), e(0), varin(active)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), e(0), gdt(data)
 {
 	if (k > 0) try {
 		e = new symtwodarray(k);
@@ -29,14 +29,14 @@ rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<b
 	}
 	catch (std::bad_alloc)   {
 		delete e;
-		{ for (vind i=0;i<ovct.size();i++) delete ovct[i]; }
+		{ for (unsigned i=0;i<ovct.size();i++) delete ovct[i]; }
 		throw;
 	}
 }
 
 rmdata::~rmdata()
 {
-	for (vind i=0;i<ovct.size();i++) delete ovct[i]; 
+	{ for (unsigned i=0;i<ovct.size();i++) delete ovct[i]; }
 	delete e;
 }
 
@@ -58,11 +58,11 @@ real rmdata::updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,part
 {
 	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
 	
-	// Attention: newdtpnt MUST point to partialrmdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/*  Attention: newdtpnt MUST point to partialrmdata object !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialrmdata *newdata = dynamic_cast<partialrmdata *>(newdtpnt);    
-//	assert(newdata);
+/*	partialrmdata *newdata = dynamic_cast<partialrmdata *>(newdtpnt);
+	assert(newdata);                                                       */
 	
 	real *tv = newdata->gettmpv();
 	real newcrt=crt,e1 = (*e)(varind,varind);
@@ -87,18 +87,15 @@ real rmdata::updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,part
 template<accesstp tp> 
 void rmdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {
-	vind pivotind = prtmmit[vp-1];
-
 	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    
 	rmdata* newfdata = static_cast<rmdata *>(newfdtpnt);    
 	
-	//Attention: newpdtpnt and newfdttpnt MUST point to partialrmdata and rmdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/*  Attention: newpdtpnt and newfdttpnt MUST point to partialrmdata and rmdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert           */
 	
-//	partialrmdata* newpdata = dynamic_cast<partialrmdata *>(newpdtpnt);    
-//	rmdata* newfdata = dynamic_cast<rmdata *>(newfdtpnt);    
-//	assert(newpdata && newfdata);
+/*	partialrmdata* newpdata = dynamic_cast<partialrmdata *>(newpdtpnt);
+	rmdata* newfdata = dynamic_cast<rmdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                              */
 
 	real pivotval = newpdata->getpivotval();
 	real *tv = newpdata->gettmpv();

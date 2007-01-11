@@ -7,7 +7,7 @@
 namespace extendedleaps {
 
 #ifdef COUNTING  
-extern long unsigned fpcnt1;
+extern int fpcnt1;
 #endif
 
 rvgdata::rvgdata(vind nvariables)
@@ -31,7 +31,7 @@ partialrvdata::partialrvdata(vind nvariables)
 }
 
 rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<bool>& active,vind *origvarlist,real criterion)
-  :  lastv(lastvariab), k(nvtopiv), p(tnv), gdt(data), varin(active), orgvar(origvarlist), crt(criterion), e(0)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), orgvar(origvarlist), e(0), gdt(data)
 {
 	try {
 		if (k > 0)  {
@@ -46,14 +46,14 @@ rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<b
 	}
 	catch (std::bad_alloc)   {
 		delete e;
-		{ for (vind i=0;i<ivct.size();i++) delete ivct[i]; }
+		{ for (unsigned i=0;i<ivct.size();i++) delete ivct[i]; }
 		throw;
 	}
 }
 
 rvdata::~rvdata()
 {
-	for (vind i=0;i<ivct.size();i++) delete ivct[i]; 
+	for (unsigned i=0;i<ivct.size();i++) delete ivct[i]; 
 	delete e;
 }
 
@@ -61,11 +61,11 @@ void  rvdata::getpdata(partialdata* pd)
 { 
 	partialrvdata *pdasrv = static_cast<partialrvdata *>(pd);    
 	
-	// Attention: pd MUST point to partialrvdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
-	
-//	partialrvdata *pdasrv = dynamic_cast<partialrvdata *>(pd);    
-//	assert(pdasrv);
+	/* Attention: pd MUST point to partialrvdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
+
+/*	partialrvdata *pdasrv = dynamic_cast<partialrvdata *>(pd);
+	assert(pdasrv);                                               */
 
 	setcriterion(pdasrv->getcrt());
 	{ for (vind j=0;j<p;j++) varin[j] = pdasrv->vin[j]; }
@@ -94,13 +94,13 @@ real rvdata::updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vin
 {
 	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
 	
-	// Attention: newdtpnt MUST point to partialrvdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialrvdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialrvdata *newdata = dynamic_cast<partialrvdata *>(newdtpnt);    
-//	assert(newdata);
+/*	partialrvdata *newdata = dynamic_cast<partialrvdata *>(newdtpnt);
+	assert(newdata);                                                         */
 	
-	vind varind = prtmmit[var-1];;                                 
+	vind varind = prtmmit[var-1];
 	real newcrt,e1 = (*e)(varind,varind);
 	real *cv = newdata->getcndv();
 	deque<bool>& vin = newdata->vin;
@@ -132,13 +132,12 @@ void rvdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp
 	partialrvdata* pdata = static_cast<partialrvdata *>(newpdtpnt);    
 	rvdata* newdata = static_cast<rvdata *>(newfdtpnt);    
 	
-	//Attention: pdtpnt and newdttpnt MUST point to partialrvdata and rvdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pdtpnt and newdttpnt MUST point to partialrvdata and rvdata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert       */
 	
-//	partialrvdata* pdata = dynamic_cast<partialrvdata *>(newpdtpnt);    
-//	rvdata* newdata = dynamic_cast<rvdata *>(newfdtpnt);    
-//	assert(pdata && newdata);
+/*	partialrvdata* pdata = dynamic_cast<partialrvdata *>(newpdtpnt);
+	rvdata* newdata = dynamic_cast<rvdata *>(newfdtpnt);
+	assert(pdata && newdata);                                  */
 
 	real pivotval = pdata->getpivotval();
 	real *cv = pdata->getcndv();
@@ -177,7 +176,7 @@ void rvdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp
 
 void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const
 {
-	vind fvarind=lastv-k,pivotind=vp-fvarind-1,fpivotind=vp-1;         
+	vind fvarind=lastv-k,pivotind=vp-fvarind-1;
 	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
 
 	for (vind j=0;j<p;j++) if (collst[j] ) {
@@ -228,8 +227,8 @@ void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& 
 void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const
 {
 	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
-	vind inrowi,fvarind=lastv-k;
-	vind pivotind=prtmmit[vp-1],fpivotind=fmmind[vp-1];                
+	vind inrowi;
+	vind pivotind=prtmmit[vp-1];                
 	itindex<i>& rowind = fmmind;
 	itindex<i> colind(fmmind);
 

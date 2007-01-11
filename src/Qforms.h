@@ -33,7 +33,7 @@ class partialsqfdata : public partialqfdata    {
 	friend class sqfdata;
 };
 
-class partialsingleqfdata :  public partialdata {       // Class for data used in single quadratic form criteria updates
+class partialsingleqfdata :  public partialdata {       /* Class for data used in single quadratic form criteria updates */
 	public:
 		partialsingleqfdata(void)			{  pqf = new partialsqfdata(1); }
 		virtual ~partialsingleqfdata(void)		{ delete pqf; }
@@ -61,7 +61,7 @@ class qfdata   {
 			void pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last);
 };
 
-class sqfdata   : public qfdata  {     // Sum of quadratic forms
+class sqfdata   : public qfdata  {     /* Sum of quadratic forms     */
 	public:
 		sqfdata(vind tnv,vind nvtopiv,vind nparcels,real sum)
 			:  qfdata(tnv,nvtopiv,nparcels), sum_(sum) {  }

@@ -51,11 +51,11 @@ void  fgcddata::getpdata(partialdata* pd)
 { 
 	partialfgcddata *pdasfgcd = static_cast<partialfgcddata *>(pd);    
 	
-	// Attention: pd MUST point to partialfgcddata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialfgcddata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert  */
 	
-//	partialfgcddata *pdasfgcd = dynamic_cast<partialfgcddata *>(pd);    
-//	assert(pdasfgcd);
+/*	partialfgcddata *pdasfgcd = dynamic_cast<partialfgcddata *>(pd); 
+	assert(pdasfgcd);                                                    */
 
 	setcriterion(pdasfgcd->getcrt());
 	nvar = pdasfgcd->nvar;
@@ -65,11 +65,11 @@ real fgcddata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) 
 {  
 	partialfgcddata *newdata = static_cast<partialfgcddata *>(pdt);    
 	
-	// Attention: newdtpnt MUST point to partialfgcddata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialfgcddata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert   */
 	
-//	partialfgcddata *newdata = dynamic_cast<partialfgcddata *>(pdt);    
-//	assert(newdata);
+/*	partialfgcddata *newdata = dynamic_cast<partialfgcddata *>(pdt); 
+	assert(newdata);                                                                    */
 
 	if (d==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
@@ -81,13 +81,12 @@ void fgcddata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt
 	partialfgcddata* newpdata = static_cast<partialfgcddata *>(pdt);    
 	fgcddata* newfdata = static_cast<fgcddata *>(fdt);    
 	
-	//Attention: pdt and fdt MUST point to partialgcddata and gcddata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pdt and fdt MUST point to partialgcddata and gcddata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialgcddata* newpdata = dynamic_cast<partialgcddata *>(pdt);    
-//	gcddata* newfdata = dynamic_cast<gcddata *>(fdt);    
-//	assert(newpdata && newfdata);
+/*	partialgcddata* newpdata = dynamic_cast<partialgcddata *>(pdt);
+	gcddata* newfdata = dynamic_cast<gcddata *>(fdt);
+	assert(newpdata && newfdata);                                       */
 
 	sqf->pivot(d,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
 } 
@@ -112,11 +111,11 @@ void  vgcddata::getpdata(partialdata* pd)
 { 
 	partialvgcddata *pdasvgcd = static_cast<partialvgcddata *>(pd);    
 	
-	// Attention: pd MUST point to partialvgcddata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialvgcddata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert   */
 	
-//	partialvgcddata *pdasvgcd = dynamic_cast<partialvgcddata *>(pd);    
-//	assert(pdasvgcd);
+/*	partialvgcddata *pdasvgcd = dynamic_cast<partialvgcddata *>(pd);
+	assert(pdasvgcd);                                                       */
 
 	setcriterion(pdasvgcd->getcrt());
 	nvar = pdasvgcd->nvar;
@@ -127,11 +126,11 @@ real vgcddata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) 
 {  
 	partialvgcddata *newdata = static_cast<partialvgcddata *>(pdt);    
 	
-	// Attention: newdtpnt MUST point to partialvgcddata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialvgcddata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialvgcddata *newdata = dynamic_cast<partialvgcddata *>(pdt);    
-//	assert(newdata);
+/*	partialvgcddata *newdata = dynamic_cast<partialvgcddata *>(pdt);
+	assert(newdata);                                                    */
 
 	if (d==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
@@ -144,13 +143,12 @@ void vgcddata::pivot(direction d,mindices& mmind,vind vp,vind t,
 	partialvgcddata* newpdata = static_cast<partialvgcddata *>(pdt);    
 	vgcddata* newfdata = static_cast<vgcddata *>(fdt);    
 	
-	//Attention: pdt and fdt MUST point to partialvgcddata and vgcddata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pdt and fdt MUST point to partialvgcddata and vgcddata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialvgcddata* newpdata = dynamic_cast<partialvgcddata *>(pdt);    
-//	vgcddata* newfdata = dynamic_cast<vgcddata *>(fdt);    
-//	assert(newpdata && newfdata);
+/*	partialvgcddata* newpdata = dynamic_cast<partialvgcddata *>(pdt);
+	vgcddata* newfdata = dynamic_cast<vgcddata *>(fdt);
+	assert(newpdata && newfdata);                                            */
 
 	getvqfdata()->pivot(d,mmind,vp,t,nvar,newpdata->getpvqfdata(),newfdata->getvqfdata(),last);  
 } 

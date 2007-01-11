@@ -36,11 +36,11 @@ void  ccrdata::getpdata(partialdata* pd)
 { 
 	partialccrdata *pdasccr = static_cast<partialccrdata *>(pd);    
 	
-	// Attention: pd MUST point to partialccrdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialccrdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert  */
 	
-//	partialccrdata *pdasccr = dynamic_cast<partialccr *>(pd);    
-//	assert(pdasccr);
+/*	partialccrdata *pdasccr = dynamic_cast<partialccr *>(pd);	*/
+/*	assert(pdasccr);                                                */
 
 	ccr12 = pdasccr->getcrt();
 	wilksst = pdasccr->getwilks();
@@ -92,13 +92,12 @@ void ccrdata::pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,
 	partialccrdata* newpdata = static_cast<partialccrdata *>(newpdtpnt);    
 	ccrdata* newfdata = static_cast<ccrdata *>(newfdtpnt);    
 	
-	//Attention: newpdtpnt and newfdtpnt MUST point to partialccrdata and ccrdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newpdtpnt and newfdtpnt MUST point to partialccrdata and ccrdata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
 	
-//	partialccrdata* newpdata = dynamic_cast<partialccrdata *>(newpdtpnt);    
-//	ccrdata* newfdata = dynamic_cast<ccrdata *>(newfdtpnt);    
-//	assert(newpdata && newfdata);
+/*	partialccrdata* newpdata = dynamic_cast<partialccrdata *>(newpdtpnt);
+	ccrdata* newfdata = dynamic_cast<ccrdata *>(newfdtpnt);                                
+	assert(newpdata && newfdata);                                                          */
 
 	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t);
 	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t);
@@ -111,11 +110,11 @@ real rnk2ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const
 	
 	partialccrdata *newdata = static_cast<partialccrdata *>(newdtpnt);    
 	
-	// Attention: newdtpnt MUST point to partialccrdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialccrdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert   */
 	
-//	partialccrdata *newdata = dynamic_cast<partialccrdata *>(pdt);    
-//	assert(newdata);
+/*	partialccrdata *newdata = dynamic_cast<partialccrdata *>(pdt);
+	assert(newdata);                                                   */
 
 	real newwilksst,newbartpist,newccr12;
 

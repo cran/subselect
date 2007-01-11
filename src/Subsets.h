@@ -7,20 +7,20 @@ namespace extendedleaps {
 
 class sbset  {
 	public:
-		sbset(long unsigned p,vind n);
+		sbset(int p,vind n);
 		virtual ~sbset(void);
 		vind*  actvar(void)	const	{ return actvar_; }
 		vind   nvar(void)	const	{ return nvar_;  }
 		real   crt(void)	const	{ return crt_;   }
 		real   indice(void)	const	{ return ind_;   }
 	private:
-		long unsigned   pos;
-		vind       	nvar_;
-		vind*      	actvar_;
-		real	   	crt_;
-		real	   	ind_;
-		sbset(const sbset&);					// Disallow copy constructur by clients
-		sbset& operator=(const sbset&);	    	// Disallow assignment by clients
+		int   	pos;
+		vind  	nvar_;
+		vind* 	actvar_;
+		real	crt_;
+		real	ind_;
+		sbset(const sbset&);			/* Disallow copy constructur by clients  */
+		sbset& operator=(const sbset&);	    	/* Disallow assignment by clients   */
 	friend sbset *csbset(vind,vind *,real,real);
 	friend void dsbset(sbset *);
 };

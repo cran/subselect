@@ -3,14 +3,14 @@
 
 namespace extendedleaps {
 
-class sqfdata;			// forward declaration    
-class partialsqfdata;   // forward declaration    
-class vsqfdata;			// forward declaration    
-class partialvsqfdata;  // forward declaration    
+class sqfdata;		/* forward declaration     */
+class partialsqfdata;   /* forward declaration     */
+class vsqfdata;		/* forward declaration     */
+class partialvsqfdata;  /* forward declaration     */
 
 using std::vector;
 
-class partialgcddata :  public partialdata {       // Base class for data used in criterion gcd updates
+class partialgcddata :  public partialdata {       /* Base class for data used in criterion gcd updates   */
 	public:
 		virtual ~partialgcddata(void) { delete pqf; }
 		virtual const real	getcrt(void)   const;
@@ -21,14 +21,16 @@ class partialgcddata :  public partialdata {       // Base class for data used i
 	friend class gcddata;
 };
 
-class partialfgcddata :  public partialgcddata {    // Data used in criterion gcd, with a fixed number of components, updates
+class partialfgcddata :  public partialgcddata {
+/* Data used in criterion gcd, with a fixed number of components, updates  */
 	public:
 		partialfgcddata(vind nvars,vind npcs);
 		virtual ~partialfgcddata(void)        {  }
 	friend class fgcddata;
 };
 
-class partialvgcddata :  public partialgcddata {    // Data used in criterion gcd, with a variable number of components, updates
+class partialvgcddata :  public partialgcddata {
+/* Data used in criterion gcd, with a variable number of components, updates  */
 	public:
 		partialvgcddata(vind nvars,vind npcs);
 		virtual ~partialvgcddata(void)       {   }
@@ -66,7 +68,7 @@ class fgcddata :  public gcddata {
 			{  return new fgcddata(nvar,totalnv,partialnv,q,criterion());  }
 		virtual const real*	getbnds(void)	const	{ return 0; }	
 	private:
-		vind  q;		// Number of spectral decomposition parcels kept in
+		vind  q;		/* Number of spectral decomposition parcels kept in    */
 };
 
 class vgcddata :  public gcddata {

@@ -7,14 +7,19 @@ namespace extendedleaps {
 
 enum direction {forward,backward};
 
-class mindices  {    	// Class with index pointers implementing the mapping from the current variable processing  sequence to their memory positions.
-			// It includes four indices associated with the combinations of two memory indexing schemes and two acess methods.
-	                // Memory schemes:
-	                //   Full variable set - accessed through idfm and iifm 
-	                //   Pivoted variable set - accessed through idpm and iipm 
-			// Acess modes:
-	                //   Direct - idfm and idpm indices
-			//   Indirect - iifm and iipm indices
+class mindices  {
+/*
+                        Class with index pointers implementing the mapping from the current variable processing  sequence 
+                        to their memory positions.  It includes four indices associated with the combinations of two 
+                        memory indexing schemes and two acess methods.
+
+                        Memory schemes:
+	                   Full variable set - accessed through idfm and iifm 
+	                   Pivoted variable set - accessed through idpm and iipm 
+			Acess modes:
+	                   Direct - idfm and idpm indices
+			   Indirect - iifm and iipm indices
+*/
 	public:
 		mindices(vind szfm,vind szpm,vind pmemlag);     
 	/*
@@ -43,14 +48,17 @@ class mindices  {    	// Class with index pointers implementing the mapping from
 			fmlst - pointer to list with mapping of current variable sequence into full variable set
 			pmlst - pointer to list with mapping of current variable sequence into pivoted variable set
 	*/
-		~mindices(void);    //  Destructor
-		itindex<d>*		idfm(void)		{ return idfm_; }	
-		lagindex<d>*	idpm(void)			{ return idpm_; }	
-		itindex<i>*		iifm(void)		{ return iifm_; }
-		lagindex<i>*	iipm(void)			{ return iipm_; }	
-		void		asgnfmmiid(itindex<i>* i)	{ iifm_ = i; }			// Assign list for indirect access in full variable scheme
-		void		asgnpmmiid(lagindex<i>* i)	{ iipm_ = i; } 			// Assign list for i acess in pivoted variable scheme
-		bool		direct(void)			{ return (iipm_ == 0); }	// True if direct acces to pivoted variable set. False otherwise  
+		~mindices(void);    					/*  Destructor   */
+		itindex<d>*	idfm(void)	{ return idfm_; }	
+		lagindex<d>*	idpm(void)	{ return idpm_; }	
+		itindex<i>*	iifm(void)	{ return iifm_; }
+		lagindex<i>*	iipm(void)	{ return iipm_; }	
+		void		asgnfmmiid(itindex<i>* i)	{ iifm_ = i; }
+                  /* Assign list for indirect access  in full variable scheme    */
+		void		asgnpmmiid(lagindex<i>* i)	{ iipm_ = i; } 
+                  /* Assign list for i acess in pivoted variable scheme          */
+		bool		direct(void)	{ return (iipm_ == 0); }
+                   /* True if direct acces to pivoted variable set. False otherwise   */ 
 	private:
 		itindex<d>*	idfm_;		
 		lagindex<d>*	idpm_;		
@@ -75,13 +83,13 @@ class subsetdata {
    Different versions of the algorithm are based on different specializations of this class
 */
 	public:
-		virtual ~subsetdata(void)  {  }               	// Virtual destructor
-		virtual const real criterion(void) const = 0; 	// Returns comparison criterion
-		virtual void setcriterion(real)	= 0;          	// Sets comparison criterion   
+		virtual ~subsetdata(void)  {  }               	/* Virtual destructor    */
+		virtual const real criterion(void) const = 0; 	/* Returns comparison criterion   */
+		virtual void setcriterion(real)	= 0;          	/* Sets comparison criterion      */
 		virtual void  getpdata(partialdata* pd)  { setcriterion(pd->getcrt()); }
 		virtual const real indice(void)    const { return criterion(); }
-		   // Returns comparison indice - a monotone function of the comparison
-		   // criterion, used for reporting the results
+		   /* Returns comparison indice - a monotone function of the comparison
+		      criterion, used for reporting the results                          */
 		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const = 0;
         /* 
 		Updates and returns the comparison criterion 
@@ -131,8 +139,9 @@ class subsetdata {
 			totalnv - Total number of variables
 			partialnv - Number of variables that will serve as pivots in future updates derived from this subset
 	*/  
-		virtual void setorgvarl(vind* list) = 0;		// Sets list of original variable indices to list
-		virtual const real*	getbnds(void) const = 0;	// Returns pointer to list of criteria bounds for each subset size
+		virtual void setorgvarl(vind* list) = 0;	/* Sets list of original variable indices to list   */
+		virtual const real*	getbnds(void) const = 0;	
+                   /* Returns pointer to list of criteria bounds for each subset size    */
 };
 
 class subset {
@@ -152,10 +161,10 @@ class subset {
 		Cronstructor. Aditional argument:
 			ivar - Pointer of list of variable incides mapping their original memory positions into a specific processing order
         */
-		~subset(void); 		//  Destructor
+		~subset(void); 		/*  Destructor     */
 		const vind getithvar(vind i)        	{ return orgvarind[i];	}
 		void setithvar(vind ele,vind val)	{ orgvarind[ele] = val; }
-		void reorder(vind *l);	//  Assign processing order according to the list pointed by l
+		void reorder(vind *l);	/*  Assign processing order according to the list pointed by l   */
 		void asgvar(vind fvar,vind nv,vind *lagv);
 		subsetdata& getdata(void)		{ return *data;  }
 		subsetdata *getdatap(void)		{ return data;  }
@@ -173,24 +182,26 @@ class subset {
 		vind getpmemorypos(vind i)          { return pmemorypos[i]; }
 		vind getfmemorypos(vind i)          { return fmemorypos[i]; }
 	private:
-		vind		p;		//  Total number of variables 
-		vind		t;		//  Number of variables that can be pivoted from this subset
-		vind		k;		//  Number of variables already pivoted in this subset
-		vind*		var;		//  Array with current indices of variables in subset
-		vind		frstvarpm;	//  Current index of first variable in pivoted set 
-		vind*		orgvarind;	//  Array of original indices of the variables ordered by current indices
-		vind*		orgvarpos;	//  Array of current indices of the variables ordered by original  indices
-		vind*		pmemorypos;	//  Array of pivoted variable memory positions ordered by current indices  
-		vind*		fmemorypos;	//  Array of full varirable memory positions ordered by current indices
-		mindices*	memii;		//  Pointer to class of indice iteratores used to access variable memory positions
-		subsetdata*	data;		//  Pointer to data  
-		bool		privatedata;	//  True if data should be created and destroyed by subset constructores and destructores. False otherwise.
-		void assgnmem(void);		//  Auxiliary member function for memory allocation
+		vind	p;		/*  Total number of variables    */
+		vind	t;		/*  Number of variables that can be pivoted from this subset  */
+		vind	k;		/*  Number of variables already pivoted in this subset        */
+		vind*	var;		/*  Array with current indices of variables in subset         */
+		vind	frstvarpm;	/*  Current index of first variable in pivoted set            */
+		vind*	orgvarind;      /*  Array of original indices of the variables ordered by current indices  */
+		vind*	orgvarpos;	/*  Array of current indices of the variables ordered by original  indices */
+		vind*	pmemorypos;	/*  Array of pivoted variable memory positions ordered by current indices  */
+		vind*	fmemorypos;	/*  Array of full varirable memory positions ordered by current indices    */
+		mindices*  memii;
+                     /*  Pointer to class of indice iteratores used to access variable memory positions */
+		subsetdata*	data;		/*  Pointer to data    */
+		bool		privatedata;
+    /*  True if data should be created and destroyed by subset constructores and destructores. False otherwise. */
+		void assgnmem(void);		/*  Auxiliary member function for memory allocation    */
 };
 
 typedef  subset* pkspc;
 
-class wrkspace  {  // General memory working space  
+class wrkspace  {  /* General memory working space    */
 	public:
 		void initwrkspace(vind nv,subsetdata *data0,vind lstind,vind nvattop,vind nvatbot,vind* vattop,vind* vatbot);
 		virtual ~wrkspace(void);
@@ -198,9 +209,9 @@ class wrkspace  {  // General memory working space
 		bool	   usebounds(void)            { return usebounds_;}
 		virtual void pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound) = 0;
 	private:
-		vind	p;		// Total number of variables
-		vind	nwl;    	// Number of different memory positions 
-		pkspc   *wrklst;	// Pointer to memory positions
+		vind	p;		/* Total number of variables                 */
+		vind	nwl;    	/* Number of different memory positions      */
+		pkspc   *wrklst;	/* Pointer to memory positions               */
 		void	frontlsts(vind *l1,vind *l2,vind nl1,vind nl2,vind *ol);
 	/*
 		Switchs the order of the variable indices pointed by ol so that the indices pointed by l1 appear first, followed
@@ -215,14 +226,14 @@ class wrkspace  {  // General memory working space
 		bool usebounds_;
 };
 
-class SRCwrkspace : public wrkspace  {	 // Memory working space for forward searches  
+class SRCwrkspace : public wrkspace  {	 /* Memory working space for forward searches    */
 	public:
 		SRCwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst);
 		virtual ~SRCwrkspace(void)     {   }
 		virtual void pivot(vind vp,vind t,vind li,vind lo,bool usebnd,real acpbound);
 };
 
-class INVwrkspace : public wrkspace  {	// Memory working space for backward searches
+class INVwrkspace : public wrkspace  {	/* Memory working space for backward searches   */
 	public:
 		INVwrkspace(vind tp,vind nv,subsetdata *data0,vind* ivlst,vind* ovlst);
 		virtual ~INVwrkspace(void)     {   }
@@ -237,7 +248,8 @@ extern INVwrkspace* IW;
 /*
             Declaration of main sscma routine 
 
-     ( makes use of two pointers to subsetdata classes containing respectivelly the data relative to the null and the full variable subsets )
+( makes use of two pointers to subsetdata classes containing respectivelly the data relative to the null and the full variable subsets )
+
 */
 
 bool sscma(bool,subsetdata *,subsetdata *);

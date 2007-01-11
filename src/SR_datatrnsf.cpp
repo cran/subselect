@@ -54,7 +54,7 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr);
 void resetvar(void);
 int getpcrt(char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
-void fillres(vind fk,vind nk,long unsigned ns,int* bst,int* st,real* bvl,real* vl);
+void fillres(vind fk,vind nk,int ns,int* bst,int* st,real* bvl,real* vl);
 void asgmemory(void);
 void cleanup(void);
 

@@ -136,7 +136,7 @@
       call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
      +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
      +  h,hvector,rh)
-
+      critvalue = 0.0
 
 **********************************
 * The loop which is to be repeated for each cardinality of subsets, 

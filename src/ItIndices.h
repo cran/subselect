@@ -24,14 +24,14 @@ class indexbase {
 };
 
 
-template<> class itindex<d> :  public indexbase {           // Trivial d index type
+template<> class itindex<d> :  public indexbase {           /* Trivial d index type   */
 	public:
 		itindex<d>(vind n) : indexbase(n)			{ }
 		virtual const vind operator()(void) const		{ return cur(); }
 		virtual const vind	operator[](vind i) const	{ return i; }
 };
 
-template<> class itindex<i> :  public indexbase {           // Indirect index type
+template<> class itindex<i> :  public indexbase {           /* Indirect index type    */
 	public:
 		itindex<i>(vind n,vind* il) : indexbase(n), indlist(il) { }
 		virtual const vind	operator()(void) const		{ return indlist[cur()]; }
@@ -41,7 +41,7 @@ template<> class itindex<i> :  public indexbase {           // Indirect index ty
 		vind* indlist; 
 };
 
-template<> class lagindex<d> : public itindex<d>  {  // Lagged d index - implements an index offset
+template<> class lagindex<d> : public itindex<d>  {  /* Lagged d index - implements an index offset   */
 	public:
 		lagindex<d>(vind n,vind lag) : itindex<d>(n)		{ lag_ = lag; }
 		void setlag(vind lag)					{ lag_ = lag; }
@@ -52,7 +52,7 @@ template<> class lagindex<d> : public itindex<d>  {  // Lagged d index - impleme
 		vind lag_;
 };
 
-template<> class lagindex<i> : public itindex<i>  {  // Lagged i index - implements an index offset
+template<> class lagindex<i> : public itindex<i>  {  /* Lagged i index - implements an index offset   */
 	public:
 		lagindex<i>(vind n,vind lag,vind* il) : itindex<i>(n,il)	
 			{ lag_ = lag; }

@@ -24,7 +24,7 @@ class rvgdata : public globaldata {
 		real			trs2_;
 };
 
-class partialrvdata :  public partialdata {                 // Data used in criterion RV updates
+class partialrvdata :  public partialdata {                 /* Data used in criterion RV updates  */
 	public:
 		explicit		partialrvdata(vind nvariables);
 		virtual			~partialrvdata(void)    {  }	
@@ -77,9 +77,9 @@ class rvdata :  public subsetdata {
 			void pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		void cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
 		void cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
-			//  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists 
+/*  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists  */
 		real frobenius(twodarray& m,bool *inlst) const;
-			// Computation of the Frobenius norm for the sub-matrix defined by the boolean list inlst
+/* Computation of the Frobenius norm for the sub-matrix defined by the boolean list inlst  */
 		vind			lastv;
 		vind			p;
 		vind			k;

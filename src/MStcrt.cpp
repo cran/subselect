@@ -30,11 +30,11 @@ void  wilksdata::getpdata(partialdata* pd)
 { 
 	partialwilksdata *pdaswilks = static_cast<partialwilksdata *>(pd);    
 	
-	// Attention: pd MUST point to partialwilksdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialwilksdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialwilksdata *pdaswilks = dynamic_cast<partialwilksdata *>(pd);    
-//	assert(pdaswilks);
+/*	partialwilksdata *pdaswilks = dynamic_cast<partialwilksdata *>(pd);
+	assert(pdaswilks);                                                      */
 
 	wilksst = pdaswilks->getcrt();
 	nvar = pdaswilks->nvar;
@@ -57,11 +57,11 @@ real wilksdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const
 {  
 	partialwilksdata *newdata = static_cast<partialwilksdata *>(newdtpnt);    
 	
-	// Attention: newdtpnt MUST point to partialwilksdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialwilksdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialwilksdata *newdata = dynamic_cast<partialwilksdata *>(pdt);    
-//	assert(newdata);
+/*	partialwilksdata *newdata = dynamic_cast<partialwilksdata *>(pdt);
+	assert(newdata);                                                       */
 
 	if (d==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
@@ -86,13 +86,12 @@ void wilksdata::pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpn
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    
 	
-	//Attention: newpdtpnt and newfdtpnt MUST point to partialwilksdata and wilksdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/*  Attention: newpdtpnt and newfdtpnt MUST point to partialwilksdata and wilksdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert             */
 	
-//	partialwilksdata* newpdata = dynamic_cast<partialwilksdata *>(newpdtpnt);    
-//	wilksdata* newfdata = dynamic_cast<wilksdata *>(newfdtpnt);    
-//	assert(newpdata && newfdata);
+/*	partialwilksdata* newpdata = dynamic_cast<partialwilksdata *>(newpdtpnt);
+	wilksdata* newfdata = dynamic_cast<wilksdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                              */
 
 	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t);
 	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t);
@@ -131,26 +130,25 @@ void  tracedata::getpdata(partialdata* pd)
 { 
 	partialtracedata *pdastracest = static_cast<partialtracedata *>(pd);    
 	
-	// Attention: pd MUST point to partialtracedata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialtracedata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
 	
-//	partialtracedata *pdasfgcd = dynamic_cast<partialtracedata *>(pd);    
-//	assert(pdasfgcd);
+/*	partialtracedata *pdasfgcd = dynamic_cast<partialtracedata *>(pd);
+	assert(pdasfgcd);                                                    */
 
 	setcriterion(pdastracest->getcrt());
 	nvar = pdastracest->nvar;
 }
 
 real tracedata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
-// real tracedata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,real) const
 {  
 	partialtracedata *newdata = static_cast<partialtracedata *>(pdt);    
 	
-	// Attention: newdtpnt MUST point to partialtracedata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialtracedata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
 	
-//	partialtracedata *newdata = dynamic_cast<partialtracedata *>(pdt);    
-//	assert(newdata);
+/*	partialtracedata *newdata = dynamic_cast<partialtracedata *>(pdt);
+	assert(newdata);                                                    */
 
 	if (d==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
@@ -162,13 +160,12 @@ void tracedata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pd
 	partialtracedata* newpdata = static_cast<partialtracedata *>(pdt);    
 	tracedata* newfdata = static_cast<tracedata *>(fdt);    
 	
-	//Attention: pdt and fdt MUST point to partialtracedata and gcddata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pdt and fdt MUST point to partialtracedata and gcddata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialtracedata* newpdata = dynamic_cast<partialtracedata *>(pdt);    
-//	tracedata* newfdata = dynamic_cast<tracedata *>(fdt);    
-//	assert(newpdata && newfdata);
+/*	partialtracedata* newpdata = dynamic_cast<partialtracedata *>(pdt);
+	tracedata* newfdata = dynamic_cast<tracedata *>(fdt);
+	assert(newpdata && newfdata);                                  */
 
 	sqf->pivot(d,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
 } 

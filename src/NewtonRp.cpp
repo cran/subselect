@@ -6,7 +6,7 @@ namespace newtonrp  {
 double lsrch(double x0,double (*f)(double),double (*f1)(double),double (*f2)(double),double lb,double ub,double precision)
 {
 	const double EPS1 = 1E-4;
-	double x,x1,y,y1,dy,dy2,cf,e0,e,dlt;
+	double x,x1,y,y1=0.,dy,dy2,cf,e0,e,dlt;
 
 	x = x0;
 	e = fabs((y=f(x)));

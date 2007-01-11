@@ -7,7 +7,7 @@
 namespace extendedleaps {
 
 #ifdef COUNTING 
-extern long unsigned fpcnt1;
+extern int fpcnt1;
 #endif
 
 partialqfdata::partialqfdata(vind nparcels)
@@ -70,11 +70,11 @@ real singleqfdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* p
 {
 	partialsingleqfdata *newdata = static_cast<partialsingleqfdata *>(pdt);    
 	
-	// Attention: pdt MUST point to partialsingleqfdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pdt MUST point to partialsingleqfdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
-//	partialsingleqfdata *newdata = dynamic_cast<partialsingleqfdata *>(pdt);    
-//	assert(newdata);
+/*	partialsingleqfdata *newdata = dynamic_cast<partialsingleqfdata *>(pdt);
+	assert(newdata);                                                             */
 	
 	return qf->updatesum(mmind,var,newdata->pqf);  
 }
@@ -84,13 +84,12 @@ void singleqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata*
 	partialsingleqfdata* newpdata = static_cast<partialsingleqfdata *>(pdt);    
 	singleqfdata* newfdata = static_cast<singleqfdata *>(fdt);    
 	
-	//Attention: pdt and fdt MUST point to partialsingleqfdata and singleqfdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/*  Attention: pdt and fdt MUST point to partialsingleqfdata and singleqfdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert         */
 	
-//	partialsingleqfdata* newpdata = dynamic_cast<partialsingleqfdata *>(pdt);    
-//	singleqfdata* newfdata = dynamic_cast<singleqfdata *>(fdt);    
-//	assert(newpdata && newfdata);
+/*	partialsingleqfdata* newpdata = dynamic_cast<partialsingleqfdata *>(pdt);
+	singleqfdata* newfdata = dynamic_cast<singleqfdata *>(fdt);
+	assert(newpdata && newfdata);                                */
 
 	qf->pivot(d,mmind,vp,t,newpdata->pqf,newfdata->qf,last);  
 }

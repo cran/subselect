@@ -429,6 +429,8 @@
 
 * initializing 
         citer = temp
+        vtroca = 0.0
+        dir = 0.0
 
         do j=1,p
          auxlog(j)=.true.
@@ -724,7 +726,7 @@
 *           after the modified local search.
 
 * general declarations
-      integer p,poriginal
+      integer p,poriginal,jmax,jconsmax
       integer dentro(0:ndentro),que(p),cons(p),ndentro,k,criterio
       logical setk(poriginal),auxlog(p),esteveque(p)
       double precision s(poriginal,poriginal),h(poriginal,poriginal)
@@ -741,6 +743,9 @@
 
 
 * initializations
+      vtroca = 0.0
+      jmax = 0 
+      jconsmax = 0
 
       do j=1,p
         auxlog(j) = .true.

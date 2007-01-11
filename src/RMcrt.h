@@ -18,7 +18,7 @@ class rmgdata : public globaldata {
 		real	trs_;
 };
 
-class partialrmdata :  public partialdata {                 // Data used in criterion RM updates
+class partialrmdata :  public partialdata {                 /* Data used in criterion RM updates   */
 	public:
 		explicit		partialrmdata(vind);
 		virtual			~partialrmdata(void)    {  }	

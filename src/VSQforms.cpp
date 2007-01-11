@@ -9,7 +9,7 @@
 namespace extendedleaps {
 
 #ifdef COUNTING  
-extern long unsigned fpcnt1;
+extern int fpcnt1;
 #endif
 
 partialvsqfdata::partialvsqfdata(vind nparcels,real vc0)
@@ -55,7 +55,7 @@ inline void vsqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,
 real vsqfdata::updatesum(direction d,vind varind,vind dim,partialvsqfdata* newdata) const
 {
 	vind maxk=0;
-	real inc,newsum,e1=(*e)(varind,varind);
+	real inc,newsum=0.,e1=(*e)(varind,varind);
 	real *tv = newdata->gettmpv(),*newvc=newdata->gettmpvc();
 	switch (d)  {
 		case forward:
@@ -88,7 +88,7 @@ real vsqfdata::updatesum(direction d,vind varind,vind dim,partialvsqfdata* newda
 template<accesstp tp> 
 void vsqfdata::pivot(direction d,lagindex<tp>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
 {
-	vind pivotind,newdim,maxk=0;
+	vind pivotind,newdim=0,maxk=0;
 	pivotind = prtmmit[vp-1];
 	real pivotval = newpdata->getpivotval();
 	real *tv = newpdata->gettmpv();

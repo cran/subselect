@@ -1,4 +1,9 @@
 
+########## Version 0.9.9991 (January 2007) ###########
+
+Changes in the C code which broke the package on Linux 64-bit machines
+(use of "long" data type was changed to "int").
+ 
 ########## Version 0.9.999 (October 2006) ############
 
 1) Changes in the C code required by the transition to R 2.4 (and the

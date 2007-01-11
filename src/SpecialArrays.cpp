@@ -27,21 +27,21 @@ symtwodarray& symtwodarray::operator=(const symtwodarray& org )
 }
 
 matvectarray::matvectarray(const vind dim,symtwodarray* m,vind const mr) 
-: mat(m), matrowind(mr), dimension(dim)
+: dimension(dim), mat(m), matrowind(mr)
 {
 	owndata.reserve(dimension);
 }
 
 
-void matvectarray::setvalue(const vind j,const real val)	        
-{ 
+void matvectarray::setvalue(const vind j,const real val)
+{
 	owndata[j] = val; 
-}										 
+}
 
-const real matvectarray::operator[] (const vind j) const	   
+const real matvectarray::operator[] (const vind j) const 
 { 
-	if (mat) return (*mat)(matrowind,j);                 
-	else return owndata[j];                             
+	if (mat) return (*mat)(matrowind,j);
+	else return owndata[j];
 }
 
 }

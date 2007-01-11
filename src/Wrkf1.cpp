@@ -6,10 +6,10 @@
 
 namespace extendedleaps {
 
-extern long unsigned *sbsetcnt;                                                 
+extern int *sbsetcnt;                                                 
 
-const unsigned SRC  = 1;
-const unsigned INV  = 0;
+const int SRC  = 1;
+const int INV  = 0;
 
 const real   NOBND = 1E99;
 
@@ -22,7 +22,7 @@ real getbounds(vind dir,vind minv,vind maxv);
 int cmp(const void *a,const void *b);
 
 #ifdef COUNTING
-void showcnt(int,long unsigned,vind);
+void showcnt(int,int,vind);
 #endif
 
 extern vind maxdim,*prvks;    
@@ -98,20 +98,20 @@ void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vi
 	crt = w->subsetat(k1+1).getdata().criterion();  
 	ind = w->subsetat(k1+1).getdata().indice();  
 	
-	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	// Check if new subset is better than any of the
-	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	// sets in current best set list for this dimension
+	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	/* Check if new subset is better than any of the     */
+	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	/* sets in current best set list for this dimension  */
 	
 	getactv(w,tree,k1,nv);
 	st = csbset(nv,actv,crt,ind);	
 	psbstlist curlist = bsts[nv-mindim];
 
-	if (sbsetcnt[nv-mindim] == ms)  {				// Remove and discard worst subset saved	   
+	if (sbsetcnt[nv-mindim] == ms)  {				/* Remove and discard worst subset saved     */
 		prevsbset = *(ptprevsbset=curlist->begin());
 		curlist->erase(ptprevsbset);
 		dsbset(prevsbset);
 	}
 	else sbsetcnt[nv-mindim]++;
-	curlist->insert(st);					// Insert new subset in best sets list
+	curlist->insert(st);					/* Insert new subset in best sets list        */
 	if (sbsetcnt[nv-mindim] == ms)				   
 		if (pcrttp == MAXIMZ) lbnd[nv-mindim] = (*curlist->begin())->crt();
 		else ubnd[nv-mindim] = (*curlist->begin())->crt();
@@ -123,8 +123,8 @@ bool prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
 	vind ks0;
 	static vind k1;
 	vind nv,maxnvs,maxnvi,maxnv,minnvs,minnvi,minnv;  
-	real   bnd = NOBND;                                     
-	const  real*	cbnd;                         
+	real   bnd = NOBND;
+	const  real*	cbnd;
 
 	if (p-fv > 10) {
 		if (clock()-btime > maxtime) return false;
@@ -172,7 +172,7 @@ bool leap(vind dir,real crt,const real *crtcrr,vind minv,vind maxv)
 
 	for (l=true,i=maxv;l&&i>=minv;i--) {
 		if (crtcrr && i < maxv) crt -= crtcrr[i];	
-		// Remove ith+1 parcel when using a quadratic form criterion with a variable number of parcels (ex: GCD)
+		/* Remove ith+1 parcel when using a quadratic form criterion with a variable number of parcels (ex: GCD) */
 		if (dir == MAXIMZ && crt > lbnd[i-mindim]) l = false; 
 		else if (dir == MINIMZ && crt < ubnd[i-mindim]) l = false;
 	}

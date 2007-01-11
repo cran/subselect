@@ -10,13 +10,14 @@ using namespace newtonrp;
 namespace extendedleaps {
 
 
-real findccr12(real w,real u,real v,real minacpt); 	// Finds the first canonical correlation (squared), given the values of the three classical statistics. 
-							// Returns zero if proven that its value falls below minacpt.
-							
-real a,b,c;			// Coeficients of the third degree equation:  x^3 + a x^2 + b x + c = 0	
-real lhs(real x);	// Computes the left hand side (lhs) of third degree equation.
-real lhsd(real x);  // Computes first derivative of lhs.
-real lhsd2(real x); // Computes second derivative of lhs.
+real findccr12(real w,real u,real v,real minacpt);	
+/* Finds the first canonical correlation (squared), given the values of the three classical statistics
+   Returns zero if proven that its value falls below minacpt                                             */
+
+real a,b,c;		/* Coeficients of the third degree equation:  x^3 + a x^2 + b x + c = 0	  */
+real lhs(real x);	/* Computes the left hand side (lhs) of third degree equation.            */
+real lhsd(real x);      /* Computes first derivative of lhs.                                      */
+real lhsd2(real x);     /* Computes second derivative of lhs                                      */
 
 partialrnk3ccrdata::partialrnk3ccrdata(vind nvars,vind hrank)
   :	  partialccrdata(nvars,hrank)
@@ -46,11 +47,11 @@ void  rnk3ccrdata::getpdata(partialdata* pd)
 { 
 	partialrnk3ccrdata *pdasrnk3ccr = static_cast<partialrnk3ccrdata *>(pd);    
 	
-	// Attention: pd MUST point to partialrnk3ccrdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: pd MUST point to partialrnk3ccrdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
 	
-//	partialrnk3ccrdata *pdasccr = dynamic_cast<partialrnk3ccrdata *>(pd);    
-//	assert(pdasccr);
+/*	partialrnk3ccrdata *pdasccr = dynamic_cast<partialrnk3ccrdata *>(pd);
+	assert(pdasccr);                                                        */
 
 	ccrdata::getpdata(pdasrnk3ccr);
 	lawhotst = pdasrnk3ccr->getlawhot();
@@ -66,11 +67,11 @@ real rnk3ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt,real r
 {  
 	partialrnk3ccrdata *newdata = static_cast<partialrnk3ccrdata *>(newdtpnt);    
 	
-	// Attention: newdtpnt MUST point to partialrnk3ccrdata object !!!
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/* Attention: newdtpnt MUST point to partialrnk3ccrdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
 	
-//	partialrnk3ccrdata *newdata = dynamic_cast<partialrnk3ccrdata *>(pdt);    
-//	assert(newdata);
+/*	partialrnk3ccrdata *newdata = dynamic_cast<partialrnk3ccrdata *>(pdt);
+	assert(newdata);                                                            */
 
 	real newwilksst,newbartpist,newccr12;
 	real e1 = (*emat)(varind,varind);
@@ -108,13 +109,12 @@ void rnk3ccrdata::rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* ne
 	partialrnk3ccrdata* newpdata = static_cast<partialrnk3ccrdata *>(newpdtpnt);    
 	rnk3ccrdata* newfdata = static_cast<rnk3ccrdata *>(newfdtpnt);    
 	
-	// Attention: newpdtpnt and newfdtpnt MUST point to partialrnk3ccrdata and rnk3ccrdata objects !!!
-
-	// For safety, in debug mode use the alternative code with dynamic_cast and assert
+	/*  Attention: newpdtpnt and newfdtpnt MUST point to partialrnk3ccrdata and rnk3ccrdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert                */
 	
-//	partialrnk3ccrdata* newpdata = dynamic_cast<partialrnk3ccrdata *>(newpdtpnt);    
-//	rnk3ccrdata* newfdata = dynamic_cast<rnk3ccrdata *>(newfdtpnt);    
-//	assert(newpdata && newfdata);
+/*	partialrnk3ccrdata* newpdata = dynamic_cast<partialrnk3ccrdata *>(newpdtpnt);
+	rnk3ccrdata* newfdata = dynamic_cast<rnk3ccrdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                           */
 
 	ccrdata::pivot(prtmmit,vp,t,newpdata,newfdata,last);
 	for (vind j=0;j<3;j++) 
@@ -123,18 +123,18 @@ void rnk3ccrdata::rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* ne
 
 real findccr12(real w,real u,real v,real minacpt)
 {
-	real x2,y2;                // coordinates of lhs local minimun.
+	real x2,y2;                /* coordinates of lhs local minimun       */
 	real r1_2=0.,frstap;
 
-	a = -u;                    // set coeficients of third degree equation
+	a = -u;                    /* set coeficients of third degree equation   */
 	b = 2*u -3 + w*(v+3);
 	c = -b + u + w - 1;
 
 	y2 = lhs( x2 = (-a+sqrt(a*a-3*b))/3 );
-	frstap = x2 + sqrt(-y2/(3*x2+a));    // aproximate r1_2 by a second order expansion (noting that first derivative of lhs is null at x2) 
+	frstap = x2 + sqrt(-y2/(3*x2+a));
+  /* aproximate r1_2 by a second order expansion (noting that first derivative of lhs is null at x2)  */
 	if (frstap > minacpt) 
-		r1_2 = lsrch(frstap,lhs,lhsd,lhsd2,x2,frstap);	// find r1_2 exact value
-		
+		r1_2 = lsrch(frstap,lhs,lhsd,lhsd2,x2,frstap);    /* find r1_2 exact value   */	
 	return r1_2;
 }
 

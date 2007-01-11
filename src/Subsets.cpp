@@ -6,7 +6,7 @@
 
 namespace extendedleaps {
 
-extern long unsigned sbsetind,maxsbst;
+extern int sbsetind,maxsbst;
 
 extern sbset    **sbsarr;
 
@@ -29,7 +29,7 @@ void dsbset(sbset *s)
 	return;
 }
 
-sbset::sbset(long unsigned p,vind n)
+sbset::sbset(int p,vind n)
 :  pos(p), nvar_(n)
 {
 	actvar_ = new vind[nvar_];

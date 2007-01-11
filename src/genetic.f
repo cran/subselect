@@ -109,7 +109,7 @@
        INTEGER p,kmin,kmax,criterio,npopinic,nger,nclone,poriginal
        INTEGER fora(0:nfora),fica(0:p),dentro(0:ndentro),auxw(kmax)
        INTEGER talvez,painaomae(kmax),maenaopai(kmax),rh
-       INTEGER ordemger(0:npopinic),iseed(4)
+       INTEGER ordemger(0:npopinic)
        INTEGER garanhao(npopinic),femea(npopinic),randint
        INTEGER vars(npopinic*(kmax-kmin+1)*kmax)
        INTEGER bestvar((kmax-kmin+1)*kmax),kabort
@@ -150,6 +150,7 @@
        external dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 * initializations
+       critvalue = 0.0
 
        call rndstart()       
        call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,

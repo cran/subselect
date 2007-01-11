@@ -7,7 +7,7 @@ namespace extendedleaps {
 
 using std::vector;
 
-class partialccrdata :  public partialdata {     // Data used in canonical correlation updates
+class partialccrdata :  public partialdata {    /* Data used in canonical correlation updates  */
 												     
 	public:
 		partialccrdata(vind nvars,vind hrank);

@@ -15,15 +15,15 @@ namespace extendedleaps {
 vind		p,q,fp,lp,mindim,flst,lastvar,*actv;  
 real		trs,trs2,*lbnd,*ubnd;
 double 		btime,maxtime; 
-int			pcrt; 
-long unsigned   ms,*sbsetcnt;                      
-pcskept			pcsets;
+int		pcrt; 
+int		ms,*sbsetcnt;                      
+pcskept		pcsets;
 std::string 	memmsg("Unable to find enough memory to run leaps with this data\n");
 
-long unsigned sbsetind,maxsbst;
+int 		sbsetind,maxsbst;
 
 #ifdef COUNTING 
-long unsigned cntg,fpcnt,fpcnt1;	//  Floating point operations counters   
+int cntg,fpcnt,fpcnt1;	/*  Floating point operations counters    */
 #endif    
 
      /*  Comparison criteria */
@@ -46,10 +46,10 @@ int	pcrttp;
 SRCwrkspace*   SW;   
 INVwrkspace*   IW;   
 real  c0,v0,*vc0,*Fl;                               				                   
-long unsigned m0,maxsbqe,maxcmp;
+int maxsbqe,maxcmp;
 
 #ifdef COUNTING
-long unsigned  cntp,fpcnt0;   
+int  cntp,fpcnt0;   
 #endif
 
 psbst*		sbsarr;
@@ -59,10 +59,10 @@ void resetvar(void);
 int getpcrt(char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
 void cleanlists(void);
-void fillres(vind fk,vind nk,long unsigned ns,int* bst,int* st,real* bvl,real* vl);
-void saveset(psbstlist,int *,real *l,long unsigned,vind);
+void fillres(vind fk,vind nk,int ns,int* bst,int* st,real* bvl,real* vl);
+void saveset(psbstlist,int *,real *l,int,vind);
 int trivialcmp(const void *,const void *);
-void matasvcttranspose(long unsigned m,long unsigned n,int* data);
+void matasvcttranspose(int m,int n,int* data);
 void asgmemory(void);
 void cleanup(void);
 
@@ -208,9 +208,9 @@ void fsort()
 	delete[] sind;
 
 	if (SW != NULL) 
-		{	for (unsigned i=1;i<=flsts+1;i++)  {
+		{	for (int i=1;i<=flsts+1;i++)  {
 				slt = &SW->subsetat(i);
-				for (unsigned j=fp+lp;j<slt->getp();j++)  slt->setvarp(slt->getithvar(j),j);
+				for (int j=fp+lp;j<slt->getp();j++)  slt->setvarp(slt->getithvar(j),j);
 			}
 	}
 	{ for (vind i=1;i<=flsti+1;i++)  {
@@ -219,7 +219,7 @@ void fsort()
 	} }
 }
 
-void fillres(vind fk,vind nk,long unsigned ns,int *bst,int *st,real *bvl,real *vl)
+void fillres(vind fk,vind nk,int ns,int *bst,int *st,real *bvl,real *vl)
 {
 	vind i,lk=fk+nk-1;
 	int *stmatp;
@@ -235,7 +235,7 @@ void fillres(vind fk,vind nk,long unsigned ns,int *bst,int *st,real *bvl,real *v
 }
 
 
-void saveset(psbstlist pset,int *bvar,real *bcrtval,long unsigned nel,vind dim)
+void saveset(psbstlist pset,int *bvar,real *bcrtval,int nel,vind dim)
 {
 	int i=0,j,*var;
 
@@ -246,7 +246,7 @@ void saveset(psbstlist pset,int *bvar,real *bcrtval,long unsigned nel,vind dim)
 		for (j=(*qep)->nvar();j<dim;j++) var[j] = 0; 
 		*bcrtval++ = (*qep)->indice();
 	}
-  for (i=pset->size();i<nel;i++)  {
+	for (i=pset->size();i<nel;i++)  {
 		for (vind j=0;j<dim;j++) bvar[i*dim+j] = 0;
 		*bcrtval++ = 0.;
 	} 
@@ -264,9 +264,9 @@ int trivialcmp(const void *a,const void *b)
 		 else return 0;
 }
 
-void matasvcttranspose(long unsigned m,long unsigned n,int* data)
+void matasvcttranspose(int m,int n,int* data)
 {
-	long unsigned mn=m*n;
+	int mn=m*n;
 	int* tmp=0;
 	
 	try { tmp = new int[mn]; }
@@ -274,9 +274,9 @@ void matasvcttranspose(long unsigned m,long unsigned n,int* data)
 		cleanup();
 		errmsg(memmsg);
 	}
-	{ for (long unsigned i=0;i<m;i++)
-		for (long unsigned j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
-	{ for (long unsigned i=0;i<mn;i++) data[i] = tmp[i]; }
+	{ for (int i=0;i<m;i++)
+		for (int j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
+	{ for (int i=0;i<mn;i++) data[i] = tmp[i]; }
 	delete[] tmp;
 }
 
@@ -291,13 +291,13 @@ void asgmemory()
 
 		if (ms > 0) {
 			bsts = new psbstlist[ndim];
-			sbsetcnt =new long unsigned[ndim];
+			sbsetcnt = new int[ndim];
 			{for (vind i=0;i<ndim;i++) sbsetcnt[i] = 0; }
 		}
 		if (ndim == p-fp-lp+1) maxsbst = maxsbqe = ms*(ndim-1)+2;
 		else maxsbst = maxsbqe = ms*ndim+3;
 		sbsarr = new psbst[maxsbst];
-		{ for (long unsigned i=0;i<maxsbst;i++) sbsarr[i]=new sbset(i,p);  }
+		{ for (int i=0;i<maxsbst;i++) sbsarr[i]=new sbset(i,p);  }
 
 		if ( pcrt == MCB2 || pcrt == TAU) {
 			pcrttp = MINIMZ;
@@ -343,8 +343,6 @@ void asgmemory()
 
 void cleanup(void)
 {
-	long unsigned i;
-	
 	delete   SW;
 	delete   IW;
 	delete[] actv;
@@ -352,7 +350,7 @@ void cleanup(void)
 	delete[] Fl;
 	delete[] Flp;
 	if (bsts != 0) {
-		for (i=0;i<ndim;i++) delete bsts[i];
+		for (int i=0;i<ndim;i++) delete bsts[i];
 		delete[] bsts;
 	}
 	delete[] sbsetcnt; 
@@ -360,7 +358,7 @@ void cleanup(void)
 	delete[] ubnd;
 	delete[] prvks;
 	if ( sbsarr != 0) {
-		for (i=0;i< maxsbst;i++) delete sbsarr[i];
+		for (int i=0;i<maxsbst;i++) delete sbsarr[i];
 		delete[] sbsarr;
 	}
 	delete[] vc0;
