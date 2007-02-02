@@ -57,23 +57,19 @@
 *
 
 * general declarations
-      integer p,poriginal,nfora,ndentro,iaux,nfica,criterio,rh
+      integer criterio,i,iaux,j,ndentro,nfica,nfora
+      integer p,poriginal,rh
       integer fora(0:nfora),fica(0:p),dentro(0:ndentro)
-*     integer dm
       double precision s(p,p),sq(p,p),svector(p*p),h(p,p)
-	double precision vecvecp(p*p),hvector(p*p)
+      double precision vecvecp(p*p),hvector(p*p)
 * declaration only for the RM criterion
       double precision tracos
 * declarations only for the RV criterion
       double precision tracosq
 * declarations only for the GCD criterion
       double precision vecp(p,p)
-*      double precision valp(p)
-* integer jaux
 
       external dprodmat
-
-
 
 * conversion of svector into a matrix (s); if GCD, initialization of the vecp
 * matrix which will hold the eigenvectors of s (computed in R and passed 
@@ -105,13 +101,13 @@
 
 
       if (criterio .eq. 1) then 
-         tracos=0
+         tracos=0.0D0
          DO j=1,p
            tracos=tracos+s(j,j)
          END DO
       end if
       if (criterio .eq. 2) then 
-         tracosq=0
+         tracosq=0.0D0
          DO j=1,p
            tracosq=tracosq+sq(j,j)
          END DO
@@ -165,7 +161,6 @@
           if(rh .GT. 0) then
 		    h(p,p)=h(fica(p),fica(p))
           end if 
-
       end if
 
 * The vector of variables that are forced to be included in the solution 
@@ -203,10 +198,9 @@
 *   sk   - logical vector defining the generated subset 
 *               (sk(i)=.true. iff i belongs to sk, i=1,...,n)
 
-       integer randint,pp(n)
+       integer i,k,n,nalt,randint
+       integer pp(n)
        logical sk(n)
-
-
 
        do i=1,n
         sk(i)=.false.
@@ -220,8 +214,9 @@
        return 
       end
 ***********************************************************************
+
 ************************************************************************
-      integer function randint(esq,dir)
+      integer function randint(esq,dto)
 **********************************************************************
 * randomly generates a number in the interval [esq,dir].
 *
@@ -232,18 +227,16 @@
 *INPUT: 
        
 *        esq  - integer variable, giving lower bound of interval.
-*        dir  - integer variable, giving upper bound of interval.
+*        dto  - integer variable, giving upper bound of interval.
 
        external unifrnd, rndstart, rndend
        
-       double precision ran
-*       real ran
-       integer esq,dir
-
+       double precision ran, unifrnd
+       integer esq,dto
 
        call rndstart()
        ran = unifrnd()
-       randint=esq+int(ran*(dir-esq+1))
+       randint=esq+int(ran*(dto-esq+1))
        call rndend()
        return 
       end
@@ -266,12 +259,12 @@
 * OUTPUT: 
 *   prod - double precision array (nxr), the product a x b.
 
-       INTEGER r
+       INTEGER i,j,l,m,r
        DOUBLE PRECISION a(n,m),b(m,r),prod(n,r),soma
 
        DO i=1,n
          DO j=1,r
-           soma=0 
+           soma=0.0D0 
         	DO l=1,m
 	          soma=soma+a(i,l)*b(l,j)
 	        END DO
@@ -311,7 +304,8 @@
 *  setk   - logical vector with setk(j)=.true. iff j belongs to the  
 *           subset of {1,2,...,p}
 
-       integer dentro(0:ndentro),p,poriginal
+       integer i,j,naux,ndentro,p,poriginal
+       integer dentro(0:ndentro)
        logical setk(poriginal)
 
        dentro(0)=0
@@ -404,15 +398,15 @@
         
 * general declarations
 
-* character*3 aceita
-        double precision r
-        integer coolfreq, criterio, p, poriginal
+        double precision unifrnd,r
+        integer coolfreq, criterio,i,inaoconv,iter,j,jentra,jsai,k,kcons
+        integer kque,ncons,ndentro,nigual,niter,nque,p, poriginal
         integer dentro(0:ndentro),que(p),cons(p),randint
         logical setk(poriginal),setkmax(poriginal),auxlog(p)
         double precision s(poriginal,poriginal),h(poriginal,poriginal)
         double precision sq(poriginal,poriginal),beta,citer,temp
         double precision vactual,vmax,vtroca,dir
-* double precision crittroca,critactual
+
 * declarations specific to the RM criterion
         double precision tracos,dobjrm
 * declarations specific to the RV criterion
@@ -429,8 +423,8 @@
 
 * initializing 
         citer = temp
-        vtroca = 0.0
-        dir = 0.0
+        vtroca = 0.0D0
+        dir = 0.0D0
 
         do j=1,p
          auxlog(j)=.true.
@@ -457,16 +451,6 @@
         do j=1,p
           setkmax(j)=setk(j)
         end do
-
-* Leftovers of previous tests, if anyone should ever be interested in
-* seeing a HUGE file of subset values..., all subsequent commented code 
-* beginning with "if(printall)" used 
-* to print to file *ALL* solutions considered by simulated annealing 
-*        if (printall) then
-*          open(16,file='safull.out')
-*          write(16,*) '    iter','  citer','    vtroca','     vactual',  
-*     +     'naleat [0,1]','    moeda ao ar','   aceita'
-*        end if
 
 * more initializing
         iter=0      
@@ -513,7 +497,8 @@
            vtroca=dobjzeta2(k,setk,p,s,poriginal,h,rh)
          end if
 	 if (criterio.eq.7) then
-           vtroca=dobjccr12(k,setk,p,s,poriginal,h,rh)
+* tirei rh
+           vtroca=dobjccr12(k,setk,p,s,poriginal,h)
          end if
 * if vtroca>vmax, updates vmax and setkmax, which hold the best value and 
 * subset found so far.
@@ -535,7 +520,7 @@
          call rndend()
 
          if(vtroca-vactual.GE.0) then 
-          dir=10000.0D0
+          dir=0.1D5
          else
           if (criterio.eq.1) then
            dir=exp((dsqrt(vtroca)-dsqrt(vactual))/(dsqrt(tracos)*citer))
@@ -567,17 +552,11 @@
           que(kque)=jsai
           cons(kcons)=jentra
 
-*           if (printall) aceita='sim'
-*            aceita = 'sim'
-
            nigual=0
         else 
 * reject the swap
            setk(jsai)=.true.
            setk(jentra)=.false.
-
-*           if (printall) aceita='nao'
-*           aceita = 'nao'
 
           nigual=nigual+1 
 * counts number of consecutive rejections of a swap
@@ -623,27 +602,6 @@
 
          if (inaoconv.GT.500) iter=niter
          iter=iter+1
-          
-*         if (printall) then 
-*           if (criterio.eq.1) then                 
-*             crittroca=dsqrt(vtroca/tracos)        
-*             critactual=dsqrt(vactual/tracos)      
-*           endif                                   
-*           if (criterio.eq.2) then                 
-*             crittroca=dsqrt(vtroca/tracosq)      
-*             critactual=dsqrt(vactual/tracosq)     
-*           endif                                    
-*           if (criterio.eq.3) then                 
-*             crittroca=vtroca/dsqrt(DBLE(nqsi*k)) 
-*             critactual=vactual/dsqrt(DBLE(nqsi*k))
-*           endif                                     
-*            write(16,101) iter,citer,crittroca,      
-*     +       critactual,r,dir,aceita
-*101         format(' ',1X,i6,1X,f7.4,2x,f10.7,1X,f10.7,7x,f6.4,
-*     +       9x,f16.14,7x,a3)                        
-*         end if
-
-
       end do
  
 * defines the algorithm's solution, vactual, as the best solution obtained
@@ -653,7 +611,6 @@
        do i=1,p
           setk(i)=setkmax(i)
        end do
-
 
        return
       end
@@ -726,11 +683,13 @@
 *           after the modified local search.
 
 * general declarations
-      integer p,poriginal,jmax,jconsmax
-      integer dentro(0:ndentro),que(p),cons(p),ndentro,k,criterio
+      integer criterio,k,j,jconsmax,jentra,jmax,jsai
+      integer ncons,ndentro,nque,p,poriginal
+      integer dentro(0:ndentro),que(p),cons(p)
       logical setk(poriginal),auxlog(p),esteveque(p)
       double precision s(poriginal,poriginal),h(poriginal,poriginal)
       double precision vactual,vtroca,vtrocamax
+
 * declarations for the RM and RV criteria
       double precision sq(poriginal,poriginal),dobjrm,dobjrv
 * declarations for the gcd criteria
@@ -743,7 +702,7 @@
 
 
 * initializations
-      vtroca = 0.0
+      vtroca = 0.0D0
       jmax = 0 
       jconsmax = 0
 
@@ -774,7 +733,7 @@
        DO WHILE(nque.GT.0 .and. ncons.GT.0)
        jentra=que(nque)
        nque=nque-1
-       vtrocamax=0
+       vtrocamax=0.0D0
        DO j=1,ncons
         jsai=cons(j)
 	setk(jsai)=.false.
@@ -799,7 +758,8 @@
                 vtroca=dobjzeta2(k,setk,p,s,poriginal,h,rh)
         end if
 	  if (criterio.eq.7) then
-                vtroca=dobjccr12(k,setk,p,s,poriginal,h,rh)
+* tirei rh
+                vtroca=dobjccr12(k,setk,p,s,poriginal,h)
         end if
 	
 	IF (vtroca.GT.vtrocamax) THEN
@@ -860,9 +820,8 @@
 
        external dposv
 
-       integer p,poriginal,setint(p)
-*      integer dm
-       integer i,j,k
+       integer i,info,j,k,p,poriginal
+       integer setint(p)
        logical setk(poriginal)
        character*1 laux
        double precision s(poriginal,poriginal),sq(poriginal,poriginal)
@@ -891,24 +850,23 @@
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
-              sk(i,j)=0
-              sk(j,i)=0
+              sk(i,j)=0.0D0
+              sk(j,i)=0.0D0
            end do
            skinput(i,i)=s(setint(i),setint(i))
-           sk(i,i)=1
+           sk(i,i)=1.0D0
          end do
 
           skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1
+          sk(k,k)=1.0D0
 
-*          dm=300
           laux='L'
           info=0
           call dposv(laux,k,k,skinput,k,sk,k,info)
 
 * computes the trace of inv(S_k) x (S**2)_k
 
-          dobjrm=0
+          dobjrm=0.0D0
 	  do i=1,k
 	    do l=1,k
 		  dobjrm=dobjrm+sk(i,l)*sq(setint(l),setint(i))
@@ -948,8 +906,8 @@
 
       external dposv
 
-      integer p,poriginal,setint(p),info
-* integer dm
+      integer i,info,j,k,p,poriginal
+      integer setint(p)
       logical setk(poriginal)
       character*1 laux
       double precision s(poriginal,poriginal),sq(poriginal,poriginal)
@@ -960,8 +918,6 @@
 * be identity, fed to the LAPACK routine DPOSV, from which it will emerge
 * as the inverse of S_k. 
 	  
-
-
        do i=1,p
           setint(i)=i
        end do
@@ -979,27 +935,26 @@
 	    do j=i+1,k
                   skinput(i,j)=s(setint(i),setint(j))
 		  skinput(j,i)=skinput(i,j)
-	          sk(i,j)=0
-                  sk(j,i)=0
+	          sk(i,j)=0.0D0
+                  sk(j,i)=0.0D0
             end do
             skinput(i,i)=s(setint(i),setint(i))
-            sk(i,i)=1
+            sk(i,i)=1.0D0
 	  end do
 	  skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1
+          sk(k,k)=1.0D0
 
-*          dm=300
            laux='L'
            info=0
            call dposv(laux,k,k,skinput,k,sk,k,info)
 
 * computes the trace of (inv(S_k) x (S**2)_k)**2
 
-          dobjrv=0
+          dobjrv=0.0D0
           do i=1,k-1
             do j=i+1,k
-              soma1=0
-              soma2=0
+              soma1=0.0D0
+              soma2=0.0D0
 	      do l=1,k
 	        soma1=soma1+sk(i,l)*sq(setint(l),setint(j))
 	        soma2=soma2+sk(j,l)*sq(setint(l),setint(i))
@@ -1008,13 +963,13 @@
             end do
           end do
           dobjrv=dobjrv*2
-          soma=0
+          soma=0.0D0
           do i=1,k
-              soma=0
+              soma=0.0D0
               do l=1,k
 	 soma=soma+sk(i,l)*sq(setint(l),setint(i))
               end do
-              dobjrv=dobjrv+soma**2
+              dobjrv=dobjrv+soma**2.0D0
            end do
        return
        end   
@@ -1070,8 +1025,8 @@
 
       external dposv
 
-      integer p,poriginal,setint(p),qsi(p),info
-* integer dm
+      integer i,info,j,k,l,m,nqsi,p,poriginal
+      integer setint(p),qsi(p)
       logical setk(poriginal)
       character*1 laux
       integer fica(0:p)
@@ -1102,27 +1057,26 @@
 	    do j=i+1,k
                   skinput(i,j)=s(setint(i),setint(j))
 		  skinput(j,i)=skinput(i,j)
-	          sk(i,j)=0
-                  sk(j,i)=0
+	          sk(i,j)=0.0D0
+                  sk(j,i)=0.0D0
             end do
             skinput(i,i)=s(setint(i),setint(i))
-            sk(i,i)=1
+            sk(i,i)=1.0D0
 	  end do
 	  skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1
+          sk(k,k)=1.0D0
 
-*          dm=300
            laux='L'
            info=0
            call dposv(laux,k,k,skinput,k,sk,k,info)
 
 * calculates sum_{m in qsi} (valp_m vecp_m^t inv(S_k) vecp_m)
 
-          dobjgcd=0
+          dobjgcd=0.0D0
 	  do m=1,nqsi
-	    aux=0
+	    aux=0.0D0
 	    do i=1,k
-		  aux0=0
+		  aux0=0.0D0
 		  do l=1,k
 		    aux0=aux0+sk(i,l)*vecp(fica(setint(l)),qsi(m))
 		  end do
@@ -1134,8 +1088,10 @@
 	  return
 	  end   
 ************************************************************************
+
+************************************************************************
        function dobjtau2(k,setk,p,s,poriginal,h,rh)
-**********************************************************************
+************************************************************************
 * This function computes the tau_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
 *
@@ -1159,34 +1115,28 @@
 *   h     - double precision matrix, 
 *   rh    - integer, h matrix rank
 *
-
-       
-
-       integer p,poriginal,setint(p)
-         integer rh,k,lwork,itype
-        integer rhaux
+    
+       integer i,info,itype,j,k,lwork,p,poriginal
+       integer rh,rhaux
+       integer setint(p)
        logical setk(poriginal)
        character*1 laux,jobz
        double precision work(6*k),valp(k)
-	 double precision s(poriginal,poriginal),h(poriginal,poriginal)
+       double precision s(poriginal,poriginal),h(poriginal,poriginal)
        double precision skinput(k,k),dobjtau2,lambda
-	 double precision hkinput(k,k),ekinput(k,k)
-        
-	  
-		
-		external dsygv
+       double precision hkinput(k,k),ekinput(k,k)
+
+	
+       external dsygv
+
 * initializations and call to LAPACK routine dsygv
 * matrix skinput will store the submatrix S_k. 
 * matrix ekinput will store the submatrix E_K = S_k - H_k. 
 
-
        do i=1,p
           setint(i)=i
        end do
-
-
-
-        i=0
+       i=0
        do j=1,p
          if(setk(j)) then
            i=i+1
@@ -1197,53 +1147,50 @@
        do i=1,k-1
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))
-		    hkinput(i,j)=h(setint(i),setint(j))
+              hkinput(i,j)=h(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
               hkinput(j,i)=hkinput(i,j)
-            end do
+           end do
            skinput(i,i)=s(setint(i),setint(i))
-		 hkinput(i,i)=h(setint(i),setint(i))
+	   hkinput(i,i)=h(setint(i),setint(i))
         end do
-          skinput(k,k)=s(setint(k),setint(k))
-          hkinput(k,k)=h(setint(k),setint(k))
-        
-	  do i=1,k-1
+        skinput(k,k)=s(setint(k),setint(k))
+        hkinput(k,k)=h(setint(k),setint(k))
+        do i=1,k-1
            do j=i+1,k
               ekinput(i,j)=skinput(i,j)-hkinput(i,j)
-	        ekinput(j,i)=ekinput(i,j)
-            end do
+	      ekinput(j,i)=ekinput(i,j)
+           end do
            ekinput(i,i)=skinput(i,i)-hkinput(i,i)
-	   end do
-	   ekinput(k,k)=skinput(k,k)-hkinput(k,k)
+        end do
+	ekinput(k,k)=skinput(k,k)-hkinput(k,k)
 
-*          dm=300
-          itype=1
-		jobz='N'
-		laux='L'
-           info=0
-	   lwork=6*k
-          call dsygv(itype,jobz,laux,k,ekinput,k,skinput,k,valp,work,
+        itype=1
+	jobz='N'
+	laux='L'
+        info=0
+	lwork=6*k
+        call dsygv(itype,jobz,laux,k,ekinput,k,skinput,k,valp,work,
      +	lwork,info)
 	  
-	  
-	   lambda=1
-	   do i=1,k
-	      lambda=lambda*valp(i)
-         end do
-	  
-	   rhaux=rh
-	 if (rh.GT.(k)) then 
+	lambda=1.0D0
+	do i=1,k
+	     lambda=lambda*valp(i)
+        end do
+	rhaux=rh
+	if (rh.GT.k) then 
 	    rhaux=k
-	 end if 
+	end if 
+        dobjtau2= 1 - lambda ** (1.0D0/DBLE(rhaux))
+      
+        return
+	end
+************************************************************************
 
-	    dobjtau2= 1 - lambda ** (1./rhaux)
-
-
-	  return
-	 end   
+   
 ************************************************************************
        function dobjxi2(k,setk,p,s,poriginal,h,rh)
-**********************************************************************
+************************************************************************
 * This function computes the xi_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
 *
@@ -1269,28 +1216,26 @@
 
        
 
-       integer p,poriginal,setint(p)
-         integer rh,k,lwork,itype
-       integer rhaux
+       integer i,info,itype,j,k,lwork,p,poriginal
+       integer rh,rhaux
+       integer setint(p)
        logical setk(poriginal)
        character*1 laux,jobz
        double precision work(6*k),valp(k)
-	 double precision s(poriginal,poriginal),h(poriginal,poriginal)
+       double precision s(poriginal,poriginal),h(poriginal,poriginal)
        double precision skinput(k,k),dobjxi2,hkinput(k,k)
         
-       
-		
-		external dsygv
+       external dsygv
+
 * initializations and call to LAPACK routine dsygv
 * matrix skinput will store the submatrix S_k. 
 * matrix hkinput will store the submatrix H_k. 
-
 
        do i=1,p
           setint(i)=i
        end do
 
-        i=0
+       i=0
        do j=1,p
          if(setk(j)) then
            i=i+1
@@ -1301,44 +1246,40 @@
        do i=1,k-1
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))
-		    hkinput(i,j)=h(setint(i),setint(j))
+              hkinput(i,j)=h(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
               hkinput(j,i)=hkinput(i,j)
-            end do
+           end do
            skinput(i,i)=s(setint(i),setint(i))
-		 hkinput(i,i)=h(setint(i),setint(i))
+           hkinput(i,i)=h(setint(i),setint(i))
         end do
-          skinput(k,k)=s(setint(k),setint(k))
-          hkinput(k,k)=h(setint(k),setint(k))
+        skinput(k,k)=s(setint(k),setint(k))
+        hkinput(k,k)=h(setint(k),setint(k))
 
-*          dm=300
-          itype=1
-		jobz='N'
-		laux='L'
-           info=0
-	   lwork=6*k
-          call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
+        itype=1
+	jobz='N'
+	laux='L'
+        info=0
+        lwork=6*k
+        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
      +	lwork,info)
-         dobjxi2=0
-	   do i=1,k
-	      dobjxi2=dobjxi2+valp(i)
-         end do
-	   
-	   rhaux=rh
-	 if (rh.GT.(k)) then 
+        dobjxi2=0.0D0
+	do i=1,k
+	    dobjxi2=dobjxi2+valp(i)
+        end do
+	rhaux=rh
+	if (rh.GT.k) then 
 	    rhaux=k
-	 end if 
-	   
-	   dobjxi2=dobjxi2/rhaux  
+	end if 
+	dobjxi2=dobjxi2/DBLE(rhaux)  
 
-
-
-	  return
-	 end   
+        return
+	end   
+************************************************************************
 
 ************************************************************************
        function dobjzeta2(k,setk,p,s,poriginal,h,rh)
-**********************************************************************
+************************************************************************
 * This function computes the zeta_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
 *
@@ -1361,30 +1302,26 @@
 *   rh    - integer, h matrix rank
 *
 
-       
-
-       integer p,poriginal,setint(p)
-         integer rh,k,lwork,itype
-       integer rhaux
+       integer i,info,itype,j,k,lwork,p,poriginal
+       integer rh,rhaux
+       integer setint(p)
        logical setk(poriginal)
        character*1 laux,jobz
        double precision work(6*k),valp(k)
-	 double precision s(poriginal,poriginal),h(poriginal,poriginal)
+       double precision s(poriginal,poriginal),h(poriginal,poriginal)
        double precision skinput(k,k),dobjzeta2,hkinput(k,k)
         
-       
-		
-		external dsygv
+       external dsygv
+
 * initializations and call to LAPACK routine dsygv
 * matrix skinput will store the submatrix S_k. 
 * matrix hkinput will store the submatrix H_k.
-
 
        do i=1,p
           setint(i)=i
        end do
 
-        i=0
+       i=0
        do j=1,p
          if(setk(j)) then
            i=i+1
@@ -1395,45 +1332,42 @@
        do i=1,k-1
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))-h(setint(i),setint(j))
-		    hkinput(i,j)=h(setint(i),setint(j))
+	      hkinput(i,j)=h(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
               hkinput(j,i)=hkinput(i,j)
             end do
-           skinput(i,i)=s(setint(i),setint(i))-h(setint(i),setint(i))
-		 hkinput(i,i)=h(setint(i),setint(i))
+            skinput(i,i)=s(setint(i),setint(i))-h(setint(i),setint(i))
+	    hkinput(i,i)=h(setint(i),setint(i))
         end do
-          skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
-          hkinput(k,k)=h(setint(k),setint(k))
+        skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
+        hkinput(k,k)=h(setint(k),setint(k))
          
-              
-*          dm=300
-          itype=1
-		jobz='N'
-		laux='L'
-           info=0
-	   lwork=6*k
-          call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
+        itype=1
+	jobz='N'
+	laux='L'
+        info=0
+	lwork=6*k
+        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
      +	lwork,info)
-         dobjzeta2=0
-	   do i=1,k
-	      dobjzeta2=dobjzeta2+valp(i)
-         end do
+        dobjzeta2=0.0D0
+        do i=1,k
+	    dobjzeta2=dobjzeta2+valp(i)
+        end do
 	   
-	   rhaux=rh
-	 if (rh.GT.(k)) then 
+	rhaux=rh
+	if (rh.GT.k) then 
 	    rhaux=k
-	 end if 
-	   
-	   dobjzeta2=dobjzeta2/(dobjzeta2+rhaux)  
+	end if 
+	dobjzeta2=dobjzeta2/(dobjzeta2+DBLE(rhaux))  
 
+        return
+	end   
+************************************************************************
 
-
-	  return
-	 end   
 
 ************************************************************************
-       function dobjccr12(k,setk,p,s,poriginal,h,rh)
-**********************************************************************
+       function dobjccr12(k,setk,p,s,poriginal,h)
+************************************************************************
 * This function computes the ccr1_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
 *
@@ -1452,32 +1386,26 @@
 *   p     - integer variable, number of original variables.
 *   s     - double precision matrix of covariances of all p variables.
 *   h     - double precision matrix, 
-*   rh    - integer
 * poriginal - 
 
-
-       
-
-       integer p,poriginal,setint(p)
-         integer rh,k,lwork,itype
-*      integer dm
+       integer i,info,itype,j,k,lwork,p,poriginal
+       integer setint(p)
        logical setk(poriginal)
        character*1 laux,jobz
        double precision work(6*k),valp(k)
-	 double precision s(poriginal,poriginal),h(poriginal,poriginal)
+       double precision s(poriginal,poriginal),h(poriginal,poriginal)
        double precision skinput(k,k),dobjccr12,hkinput(k,k)
         
-      	external dsygv
+      external dsygv
+
 * initializations and call to LAPACK routine dsygv
 * matrix skinput will store the submatrix S_k. 
 * matrix hkinput will store the submatrix H_k.
 
-
        do i=1,p
           setint(i)=i
        end do
-
-        i=0
+       i=0
        do j=1,p
          if(setk(j)) then
            i=i+1
@@ -1488,32 +1416,26 @@
        do i=1,k-1
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))-h(setint(i),setint(j))
-		    hkinput(i,j)=h(setint(i),setint(j))
+              hkinput(i,j)=h(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
               hkinput(j,i)=hkinput(i,j)
-            end do
+           end do
            skinput(i,i)=s(setint(i),setint(i))-h(setint(i),setint(i))
-		 hkinput(i,i)=h(setint(i),setint(i))
+           hkinput(i,i)=h(setint(i),setint(i))
         end do
-          skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
-          hkinput(k,k)=h(setint(k),setint(k))
+        skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
+        hkinput(k,k)=h(setint(k),setint(k))
          
-              
-*          dm=300
-          itype=1
-		jobz='N'
-		laux='L'
-           info=0
-	   lwork=6*k
-          call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
+        itype=1
+	jobz='N'
+	laux='L'
+        info=0
+	lwork=6*k
+        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
      +	lwork,info)
       
-	 
-	      dobjccr12=valp(k)
-        
-	   dobjccr12=dobjccr12/(1+dobjccr12)  
+	dobjccr12=valp(k)
+        dobjccr12=dobjccr12/(1+dobjccr12)  
 
-
-
-	  return
+        return
 	 end   

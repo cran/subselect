@@ -100,7 +100,7 @@
 *
 
 * general declarations
-       INTEGER p,criterio,niter,poriginal,rh
+       INTEGER i,j,k,m,p,criterio,niter,poriginal,rh
        INTEGER fora(0:nfora),fica(0:p),dentro(0:ndentro),auxw(kmax)
        INTEGER vars(nsol*(kmax-kmin+1)*kmax)
        INTEGER bestvar((kmax-kmin+1)*kmax)
@@ -136,7 +136,7 @@
       call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
      +  dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
      +  h,hvector,rh)
-      critvalue = 0.0
+      critvalue = 0.0D0
 
 **********************************
 * The loop which is to be repeated for each cardinality of subsets, 
@@ -205,7 +205,8 @@
            end if
 		 
 		 if (criterio.eq.7) then
-               vactual=dobjccr12(k,setk,p,s,poriginal,h,rh)
+* tirei rh
+               vactual=dobjccr12(k,setk,p,s,poriginal,h)
            end if
        
            call dannealing(criterio,p,k,s,sq,setk,vactual,ndentro,
@@ -292,10 +293,8 @@
          if (improvement) then
             vcorrente = vmax
 
-
             call dmelhoramentogen(criterio,p,setkmax,vmax,ndentro,
      +        dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
-
 
             if (vmax .GT. vcorrente) then 
                    naux=0

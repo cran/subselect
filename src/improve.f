@@ -90,6 +90,7 @@
        DOUBLE PRECISION vmax,vactual
        DOUBLE PRECISION valores((kmax-kmin+1)*nsol)
        DOUBLE PRECISION critvalue,bestval(kmax-kmin+1)
+       DOUBLE PRECISION vecvecp(p*p)
        LOGICAL silog
        INTEGER solinit(kmax*nsol*(kmax-kmin+1))
 * FIM NOVO TESTE
@@ -106,12 +107,12 @@
 
        external randsk1,dobjrm,dobjrv,dobjgcd
        external dobjtau2
-	 external dcorrigesk,dannealing
+       external dcorrigesk
        external dmelhoramentogen,newinicializar
 
 
 * initializations 
-       critvalue = 0.0
+       critvalue = 0.0D0
 
        call newinicializar(criterio,p,s,svector,sq,nfora,fora,
      +  ndentro, dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
@@ -184,7 +185,8 @@
            end if
 		 
 		 if (criterio.eq.7) then
-               vactual=dobjccr12(k,setk,p,s,poriginal,h,rh)
+* tirei rh
+               vactual=dobjccr12(k,setk,p,s,poriginal,h)
            end if
 
 		 call dmelhoramentogen(criterio,p,setk,vactual,ndentro,

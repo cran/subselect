@@ -113,10 +113,9 @@
        INTEGER garanhao(npopinic),femea(npopinic),randint
        INTEGER vars(npopinic*(kmax-kmin+1)*kmax)
        INTEGER bestvar((kmax-kmin+1)*kmax),kabort
-       LOGICAL setk(p),improvement !,printfile
+       LOGICAL setk(p),improvement 
        LOGICAL pop(npopinic,p),novager(npopinic,p),rep(p+1)
        LOGICAL filho(npopinic,p),igual,melhorar
-* LOGICAL silog
        DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p), vecvecp(p*p),h(p,p)
        DOUBLE PRECISION vactual,vcorrente,hvector(p*p)
        DOUBLE PRECISION valores((kmax-kmin+1)*npopinic)
@@ -124,7 +123,7 @@
        DOUBLE PRECISION critvalue,amax,aux,somavalue,acumulado,vantes
        DOUBLE PRECISION vmaximo,valuenovager(npopinic)
        DOUBLE PRECISION bestval(kmax-kmin+1)
-       DOUBLE PRECISION testran, mutprob,ranaux
+       DOUBLE PRECISION testran, mutprob,r,ranaux,unifrnd
        LOGICAL pilog
        INTEGER popinit(kmax*npopinic*(kmax-kmin+1))
 * declarations only for the RM criterion
@@ -140,17 +139,15 @@
        Double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 
-
-*       external dlaruv
        external randsk1,dobjrm,dobjrv,dobjgcd
-       external dcorrigesk,dannealing
+       external dcorrigesk
        external dmelhoramentogen,newinicializar
        external intpr,dblepr
        external rndstart,rndend,unifrnd
        external dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 * initializations
-       critvalue = 0.0
+       critvalue = 0.0D0
 
        call rndstart()       
        call newinicializar(criterio,p,s,svector,sq,nfora,fora,ndentro,
@@ -165,7 +162,6 @@
 * The loop which is to be repeated for each cardinality of subsets, 
 * between kmin e kmax starts here and ends together with the subroutine.
          
-*      valueger(0)=dfloat(2)
       valueger(0)=DBLE(2)
       ordemger(0)=0
       npop=npopinic
@@ -268,19 +264,20 @@
                critvalue = amax
            end if
 		 
-		 if (criterio.eq.5) then
+           if (criterio.eq.5) then
                amax=dobjxi2(k,setk,p,s,poriginal,h,rh)
                critvalue = amax
            end if
 		 
-		 if (criterio.eq.6) then
+	   if (criterio.eq.6) then
                amax=dobjzeta2(k,setk,p,s,poriginal,h,rh)
-	         critvalue = amax
+	       critvalue = amax
            end if
 		 
-		 if (criterio.eq.7) then
-               amax=dobjccr12(k,setk,p,s,poriginal,h,rh)
-	         critvalue = amax
+	   if (criterio.eq.7) then
+* tirei rh
+               amax=dobjccr12(k,setk,p,s,poriginal,h)
+	       critvalue = amax
            end if
 		 
 
@@ -504,7 +501,8 @@
 	         critvalue = amax
               end if
               if (criterio.eq.7) then
-                 amax=dobjccr12(k,setk,p,s,poriginal,h,rh)
+* tirei rh
+                 amax=dobjccr12(k,setk,p,s,poriginal,h)
 	         critvalue = amax
               end if
 	      valueger(kfilho)=critvalue
@@ -517,9 +515,9 @@
 * "mutprob" is large. Default value for "melhorar" is .false.
 
               if(melhorar) then
-               call rndstart()
+*               call rndstart()
                testran = unifrnd()
-               call rndend()
+*               call rndend()
                if (testran .LT. mutprob) then
                 vantes=amax
                 call dmelhoramentogen(criterio,p,setk,amax,ndentro,
@@ -645,10 +643,10 @@
            if (criterio.eq.3) vactual=valuepop(1)*dsqrt(DBLE(nqsi*k))
            if (criterio.eq.4) vactual=valuepop(1)
            if (criterio.eq.5) vactual=valuepop(1)
-	     if (criterio.eq.6) vactual=valuepop(1)
-		 if (criterio.eq.7) vactual=valuepop(1)
-		 do j=1,p
-            setk(j)=pop(1,j)
+	   if (criterio.eq.6) vactual=valuepop(1)
+           if (criterio.eq.7) vactual=valuepop(1)
+           do j=1,p
+              setk(j)=pop(1,j)
            end do
            vcorrente = vactual
 
@@ -699,8 +697,8 @@
 * End of k-loop
 
 *         call rndend()
-         return
          call rndend()
+         return
        end
 
 

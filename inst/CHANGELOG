@@ -1,8 +1,14 @@
 
+########## Version 0.9.9992 (February 2007) ###########
+
+Changes in the Fortran code which broke the package on Linux 64-bit machines
+(e.g.: conversions between types were smoothed out).
+
+
 ########## Version 0.9.9991 (January 2007) ###########
 
-Changes in the C code which broke the package on Linux 64-bit machines
-(use of "long" data type was changed to "int").
+Changes in the C code which could break the package on Linux 64-bit machines
+(e.g.: use of "long" data type was changed to "int").
  
 ########## Version 0.9.999 (October 2006) ############
 
