@@ -42,8 +42,7 @@ be a data matrix, and its correlation matrix is used as input. The
 number of variables (k) and of PCs (q) does not have to be the same.
 
 Yanai's GCD is defined as:
-\deqn{GCD = \frac{\mathrm{tr}(P_v\cdot P_c)}{\sqrt{k\cdot q}}}
-{GCD = tr(PvPc)/sqrt(k q)}
+\deqn{GCD = \frac{\mathrm{tr}(P_v\cdot P_c)}{\sqrt{k\cdot q}}}{GCD = tr(PvPc)/sqrt(k q)}
 where \eqn{P_v}{Pv} and \eqn{P_c}{Pc} are the matrices of orthogonal
 projections on the subspaces spanned by the k-variable subset and by
 the q-Principal Component subset, respectively.

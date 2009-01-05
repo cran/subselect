@@ -29,8 +29,8 @@ class vsqfdata :  public sqfdata {
 		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last);
 	private:
 		real updatesum(direction d,vind varind,vind dim,partialvsqfdata* newdata) const;   
-		template<accesstp tp> 
-			void pivot(direction d,lagindex<tp>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
+		void pivot(direction d,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
+		void pivot(direction d,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
 		vector<real>	vc;
 };
 

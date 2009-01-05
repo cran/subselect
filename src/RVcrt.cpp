@@ -76,21 +76,20 @@ void  rvdata::getpdata(partialdata* pd)
 		}
 }
 
-inline real rvdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+ real rvdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
 { 
 	if (mmind.direct()) return updatecrt(d,*(mmind.idpm()),*(mmind.idfm()),var,pdt); 
 	else return updatecrt(d,*(mmind.iipm()),*(mmind.iifm()),var,pdt); 
 }
 		
-inline void rvdata::pivot(direction d,mindices& mmind,vind vp,vind t,
+void rvdata::pivot(direction d,mindices& mmind,vind vp,vind t,
 						   partialdata* pdt,subsetdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(d,*(mmind.idpm()),*(mmind.idfm()),vp,t,pdt,fdt,last); 
 	else pivot(d,*(mmind.iipm()),*(mmind.iifm()),vp,t,pdt,fdt,last); 
 }
 
-template<accesstp tp> 
-real rvdata::updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind var,partialdata* newdtpnt) const
+real rvdata::updatecrt(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt) const
 {
 	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
 	
@@ -123,8 +122,92 @@ real rvdata::updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vin
 	return newcrt;
 }
 
-template<accesstp tp> 
-void rvdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+
+real rvdata::updatecrt(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt) const
+{
+	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
+	
+	/* Attention: newdtpnt MUST point to partialrvdata object !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
+	
+/*	partialrvdata *newdata = dynamic_cast<partialrvdata *>(newdtpnt);
+	assert(newdata);                                                         */
+	
+	vind varind = prtmmit[var-1];
+	real newcrt,e1 = (*e)(varind,varind);
+	real *cv = newdata->getcndv();
+	deque<bool>& vin = newdata->vin;
+
+	vin = varin;
+	if (d == forward) vin[var-1] = true;
+	else vin[var-1] = false;
+	fmmind.reset();
+	for (vind i=0;i<p;fmmind++,i++)	
+		if (vin[i] && (i!=var-1) )  cv[i] = (*ivct[fmmind()])[varind]/e1;
+	if (d == forward) cv[var-1] = 1./e1;
+	cmpts2sm1(prtmmit,fmmind,newdata,newdata->getm1t(),orgvar,var,&vin[0],&vin[0]);
+	newcrt = frobenius(newdata->getm1t(),&vin[0]);
+	#ifdef COUNTING  
+	fpcnt1 += p;
+	#endif
+
+	newdata->setpivotval(e1);
+	newdata->setcrt(newcrt);
+	return newcrt;
+}
+
+void rvdata::pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+{
+	vind pivotind,fpivotind = fmmind[vp-1];              
+	pivotind = prtmmit[vp-1];
+
+	partialrvdata* pdata = static_cast<partialrvdata *>(newpdtpnt);    
+	rvdata* newdata = static_cast<rvdata *>(newfdtpnt);    
+	
+	/* Attention: pdtpnt and newdttpnt MUST point to partialrvdata and rvdata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert       */
+	
+/*	partialrvdata* pdata = dynamic_cast<partialrvdata *>(newpdtpnt);
+	rvdata* newdata = dynamic_cast<rvdata *>(newfdtpnt);
+	assert(pdata && newdata);                                  */
+
+	real pivotval = pdata->getpivotval();
+	real *cv = pdata->getcndv();
+	deque<bool>& colin = pdata->vin;
+
+	symatpivot(prtmmit,pivotval,*e,*(newdata->e),vp,t);
+	fmmind.reset();
+	for (vind i=0;i<vp;fmmind++,i++)  
+	if (newdata->varin[i])  {
+		vectorpivot(prtmmit,*ivct[fmmind()],*newdata->ivct[i],*e,cv[i],vp,t); 
+		newdata->ivct[i]->switchtoowndata();
+	} 
+	if (d == forward)  {
+		prtmmit.reset(vp);
+		for (vind j=vp;j<vp+t;prtmmit++,j++)   
+			newdata->ivct[vp-1]->setvalue(j-vp,-(*ivct[fpivotind])[prtmmit()]/pivotval);  
+		#ifdef COUNTING  
+		fpcnt += t;
+		#endif
+		newdata->ivct[vp-1]->switchtoowndata();
+	}
+	fmmind.reset(vp+t);
+	{ for (vind i=vp+t;i<p;fmmind++,i++)  
+		if (newdata->varin[i])  {
+			vectorpivot(prtmmit,*ivct[fmmind()],*newdata->ivct[i],*e,cv[i],vp,t); 
+			newdata->ivct[i]->switchtoowndata();
+		} 
+	}
+
+	{ for (vind j=0;j<p;j++)
+		if (j+1 > vp && j+1 <= vp+t && !colin[j]) colin[j] = true;
+		else colin[j] = false;
+	}
+	cmpts2sm1(prtmmit,fmmind,pdata,newdata->s2m1,orgvar,vp,&(newdata->varin[0]),&colin[0]);
+}
+
+
+void rvdata::pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {
 	vind pivotind,fpivotind = fmmind[vp-1];              
 	pivotind = prtmmit[vp-1];

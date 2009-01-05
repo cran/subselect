@@ -40,21 +40,20 @@ rmdata::~rmdata()
 	delete e;
 }
 
-inline real rmdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+real rmdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
 { 
 	if (mmind.direct()) return updatecrt(d,(*(mmind.idfm())),var,(*(mmind.idpm()))[var-1],pdt); 
 	else return updatecrt(d,*(mmind.iifm()),var,(*(mmind.iipm()))[var-1],pdt); 
 }
 		
-inline void rmdata::pivot(direction d,mindices& mmind,vind vp,vind t,
+ void rmdata::pivot(direction d,mindices& mmind,vind vp,vind t,
 						   partialdata* pdt,subsetdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(d,*(mmind.idpm()),*(mmind.idfm()),vp,t,pdt,fdt,last); 
 	else pivot(d,*(mmind.iipm()),*(mmind.iifm()),vp,t,pdt,fdt,last); 
 }
 
-template<accesstp tp> 
-real rmdata::updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,partialdata* newdtpnt) const
+real rmdata::updatecrt(direction d,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt) const
 {
 	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
 	
@@ -84,8 +83,80 @@ real rmdata::updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,part
 	return newcrt;
 }
 
-template<accesstp tp> 
-void rmdata::pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+real rmdata::updatecrt(direction d,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt) const
+{
+	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
+	
+	/*  Attention: newdtpnt MUST point to partialrmdata object !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert    */
+	
+/*	partialrmdata *newdata = dynamic_cast<partialrmdata *>(newdtpnt);
+	assert(newdata);                                                       */
+	
+	real *tv = newdata->gettmpv();
+	real newcrt=crt,e1 = (*e)(varind,varind);
+
+	if (d == forward) newcrt -= e1;
+	else newcrt -= 1./e1;
+	fmmind.reset();
+	for (vind i=0;i<p;fmmind++,i++) {
+		if (!varin[i] && (i!=var-1) ) {
+			tv[i] = (*ovct[fmmind()])[varind]/e1;
+			newcrt -= tv[i] * (*ovct[fmmind()])[varind];
+			#ifdef COUNTING  
+			fpcnt1 += 2;
+			#endif
+	}
+	}
+	newdata->setpivotval(e1);
+	newdata->setcrt(newcrt);
+	return newcrt;
+}
+
+void rmdata::pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+{
+	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    
+	rmdata* newfdata = static_cast<rmdata *>(newfdtpnt);    
+	
+	/*  Attention: newpdtpnt and newfdttpnt MUST point to partialrmdata and rmdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert           */
+	
+/*	partialrmdata* newpdata = dynamic_cast<partialrmdata *>(newpdtpnt);
+	rmdata* newfdata = dynamic_cast<rmdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                              */
+
+	real pivotval = newpdata->getpivotval();
+	real *tv = newpdata->gettmpv();
+
+	{ for (vind i=0;i<p;i++)  
+		if (i+1 != vp) newfdata->varin[i] = varin[i]; }
+	if (d == backward) newfdata->varin[vp-1] = false;
+	else newfdata->varin[vp-1] = true;
+	symatpivot(prtmmit,pivotval,*e,*(newfdata->e),vp,t);
+	fmmind.reset();
+	{ for (vind i=0;i<vp;fmmind++,i++)  
+		if (i+1 != vp && !newfdata->varin[i])  {
+			vectorpivot(prtmmit,*ovct[fmmind()],*newfdata->ovct[i],*e,tv[i],vp,t); 
+			newfdata->ovct[i]->switchtoowndata();
+	} }
+	if (d == backward) {
+		prtmmit.reset(vp);
+		for (vind j=vp;j<vp+t;prtmmit++,j++) 
+			newfdata->ovct[vp-1]->setvalue(j-vp,-(*ovct[fmmind[vp-1]])[prtmmit()]/pivotval); 
+		#ifdef COUNTING  
+		fpcnt += t;
+		#endif
+		newfdata->ovct[vp-1]->switchtoowndata();
+	}
+	fmmind.reset(vp+t);
+	{ for (vind i=vp+t;i<p;fmmind++,i++)  
+		if (!newfdata->varin[i])  {
+			vectorpivot(prtmmit,*ovct[fmmind()],*newfdata->ovct[i],*e,tv[i],vp,t); 
+			newfdata->ovct[i]->switchtoowndata();
+	} }
+}
+
+void rmdata::pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {
 	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    
 	rmdata* newfdata = static_cast<rmdata *>(newfdtpnt);    

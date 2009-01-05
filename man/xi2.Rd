@@ -2,9 +2,9 @@
 
 \alias{xi2.coef}
 
-\title{Computes the $\xi^2$ coefficient for variable subset selection} 
+\title{Computes the Xi squared coefficient for variable subset selection} 
 \description{
-Computes the $\xi^2$  index of "effect magnitude".  
+Computes the Xi squared  index of "effect magnitude".  
 The maximization of this criterion is equivalent to the maximization of the traditional test statistic, the Bartllet-Pillai trace.
 
 }
@@ -46,7 +46,7 @@ linear model:
 matrix of original variables, \eqn{A} is a known (nxp) design matrix, 
 \eqn{\Psi}{B} an (qxp) matrix of unknown parameters and \eqn{U} an
 (nxp) matrix of residual vectors. 
-The $\xi^2$  index is related to the traditional test statistic
+The Xi squared  index is related to the traditional test statistic
 (Bartllet-Pillai trace) and  
 measures the contribution of each subset to an Effect characterized by
 the violation of a linear hypothesis of the form 
@@ -60,7 +60,7 @@ rank of \eqn{H} matrix.
   
 
 The fact that \code{indices} can be a matrix or 3-d array allows for
-the computation of the $\xi^2$ values of subsets produced by the search
+the computation of the Xi squared values of subsets produced by the search
 functions \code{\link{anneal}}, \code{\link{genetic}}, 
 \code{\link{improve}} and
 \code{\link{leaps}} (whose output option \code{$subsets} are

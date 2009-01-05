@@ -2,9 +2,9 @@
 
 \alias{zeta2.coef}
 
-\title{Computes the $\zeta^2$ coefficient for variable subset selection} 
+\title{Computes the Zeta squared coefficient for variable subset selection} 
 \description{
-Computes the $\zeta^2$  index of "effect magnitude".  
+Computes the Zeta squared  index of "effect magnitude".  
 The maximization of this criterion is equivalent to the maximization of the traditional test statistic, the Lawley-Hotelling  trace.
 
 }

@@ -55,7 +55,7 @@ real ccrdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) c
 	else return updatecrt(d,(*(mmind.iipm()))[var-1],pdt); 
 }
 
-inline void ccrdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+ void ccrdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
@@ -86,8 +86,25 @@ void ccrdata::updatest(real& newwilksst,real& newbartpist,vind varind,partialccr
 	return;
 } 
 
-template<accesstp tp> 
-void ccrdata::pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+void ccrdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+{	
+	partialccrdata* newpdata = static_cast<partialccrdata *>(newpdtpnt);    
+	ccrdata* newfdata = static_cast<ccrdata *>(newfdtpnt);    
+	
+	/* Attention: newpdtpnt and newfdtpnt MUST point to partialccrdata and ccrdata objects !!!
+	   For safety, in debug mode use the alternative code with dynamic_cast and assert     */
+	
+/*	partialccrdata* newpdata = dynamic_cast<partialccrdata *>(newpdtpnt);
+	ccrdata* newfdata = dynamic_cast<ccrdata *>(newfdtpnt);                                
+	assert(newpdata && newfdata);                                                          */
+
+	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t);
+	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t);
+	for (vind j=0;j<hrank;j++) 
+		vectorpivot(prtmmit,htinv[j],newfdata->htinv[j],*tmat,(newpdata->getbptmpv())[j],vp,t); 
+} 
+
+void ccrdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
 {	
 	partialccrdata* newpdata = static_cast<partialccrdata *>(newpdtpnt);    
 	ccrdata* newfdata = static_cast<ccrdata *>(newfdtpnt);    

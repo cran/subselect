@@ -40,13 +40,13 @@ void  vsqfdata::setvc(real* x,vind nparcels)
 	for (vind j=0;j<nparcels;j++) vc[j] = x[j];
 }
 
-inline real vsqfdata::updatesum(direction d,mindices& mmind,vind var,vind dim,partialvsqfdata* pdt) const
+real vsqfdata::updatesum(direction d,mindices& mmind,vind var,vind dim,partialvsqfdata* pdt) const
 { 
 	if (mmind.direct()) return updatesum(d,(*(mmind.idpm()))[var-1],dim,pdt); 
 	else return updatesum(d,(*(mmind.iipm()))[var-1],dim,pdt); 
 }
 
-inline void vsqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last)
+void vsqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(d,*(mmind.idpm()),vp,t,dim,pdt,fdt,last); 
 	else pivot(d,*(mmind.iipm()),vp,t,dim,pdt,fdt,last); 
@@ -85,8 +85,37 @@ real vsqfdata::updatesum(direction d,vind varind,vind dim,partialvsqfdata* newda
 	return newsum;
 }
 
-template<accesstp tp> 
-void vsqfdata::pivot(direction d,lagindex<tp>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
+void vsqfdata::pivot(direction d,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
+{
+	vind pivotind,newdim=0,maxk=0;
+	pivotind = prtmmit[vp-1];
+	real pivotval = newpdata->getpivotval();
+	real *tv = newpdata->gettmpv();
+
+	switch (d)  {
+		case forward:
+			maxk = (newdim = dim+1) + t;
+			if (maxk > r) maxk = r;
+			break;
+		case backward:
+			maxk = newdim = dim-1;
+			if (maxk > r) maxk = r;
+			break;
+	}
+	{ for (vind j=newdim;j<maxk;j++) {
+		tv[j] = ve[j][pivotind]/pivotval;
+		newfdata->vc[j] = vc[j] + tv[j]*ve[j][pivotind];
+	} }
+	#ifdef COUNTING  
+	if (maxk > newdim) fpcnt += 2*(maxk - newfdata->dim);
+	#endif
+
+	symatpivot(prtmmit,pivotval,*e,*(newfdata->e),vp,t);
+	for (vind j=0;j<maxk;j++) 
+		vectorpivot(prtmmit,ve[j],newfdata->ve[j],*e,tv[j],vp,t); 
+}
+
+void vsqfdata::pivot(direction d,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
 {
 	vind pivotind,newdim=0,maxk=0;
 	pivotind = prtmmit[vp-1];

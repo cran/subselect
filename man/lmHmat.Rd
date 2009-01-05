@@ -20,10 +20,9 @@
 the SSCP matrix is to be computed.} 
   \item{y}{A matrix or data frame containing the set of fixed
 variables, the association of x is to be measured with.} 
-  \item{formula}{A formula of the form \code{'y ~ x1 + x2 +
-...'}. That is, the response is the set of fixed variables and the
-right hand side specifies the variables whose subsets are to be
-compared.} 
+  \item{formula}{A formula of the form \code{'y ~ x1 + x2 + ...'}.  That
+    is, the response is the set of fixed variables and the right hand
+    side specifies the variables whose subsets are to be compared.} 
   \item{data}{Data frame from which variables specified in 'formula'
 are preferentially to be taken.} 
   \item{...}{further arguments for the method.} 

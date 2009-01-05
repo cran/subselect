@@ -59,8 +59,8 @@ class ccrdata :  public subsetdata {
 		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt) const = 0;   
 		void updatest(real& newwilksst,real& newbartpist,vind varind,
 						partialccrdata* newdtpnt) const;  
-		template<accesstp tp> 
-			void pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		vind			p;
 		vind			k;
 		vind			hrank;

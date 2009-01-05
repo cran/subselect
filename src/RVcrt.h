@@ -71,10 +71,10 @@ class rvdata :  public subsetdata {
 		void  sets2m1(vind i,vind j,real val)		{ s2m1[i][j] = val; }
 		real  gets2m1(vind i,vind j) const		{ return s2m1[i][j]; }
 	private:
-		template<accesstp tp> 
-			real updatecrt(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind var,partialdata* newdtpnt) const;   
-		template<accesstp tp> 
-			void pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		real updatecrt(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt) const;   
+		real updatecrt(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt) const;   
+		void pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		void cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
 		void cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
 /*  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists  */

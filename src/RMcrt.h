@@ -56,10 +56,10 @@ class rmdata :  public subsetdata {
 		void setcrt(real val)			  	{ crt = val; }
 		rmgdata*	getgdata(void)	const		{ return gdt;  }
 	private:
-		template<accesstp tp> 
-			real updatecrt(direction d,itindex<tp>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
-		template<accesstp tp> 
-			void pivot(direction d,lagindex<tp>& prtmmit,itindex<tp>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		real updatecrt(direction d,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
+		real updatecrt(direction d,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
+		void pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		vind			lastv;
 		vind			p;
 		vind			k;

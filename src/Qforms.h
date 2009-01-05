@@ -57,8 +57,8 @@ class qfdata   {
 		vector< vector<real> >	ve;
 		symtwodarray*		e;
 	private:
-		template<accesstp tp> 
-			void pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last);
+		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last);
+		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last);
 };
 
 class sqfdata   : public qfdata  {     /* Sum of quadratic forms     */

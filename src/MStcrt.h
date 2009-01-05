@@ -46,8 +46,8 @@ class wilksdata :  public subsetdata {
 		virtual void setorgvarl(vind *) {  }
 	private:
 		real updatecrt(direction d,vind varind,partialdata* newdtpnt) const;   
-		template<accesstp tp> 
-			void pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		vind		nvar;
 		vind		p;
 		vind		k;

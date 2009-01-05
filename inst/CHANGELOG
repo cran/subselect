@@ -1,4 +1,9 @@
 
+########## Version 0.9.9993 (January 2009) ###########
+
+Changes in the C++ code which broke the package.
+("#include <cstdlib>" added in sscma.cpp)
+
 ########## Version 0.9.9992 (February 2007) ###########
 
 Changes in the Fortran code which broke the package on Linux 64-bit machines

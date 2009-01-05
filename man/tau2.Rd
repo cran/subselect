@@ -2,9 +2,9 @@
 
 \alias{tau2.coef}
 
-\title{Computes the $\tau^2$ coefficient for variable subset selection} 
+\title{Computes the Tau squared coefficient for variable subset selection} 
 \description{
-Computes the $\tau^2$  index of "effect magnitude".  
+Computes the Tau squared  index of "effect magnitude".  
 The maximization of this criterion is equivalent to the minimization of Wilk's lambda statistic.
 
 }

@@ -31,8 +31,8 @@ correlation matrix. If a non-square matrix is given, it is assumed to
 be a data matrix, and its correlation matrix is used as input.
 
 The definition of the RM coefficient is as follows:
-\deqn{RM = \sqrt{\frac{\mathrm{tr}(X^t P_v X)}{\mathrm{X^t X}}} }
-{RM = sqrt(tr(X' Pv X)/tr(X'X))} where \eqn{X} is the full 
+\deqn{RM = \sqrt{\frac{\mathrm{tr}(X^t P_v X)}{\mathrm{X^t X}}} }{RM = sqrt(tr(X' Pv X)/tr(X'X))}
+where \eqn{X} is the full 
 (column-centered) data matrix and \eqn{P_v}{Pv} is the matrix of 
 orthogonal projections on the subspace spanned by a k-variable subset.
 

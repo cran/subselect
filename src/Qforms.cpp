@@ -28,14 +28,20 @@ qfdata::~qfdata()
 	delete e;
 }
 
-inline void qfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last)
+ void qfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
 }
 
-template<accesstp tp> 
-void qfdata::pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last)
+void qfdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last)
+{
+	symatpivot(prtmmit,newpdata->getpivotval(),*e,*(newfdata->e),vp,t);
+		for (vind j=0;j<r;j++) 
+			vectorpivot(prtmmit,ve[j],newfdata->ve[j],*e,(newpdata->gettmpv())[j],vp,t); 
+}
+
+void qfdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last)
 {
 	symatpivot(prtmmit,newpdata->getpivotval(),*e,*(newfdata->e),vp,t);
 		for (vind j=0;j<r;j++) 
