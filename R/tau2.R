@@ -1,4 +1,4 @@
-tau2.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
+tau2.coef<-function(mat,H,r,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 {
 #   Function tau_2.coef
 #   Computes the tau^2 index of "effect magnitude".  
@@ -29,7 +29,7 @@ tau2.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsym
 # Computing the criterion value
 #
 
-	 rm.1d<-function(mat,H,r,indices){
+	 tau2.1d<-function(mat,H,r,indices){
 		l <- min(r,length(indices))
 	    if (length(indices)==1) { detE <- mat[indices,indices]-H[indices,indices]
 						detmat <- mat[indices,indices]  }
@@ -41,21 +41,21 @@ tau2.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsym
        }
       dimension<-length(dim(indices))
       if (dimension > 1){
-         rm.2d<-function(mat,H,r,subsets){
+         tau2.2d<-function(mat,H,r,subsets){
              apply(subsets,1,function(indices){
 			
-			rm.1d(mat,H,r,indices)})
+			tau2.1d(mat,H,r,indices)})
             }  
              if (dimension > 2) {
-               rm.3d<-function(mat,H,r,array3d){
-                   apply(array3d,3,function(subsets){rm.2d(mat,H,r,subsets)})
+               tau2.3d<-function(mat,H,r,array3d){
+                   apply(array3d,3,function(subsets){tau2.2d(mat,H,r,subsets)})
                  }
-               output<-rm.3d(mat,H=H,r,indices)
+               output<-tau2.3d(mat,H=H,r,indices)
               }
-              if (dimension == 2) {output<-rm.2d(mat=mat,H,r,indices)}
+              if (dimension == 2) {output<-tau2.2d(mat=mat,H,r,indices)}
       }
 
-      if (dimension < 2) {output<-rm.1d(mat,H,r,indices)}
+      if (dimension < 2) {output<-tau2.1d(mat,H,r,indices)}
       output
 }
 

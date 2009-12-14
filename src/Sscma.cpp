@@ -1,6 +1,6 @@
+#include <cstdlib>
 #include <cassert>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <vector> 
@@ -62,7 +62,7 @@ void initvlist(int *,int *,int *,int,int,int);
 void cleanlists(void);
 void fillres(vind fk,vind nk,int ns,int* bst,int* st,real* bvl,real* vl);
 void saveset(psbstlist,int *,real *l,int,vind);
-int trivialcmp(const void *,const void *);
+extern "C" int trivialcmp(const void *,const void *);
 void matasvcttranspose(int m,int n,int* data);
 void asgmemory(void);
 void cleanup(void);
@@ -254,7 +254,7 @@ void saveset(psbstlist pset,int *bvar,real *bcrtval,int nel,vind dim)
 }
 
 
-int trivialcmp(const void *a,const void *b)
+extern "C" int trivialcmp(const void *a,const void *b)
 {
 	int ai,bi;
 

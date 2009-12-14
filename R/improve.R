@@ -1,7 +1,6 @@
 improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
-include=NULL, setseed = FALSE, criterion="RM", pcindices="first_k",
+include=NULL, setseed = FALSE, criterion="default", pcindices="first_k",
 initialsol=NULL, force=FALSE, H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
-
 
         
 #####################################
@@ -12,8 +11,7 @@ initialsol=NULL, force=FALSE, H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1
         if (r>0  && criterion=="default")  criterion <- "TAU_2"
         p <- nrow(mat)
 
-
-
+        
 ###############################
 # general validation of input #
 ###############################
@@ -25,11 +23,11 @@ initialsol=NULL, force=FALSE, H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1
 
 ######################################################################
 # Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
-# "ZETA_2" or "CCR1_2"                                               #
+# "ZETA_2" or "CCR1_2"  or "WALD"                                    #
 ######################################################################
 
 if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
-"ZETA_2" || criterion == "CCR1_2") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+"ZETA_2" || criterion == "CCR1_2" || criterion == "WALD") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
 
 
 ##########################################################################
@@ -38,7 +36,6 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 
         implog<-TRUE
         validannimp(kmin, kmax, nsol, exclude, nexclude, include, ninclude, initialsol, implog)
-
 
 
 ###########################################
@@ -64,7 +61,19 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 # call to Fortran subroutine  #
 ###############################
 
-        Fortout<-.Fortran("improve",as.integer(criterio),as.integer(p),
+ 	if (criterion == "WALD")   {
+
+###       Convert a min Wald problem into an (artificial) equivalent max XI2 problem
+        
+        	Waldval <- sum(diag(solve(mat,H)))
+            	H <- H / Waldval     
+		criterion <- "XI_2"
+		criterio <- 5
+		Walddec <- TRUE
+	}
+        else Walddec <- FALSE
+
+       Fortout<-.Fortran("improve",as.integer(criterio),as.integer(p),
           as.double(as.vector(mat)),
           as.integer(kmin),as.integer(kmax),as.double(valores),
           as.integer(vars),as.double(bestval),as.integer(bestvar),
@@ -90,5 +99,14 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
         dimnames(bestvar)<-list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
         output<-list(variaveis,valores,bestval,bestvar,match.call())
         names(output)<-c("subsets","values","bestvalues","bestsets","call")
+        if (Walddec)  {
+		criterion <- "WALD"
+		criterio <- 8
+		validvalues <- output$values[output$values > 0.]
+		output$values[output$values > 0.] <- rep(Waldval,length(validvalues)) - validvalues*Waldval 
+		output$bestvalues <- rep(Waldval,kmax-kmin+1) - output$bestvalues*Waldval
+
+        }	
         output}
+
 

@@ -126,13 +126,13 @@ void subset::asgvar(vind fvar,vind nv,vind *list)
 	}
 }
 
-void subset::pivot(direction d,vind vp,vind t,subset *newsp,bool last,bool usebnd,real acpbound)
+void subset::pivot(direction dir,vind vp,vind t,subset *newsp,bool last,bool usebnd,real acpbound)
 {
-	if (usebnd) data->updatecrt(d,*memii,vp,pdata[0],acpbound);
-	else data->updatecrt(d,*memii,vp,pdata[0]);
+	if (usebnd) data->updatecrt(dir,*memii,vp,pdata[0],acpbound);
+	else data->updatecrt(dir,*memii,vp,pdata[0]);
 	newsp->getdatap()->getpdata(pdata[0]);
 	if (!last) 
-		data->pivot(d,*memii,vp,t,pdata[0],newsp->data,last); 
+		data->pivot(dir,*memii,vp,t,pdata[0],newsp->data,last); 
 }
 
 void wrkspace::initwrkspace(vind nv,subsetdata *data0,vind lstind,vind nvattop,vind nvatbot,vind* vattop,vind* vatbot)

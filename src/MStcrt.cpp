@@ -40,10 +40,10 @@ void  wilksdata::getpdata(partialdata* pd)
 	nvar = pdaswilks->nvar;
 }
 
-real wilksdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+real wilksdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
 { 
-	if (mmind.direct()) return updatecrt(d,(*(mmind.idpm()))[var-1],pdt); 
-	else return updatecrt(d,(*(mmind.iipm()))[var-1],pdt); 
+	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt); 
+	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt); 
 }
    
 		
@@ -53,7 +53,7 @@ void wilksdata::pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
 }
 
-real wilksdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const  
+real wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt) const  
 {  
 	partialwilksdata *newdata = static_cast<partialwilksdata *>(newdtpnt);    
 	
@@ -63,7 +63,7 @@ real wilksdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const
 /*	partialwilksdata *newdata = dynamic_cast<partialwilksdata *>(pdt);
 	assert(newdata);                                                       */
 
-	if (d==forward) newdata->nvar=nvar+1 ; 
+	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
 	real e1 = (*emat)(varind,varind);
 	real t1 = (*tmat)(varind,varind);
@@ -155,7 +155,7 @@ void  tracedata::getpdata(partialdata* pd)
 	nvar = pdastracest->nvar;
 }
 
-real tracedata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+real tracedata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
 {  
 	partialtracedata *newdata = static_cast<partialtracedata *>(pdt);    
 	
@@ -165,12 +165,12 @@ real tracedata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt)
 /*	partialtracedata *newdata = dynamic_cast<partialtracedata *>(pdt);
 	assert(newdata);                                                    */
 
-	if (d==forward) newdata->nvar=nvar+1 ; 
+	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
 	return sqf->updatesum(mmind,var,newdata->pqf);  
 } 
 
-void tracedata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+void tracedata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
 {	
 	partialtracedata* newpdata = static_cast<partialtracedata *>(pdt);    
 	tracedata* newfdata = static_cast<tracedata *>(fdt);    
@@ -182,7 +182,7 @@ void tracedata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pd
 	tracedata* newfdata = dynamic_cast<tracedata *>(fdt);
 	assert(newpdata && newfdata);                                  */
 
-	sqf->pivot(d,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
+	sqf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
 } 
 
 const real bartpistdata::indice(void)	const	

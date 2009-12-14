@@ -90,7 +90,7 @@ class subsetdata {
 		virtual const real indice(void)    const { return criterion(); }
 		   /* Returns comparison indice - a monotone function of the comparison
 		      criterion, used for reporting the results                          */
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const = 0;
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const = 0;
         /* 
 		Updates and returns the comparison criterion 
 		Arguments:
@@ -104,8 +104,8 @@ class subsetdata {
                 	var -- current index of the pivot variable
 			pdt -- pointer to a partialdata object where updated data, usefull to evaluate further subsets, can be stored
 	*/
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,real rqbound) const 
-			{ return updatecrt(d,mmind,var,pdt); }
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,real rqbound) const 
+			{ return updatecrt(dir,mmind,var,pdt); }
 	/* 
 		Alternative version of updatecrt with additional argument:
 			
@@ -115,7 +115,7 @@ class subsetdata {
 		Should be redefined when, and only when, usebounds is redefined so that it evaluates to true.
 	*/
 		virtual bool usebounds(void)  { return false; }
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last) = 0;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last) = 0;
         /* 
 		Updates the data necessary to compute the comparison criterion for future subsets
 		Arguments:
@@ -177,7 +177,7 @@ class subset {
 		vind getvarp(vind ele)			{ return orgvarpos[ele];}
 		void setnvar (vind n)			{ k = n; }
 		vind getnvar(void)			{ return k; }
-		void pivot(direction d,vind vp,vind t,subset *newsp,bool last,bool usebnd,real acpbound);
+		void pivot(direction dir,vind vp,vind t,subset *newsp,bool last,bool usebnd,real acpbound);
 		void sort(vind,vind);
 		vind getpmemorypos(vind i)          { return pmemorypos[i]; }
 		vind getfmemorypos(vind i)          { return fmemorypos[i]; }

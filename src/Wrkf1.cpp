@@ -110,11 +110,12 @@ void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vi
 		curlist->erase(ptprevsbset);
 		dsbset(prevsbset);
 	}
-	else sbsetcnt[nv-mindim]++;
+	else sbsetcnt[nv-mindim]++; 
 	curlist->insert(st);					/* Insert new subset in best sets list        */
-	if (sbsetcnt[nv-mindim] == ms)				   
+	if (sbsetcnt[nv-mindim] == ms)	{			   
 		if (pcrttp == MAXIMZ) lbnd[nv-mindim] = (*curlist->begin())->crt();
 		else ubnd[nv-mindim] = (*curlist->begin())->crt();
+	}
 	return;
 }
 
@@ -138,16 +139,22 @@ bool prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
 		k1 = p-1-fv-i;
 		if (k1 > 0) prvks[k1-1] = ks0;
 		nv = minnvs = nvs+1+i;
-		if (maxnvs >= mindim && minnvs <= maxdim) 
+		if (maxnvs >= mindim && minnvs <= maxdim) {
 			if (minnvs < mindim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,mindim,maxnvs);
-			else if (minnvs < maxdim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,minnvs,maxnvs);
-				 else prcksp1(SW,SRC,ks0,0,nv,fv+i,minnvs,maxnvs);
+			else {
+				if (minnvs < maxdim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,minnvs,maxnvs);
+				else prcksp1(SW,SRC,ks0,0,nv,fv+i,minnvs,maxnvs);
+			}
+		}
 		nv = nvi - 1;
 		if ( (minnvi=nvi-k+i) < mindim) minnvi = mindim;
-		if (maxnvi >= mindim && minnvi <= maxdim) 
+		if (maxnvi >= mindim && minnvi <= maxdim) {
 			if (maxnvi > maxdim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxdim);
-			else if (maxnvi > mindim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxnvi);
-				 else prcksp1(IW,INV,k,0,nv,fv+i,minnvi,maxnvi);
+			else {
+				if (maxnvi > mindim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxnvi);
+				else prcksp1(IW,INV,k,0,nv,fv+i,minnvi,maxnvi);
+			}
+		}
 	} }
 	{ for (vind i=1;i<k;i++)   {
 		minnv = nvs+k-i;

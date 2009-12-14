@@ -1,17 +1,20 @@
 #include <iostream>
-#include "R.h"
+#include <cstdlib>
 #include "Sscma.h" 
+
+using namespace std; 
 
 namespace extendedleaps {
 
-void msg(const std::string& s)
+void msg(const string& s)
 {
-	Rprintf("%s",s.c_str());
+	cout << s;
 }
 
-void errmsg(const std::string& s)
+void errmsg(const string& s)
 {
-	error("\nError: %s",s.c_str());
+	cerr << s;
+	exit(1);	
 }
 
 }

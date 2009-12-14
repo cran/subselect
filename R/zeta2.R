@@ -1,4 +1,4 @@
-zeta2.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
+zeta2.coef<-function(mat,H,r,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 {
 #   Function zeta_2.coef
 #   Computes the zeta^2 index of "effect magnitude".  
@@ -26,28 +26,28 @@ zeta2.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsy
 
       tr<-function(mat){sum(diag(mat))}
 
-      rm.1d<-function(mat,H,r,indices){
+      zeta2.1d<-function(mat,H,r,indices){
 		l <- min(r,length(indices))
-	V <-tr(H[indices,indices]%*%solve(mat[indices,indices]-H[indices,indices]))
+	V <-tr(solve(mat[indices,indices]-H[indices,indices],H[indices,indices]))
 	V/(V+l)	
        }
       dimension<-length(dim(indices))
       if (dimension > 1){
-         rm.2d<-function(mat,H,r,subsets){
+         zeta2.2d<-function(mat,H,r,subsets){
              apply(subsets,1,function(indices){
 			
-			rm.1d(mat,H,r,indices)})
+			zeta2.1d(mat,H,r,indices)})
             }  
              if (dimension > 2) {
-               rm.3d<-function(mat,H,r,array3d){
-                   apply(array3d,3,function(subsets){rm.2d(mat,H,r,subsets)})
+               zeta2.3d<-function(mat,H,r,array3d){
+                   apply(array3d,3,function(subsets){zeta2.2d(mat,H,r,subsets)})
                  }
-               output<-rm.3d(mat,H=H,r,indices)
+               output<-zeta2.3d(mat,H=H,r,indices)
               }
-              if (dimension == 2) {output<-rm.2d(mat=mat,H,r,indices)}
+              if (dimension == 2) {output<-zeta2.2d(mat=mat,H,r,indices)}
       }
 
-      if (dimension < 2) {output<-rm.1d(mat,H,r,indices)}
+      if (dimension < 2) {output<-zeta2.1d(mat,H,r,indices)}
       output
 }
 

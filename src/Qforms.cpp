@@ -28,7 +28,7 @@ qfdata::~qfdata()
 	delete e;
 }
 
- void qfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last)
+ void qfdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
@@ -72,7 +72,7 @@ real sqfdata::updatesum(vind varind,partialsqfdata* newdata) const
 	return newsum;
 }
 
-real singleqfdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+real singleqfdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
 {
 	partialsingleqfdata *newdata = static_cast<partialsingleqfdata *>(pdt);    
 	
@@ -85,7 +85,7 @@ real singleqfdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* p
 	return qf->updatesum(mmind,var,newdata->pqf);  
 }
 
-void singleqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+void singleqfdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
 {	
 	partialsingleqfdata* newpdata = static_cast<partialsingleqfdata *>(pdt);    
 	singleqfdata* newfdata = static_cast<singleqfdata *>(fdt);    
@@ -97,7 +97,7 @@ void singleqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata*
 	singleqfdata* newfdata = dynamic_cast<singleqfdata *>(fdt);
 	assert(newpdata && newfdata);                                */
 
-	qf->pivot(d,mmind,vp,t,newpdata->pqf,newfdata->qf,last);  
+	qf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->qf,last);  
 }
 
 }

@@ -49,13 +49,13 @@ void  ccrdata::getpdata(partialdata* pd)
 
 }
 
-real ccrdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const
+real ccrdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
 { 
-	if (mmind.direct()) return updatecrt(d,(*(mmind.idpm()))[var-1],pdt); 
-	else return updatecrt(d,(*(mmind.iipm()))[var-1],pdt); 
+	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt); 
+	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt); 
 }
 
- void ccrdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+ void ccrdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
@@ -122,7 +122,7 @@ void ccrdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,s
 		vectorpivot(prtmmit,htinv[j],newfdata->htinv[j],*tmat,(newpdata->getbptmpv())[j],vp,t); 
 } 
 
-real rnk2ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const  
+real rnk2ccrdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt) const  
 {  
 	
 	partialccrdata *newdata = static_cast<partialccrdata *>(newdtpnt);    
@@ -136,7 +136,7 @@ real rnk2ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt) const
 	real newwilksst,newbartpist,newccr12;
 
 	updatest(newwilksst,newbartpist,varind,newdata);
-	if (d==forward) newdata->nvar=nvar+1 ; 
+	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1;
 	
 	if (newdata->nvar == 1) newccr12 = newbartpist; 

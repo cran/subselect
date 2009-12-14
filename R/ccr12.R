@@ -1,4 +1,4 @@
-ccr12.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
+ccr12.coef<-function(mat,H,r,indices,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 {
 #   Function ccr1_2.coef
 #   Computes the first squared canonical correlation.  
@@ -22,28 +22,28 @@ ccr12.coef<-function(mat, H=NULL,r=0,indices,tolval=10*.Machine$double.eps,tolsy
   
 #  Computing the criterion value  
 
-      rm.1d<-function(mat,H,r,indices){
+      ccr12.1d<-function(mat,H,r,indices){
 		
-	Re(eigen(H[indices,indices]%*%solve(mat[indices,indices]))$values[1])
+	Re(eigen(solve(mat[indices,indices],H[indices,indices]))$values[1])
 		
        }
       dimension<-length(dim(indices))
       if (dimension > 1){
-         rm.2d<-function(mat,H,r,subsets){
+         ccr12.2d<-function(mat,H,r,subsets){
              apply(subsets,1,function(indices){
 			
-			rm.1d(mat,H,r,indices)})
+			ccr12.1d(mat,H,r,indices)})
             }  
              if (dimension > 2) {
-               rm.3d<-function(mat,H,r,array3d){
-                   apply(array3d,3,function(subsets){rm.2d(mat,H,r,subsets)})
+               ccr12.3d<-function(mat,H,r,array3d){
+                   apply(array3d,3,function(subsets){ccr12.2d(mat,H,r,subsets)})
                  }
-               output<-rm.3d(mat,H=H,r,indices)
+               output<-ccr12.3d(mat,H=H,r,indices)
               }
-              if (dimension == 2) {output<-rm.2d(mat=mat,H,r,indices)}
+              if (dimension == 2) {output<-ccr12.2d(mat=mat,H,r,indices)}
       }
 
-      if (dimension < 2) {output<-rm.1d(mat,H,r,indices)}
+      if (dimension < 2) {output<-ccr12.1d(mat,H,r,indices)}
       output
 }
 

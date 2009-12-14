@@ -1,4 +1,29 @@
 
+########## Version 0.10.1 (December 2009) ###################
+
+* A new criterion for variable selection in a generalized linear
+model context: the Wald criterion. Files wald.R (in /R) and wald.Rd
+(in /man) were added. 
+
+* All search algorithm files (anneal.R, genetic.R, improve.R and
+leaps.R) were changed to cater for the Wald criterion.
+
+* All algorithm man files were changed to account for the Wald
+criterion. 
+
+* The default criterion has been changed to "default" and is set to
+"RM" if r=0 and to "TAU2" if r>0.
+
+* Changes were made to the validation.R file, to cater for the Wald
+criterion. 
+
+* For compatibility with the output of other search functions, 
+"drop=FALSE" was added to the subsetting of the output of the "genetic" 
+function, when "kabort" is involved. 
+
+* Changes were made to ensure that the C++ code follwoed the standards. 
+Problems had arisen with gcc 4.4 and the SunStudio compilers.
+
 ########## Version 0.9.9993 (January 2009) ###########
 
 Changes in the C++ code which broke the package.

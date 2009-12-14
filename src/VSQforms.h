@@ -25,12 +25,12 @@ class vsqfdata :  public sqfdata {
 		real*   getvc(void)	{ return &vc[0]; }
 		void  setvc(real* x,vind nparcels);  
 		void  setvc(real* x)   { setvc(x,r);  }  
-		virtual real updatesum(direction d,mindices& mmind,vind var,vind dim,partialvsqfdata *pdt) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last);
+		virtual real updatesum(direction dir,mindices& mmind,vind var,vind dim,partialvsqfdata *pdt) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last);
 	private:
-		real updatesum(direction d,vind varind,vind dim,partialvsqfdata* newdata) const;   
-		void pivot(direction d,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
-		void pivot(direction d,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
+		real updatesum(direction dir,vind varind,vind dim,partialvsqfdata* newdata) const;   
+		void pivot(direction dir,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
+		void pivot(direction dir,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last);
 		vector<real>	vc;
 };
 

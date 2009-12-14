@@ -2,7 +2,7 @@ lmHmat <- function(x,...) {
   if (is.null(class(x))) class(x) <- data.class(x)
   UseMethod("lmHmat",x) 
 }   
-
+ 
 ldaHmat <- function(x,...) {
   if (is.null(class(x))) class(x) <- data.class(x)
   UseMethod("ldaHmat",x)
@@ -42,13 +42,14 @@ lmHmat.default <- function(x,y,...)
 
 ldaHmat.default <- function(x,grouping,...)
 {
-  if  ( !is.matrix(x) || !is.factor(grouping) ) stop("Arguments of wrong type")
+ if  ( !is.matrix(x) || !is.factor(grouping) ) stop("Arguments of wrong type")
   n <- nrow(x)
   if (n != length(grouping)) stop("Argument dimensions do not match")
-  nk <- table(grouping)
+  grp <- factor(grouping,levels=unique(grouping)) 
+  nk <- table(grp)
   k <- nrow(nk)
   T <- (n-1)*var(x)
-  Si <- by(x,grouping,var)
+  Si <- by(x,grp,var)
   H <- T
   for (i in 1:k) H <- H - (nk[[i]]-1)*Si[[i]]
   res <- list(mat=T,H=H,r=min(ncol(x),k-1),call=match.call())
@@ -144,5 +145,22 @@ glhHmat.formula <- function(formula,C,data=NULL,...)
    res$call <- match.call()
    res
 }
+
+glmHmat <- function(fittedmodel)
+{
+    if ( names(coef(fittedmodel)[1]) == "(Intercept)" )  {
+    	b <- coef(fittedmodel)[-1]
+    	Sb <- vcov(fittedmodel)[-1,-1]
+    }
+    else  {	
+    	b <- coef(fittedmodel)
+    	Sb <- vcov(fittedmodel)
+    }
+    FI <- solve(Sb)
+    h <- solve(Sb,b)
+    H <- h %o% h
+    list(mat=FI,H=H,r=1,call=match.call())
+}
+
 
 

@@ -42,8 +42,8 @@ class rmdata :  public subsetdata {
 		virtual const real criterion(void)	const	{ return crt;  }
 		virtual void setcriterion(real c)		{ crt = c; }
 		virtual const real indice(void)		const	{ return sqrt(1.-crt/gdt->trs()); } 
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /*
 	Note: subsetdata pointer must point to rmgdata class or unpredictable behaviour will result 
 	(general subsetdata class was used in order to garantee upward compability)
@@ -56,10 +56,10 @@ class rmdata :  public subsetdata {
 		void setcrt(real val)			  	{ crt = val; }
 		rmgdata*	getgdata(void)	const		{ return gdt;  }
 	private:
-		real updatecrt(direction d,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
-		real updatecrt(direction d,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
-		void pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
-		void pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		real updatecrt(direction dir,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
+		real updatecrt(direction dir,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt) const;   
+		void pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		vind			lastv;
 		vind			p;
 		vind			k;

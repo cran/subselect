@@ -34,7 +34,6 @@ ill-conditioned input matrix, execution is aborted. The function
 \code{\link{trim.matrix}} may be used to obtain a well-conditioned input
 matrix.
 
-
 In a general descriptive (Principal Components Analysis) setting, the
 three criteria Rm, Rv and Gcd can be used to select good k-variable
 subsets. Arguments \code{H} and \code{r} are not used in this context.
@@ -49,38 +48,26 @@ violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
 reference [2] for 
 further details). In this setting, arguments \code{mat} and \code{H}
 should be set respectively to the usual Total (Hypothesis + Error) and
-Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices given by: 
-\eqn{\code{mat}  = X' (I - P_{\omega}) X }{mat  = X' (I - P_w) X }
-and
-\eqn{\code{H}  = X' (P_{\Omega} - P_{\omega}) X}{H  = X' (P_O - P_w) X}
-where
-\eqn{P_{\Omega} =  A(A'A)^- A'}{P_O =  A(A'A)^- A'}
-and
-\deqn{P_{\omega} =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
-A'}{P_w =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
-A'}
-are projection matrices on the spaces spanned by the columns of A
-(space \eqn{\Omega}{O}) and by the linear combinations of these columns that
-satisfy the reference hypothesis (space \eqn{\omega}{w}). In these formulae,
-\eqn{M'} denotes the transpose of \eqn{M} and
-\eqn{M^-} a generalized inverse.   
-Argument \code{r} should be set to the expected rank of \code{H},
-which equals the difference between the dimensions of \eqn{\Omega}{O} and
-\eqn{\omega}{w}. Currently, for reasons of computational efficiency,
+Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices. 
+Argument \code{r} should be set to the expected rank of \code{H}.
+Currently, for reasons of computational efficiency,
 criterion Ccr12 is available only when \eqn{\code{r} \leq  3}{\code{r}<=3}. 
 Particular cases in this setting include Linear Discriminant Analyis
 (LDA), Linear Regression Analysis (LRA), Canonical Correlation
 Analysis (CCA) with one set of variables fixed  and several extensions of
-these and other classical multivariate methodologies. For LDA, LRA and CCA,
-the reference hypothesis merely states that all observation vectors
-should have the same expected value and the mat matrix reduces to the
-SSCP of the deviations from their global mean. In this case, \code{mat} can
-be converted into a covariance matrix if \code{H} is likewise divided by the
-same degrees of freedom.
-The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
-\code{\link{glhHmat}} are provided to automatically create the matrices 
-\code{mat} and \code{H} for linear regression/canonical correlation analyis,
-linear discriminant analysis and general linear hypothesis specified by the user.
+these and other classical multivariate methodologies.
+
+In the setting of a generalized linear model, criterion Wald can be used 
+to select subsets according to the (lack of) significance of the discarded
+variables, as measured by the respective Wald's statistic (see
+reference [5] for further details). In this setting arguments \code{mat} and \code{H} 
+should be set respectively to FI and \code{FI \%*\% b \%*\% t(b) \%*\% FI}, where b is a 
+column vector of variable coefficient estimates and FI is an estimate of the 
+corresponding Fisher information matrix.
+
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} 
+\code{\link{glhHmat}} and \code{\link{glmHmat}} are provided to automatically 
+create the matrices \code{mat} and \code{H} in all the cases considered.
 }
 
 \usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,
@@ -90,8 +77,9 @@ r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
 
 \arguments{
 
-  \item{mat}{a covariance/correlation or sums of squares and products
-    matrix of the variables from which the k-subset is to be selected. See the \code{Details} section below.}
+  \item{mat}{a covariance/correlation, information or sums of squares and products
+    matrix of the variables from which the k-subset is to be selected. 
+    See the \code{Details} section below.}
 
   \item{kmin}{the cardinality of the smallest subset that is wanted.}
 
@@ -110,12 +98,13 @@ r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
 
   \item{criterion}{Character variable, which indicates which criterion
   is to be used in judging the quality of the subsets. Currently, 
-  the "Rm", "Rv", "Gcd", "Tau2", "Xi2", "Zeta2" and "Ccr12" criteria are
+  the "Rm", "Rv", "Gcd", "Tau2", "Xi2", "Zeta2", "Ccr12" and "Wald" criteria are
   supported  (see the \code{Details} section, the \code{References} and
   the links   \code{\link{rm.coef}},  
   \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
-  \code{\link{xi2.coef}}, \code{\link{zeta2.coef}} and
- \code{\link{ccr12.coef}} for further details).}
+  \code{\link{xi2.coef}}, \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}} 
+  and \code{\link{wald.coef}} for further details). The default
+  criterion is "Rm" if parameter \code{r} is zero, and "Tau2" otherwise.}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the Gcd
@@ -135,7 +124,10 @@ r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
     Rm, Rv or Gcd criteria. See the \code{Details} section below.}
 
  \item{tolval}{the tolerance level for the reciprocal of the 2-norm
-condition number of the correlation/covariance or sums of squares matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. Matrices with a reciprocal of the condition number smaller than \code{tolval} will abort the search algorithm.}
+condition number of the correlation/covariance or sums of squares
+matrix, i.e., for the ratio of the smallest to the largest eigenvalue of
+the input matrix. Matrices with a reciprocal of the condition number
+smaller than \code{tolval} will abort the search algorithm.} 
 
  \item{tolsym}{the tolerance level for symmetry of the
    covariance/correlation/total matrix and for the effects (\code{H})
@@ -173,11 +165,13 @@ condition number of the correlation/covariance or sums of squares matrix, i.e., 
 }
 
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
-\code{\link{gcd.coef}},  \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
+\code{\link{gcd.coef}},  \code{\link{tau2.coef}},
+\code{\link{wald.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}},
 \code{\link{anneal}}, \code{\link{genetic}},  
 \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
-\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}},
+\code{\link{glmHmat}}.}
 
 \references{
 [1] Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
@@ -194,6 +188,9 @@ Component Analysis: Algorithms for All-Subsets Comparisons,
 
 [4] Furnival, G.M. and Wilson, R.W. (1974). Regressions by Leaps and
 Bounds, \emph{Technometrics}, Vol. 16, 499-511.
+
+[5] Lawless, J. and Singhal, K. (1978). Efficient Screening of Nonnormal 
+Regression Models, \emph{Biometrics}, Vol. 34, 318-327.
 
 }
 
@@ -417,22 +414,6 @@ leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1)
 ## Card.6     4     5     9    10    11    12
 ##
 
-## The selected best variable subsets
-
-colnames(CarsHmat$mat)[c(4,5,10,11)]
-
-## [1] "Horsepower" "RPM"        "Wheelbase"  "Width"     
-
-colnames(CarsHmat$mat)[c(4,5,10,11,12)]
-
-## [1] "Horsepower"  "RPM"         "Wheelbase"   "Width"       "Turn.circle"
-
-colnames(CarsHmat$mat)[c(4,5,9,10,11,12)]
-
-## [1] "Horsepower"  "RPM"         "Length"      "Wheelbase"   "Width"      
-## [6] "Turn.circle"
-
-
 ## --------------------------------------------------------------------
 
 ## 5) A Linear Discriminant Analysis example with a very small data set. 
@@ -542,7 +523,65 @@ leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9
 
 ## --------------------------------------------------------------------
 
+
+##  7) An example of variable selection in the context of a logistic 
+##  regression model. We consider the last 100 observations of
+##  the iris data set (versicolor an verginica species) and try
+##  to find the best variable subsets for the model that takes species
+##  as response variable.
+
+data(iris)
+iris2sp <- iris[iris$Species != "setosa",]
+logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,iris2sp,family=binomial)
+Hmat <- glmHmat(logrfit)
+leaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
+
+## $subsets
+## , , Card.1
+
+##            Var.1 Var.2 Var.3
+## Solution 1     4     0     0
+## Solution 2     1     0     0
+## Solution 3     3     0     0
+
+## , , Card.2
+
+##           Var.1 Var.2 Var.3
+## Solution 1     1     3     0
+## Solution 2     3     4     0
+## Solution 3     2     4     0
+
+## , , Card.3
+
+##            Var.1 Var.2 Var.3
+## Solution 1     2     3     4
+## Solution 2     1     3     4
+## Solution 3     1     2     3
+
+
+## $values
+##              card.1   card.2   card.3
+## Solution 1 4.894554 3.522885 1.060121
+## Solution 2 5.147360 3.952538 2.224335
+## Solution 3 5.161553 3.972410 3.522879
+
+## $bestvalues
+##   Card.1   Card.2   Card.3 
+## 4.894554 3.522885 1.060121 
+
+## $bestsets
+##        Var.1 Var.2 Var.3
+## Card.1     4     0     0
+## Card.2     1     3     0
+## Card.3     2     3     4
+
+## $call
+## leaps(mat = Hmat$mat, nsol = 3, criterion = "Wald", H = Hmat$H, 
+##    r = 1)
+## --------------------------------------------------------------------
+
 }
 
 \keyword{manip}
+
 

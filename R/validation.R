@@ -26,8 +26,9 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 	labelsxi<-c("XI_2","Xi_2","xi_2","XI2","Xi2","xi2","XI","Xi","xi","BARTLLET","Bartllet","bartllet")
 	labelszeta<-c("ZETA_2","Zeta_2","zeta_2","ZETA2","Zeta2","zeta2","ZETA","Zeta","zeta","HOTELLING","Hotelling","hotelling")
        	labelsccr1<-c("CCR1_2","Ccr1_2","ccr1_2","CCR12","Ccr12","ccr12","CCR2","Ccr2","ccr2","CCR1","Ccr1","ccr1","ROY","Roy","roy")
+	labelswald<-c("WALD","Wald","wald")
          	
-	if (sum(criterion == c(labelsrm,labelsrv,labelsgcd,labelstau,labelsxi,labelszeta,labelsccr1)) == 0) 
+	if (sum(criterion == c(labelsrm,labelsrv,labelsgcd,labelstau,labelsxi,labelszeta,labelsccr1,labelswald)) == 0) 
 		stop("criterion requested is not catered for, or has been misspecified\n")
 
        	if (sum(criterion == labelsrm) > 0) criterio<-1
@@ -37,6 +38,7 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
        	if (sum(criterion == labelsxi) > 0) criterio<-5
        	if (sum(criterion == labelszeta) > 0) criterio<-6
        	if (sum(criterion == labelsccr1) > 0) criterio<-7
+       	if (sum(criterion == labelswald) > 0) criterio<-8
       		
 	if (criterio == 1)  criterion <- "RM"
 	if (criterio == 2)  criterion <- "RV"
@@ -45,6 +47,7 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 	if (criterio == 5)  criterion <- "XI_2"
 	if (criterio == 6)  criterion <- "ZETA_2"
 	if (criterio == 7)  criterion <- "CCR1_2"
+	if (criterio == 8)  criterion <- "WALD"
 
         
 ######################################################################

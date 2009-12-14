@@ -37,7 +37,9 @@ carried out in a Fortran routine. Further details about the algorithm can
 be found in Reference 1 and in the comments to the Fortran code (in
 the \code{src} subdirectory for this package). For datasets with a very
 large number of variables (currently p > 400), it is 
-necessary to set the \code{force} argument to TRUE for the function to run, but this may cause a session crash if there is not enough memory available.
+necessary to set the \code{force} argument to TRUE for the function to
+run, but this may cause a session crash if there is not enough memory
+available. 
 
 The function checks for ill-conditioning of the input matrix
 (specifically, it checks whether the ratio of the input matrix's
@@ -58,52 +60,42 @@ U}{X = A B + U},
 criteria Ccr12, Tau2, Xi2 and Zeta2 can be used to select subsets
 according to their  contribution to an effect characterized by the
 violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
-reference [3] for 
+reference [2] for 
 further details). In this setting, arguments \code{mat} and \code{H}
 should be set respectively to the usual Total (Hypothesis + Error) and
-Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices given by: 
-\eqn{\code{mat}  = X' (I - P_{\omega}) X }{mat  = X' (I - P_w) X }
-and
-\eqn{\code{H}  = X' (P_{\Omega} - P_{\omega}) X}{H  = X' (P_O - P_w) X}
-where
-\eqn{P_{\Omega} =  A(A'A)^- A'}{P_O =  A(A'A)^- A'}
-and
-\deqn{P_{\omega} =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
-A'}{P_w =  A(A'A)^- A' - A(A'A)^- C'[C(A'A)^- C']^- C(A'A)^-
-A'}
-are projection matrices on the spaces spanned by the columns of A
-(space \eqn{\Omega}{O}) and by the linear combinations of these columns that
-satisfy the reference hypothesis (space \eqn{\omega}{w}). In these formulae,
-\eqn{M'} denotes the transpose of \eqn{M} and
-\eqn{M^-} a generalized inverse.   
-Argument \code{r} should be set to the expected rank of \code{H},
-which equals the difference between the dimensions of \eqn{\Omega}{O} and
-\eqn{\omega}{w}. 
+Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices. 
+Argument \code{r} should be set to the expected rank of \code{H}.
+Currently, for reasons of computational efficiency,
+criterion Ccr12 is available only when \eqn{\code{r} \leq  3}{\code{r}<=3}. 
 Particular cases in this setting include Linear Discriminant Analyis
 (LDA), Linear Regression Analysis (LRA), Canonical Correlation
 Analysis (CCA) with one set of variables fixed  and several extensions of
-these and other classical multivariate methodologies. For LDA, LRA and CCA,
-the reference hypothesis merely states that all observation vectors
-should have the same expected value and the mat matrix reduces to the
-SSCP of the deviations from their global mean. In this case, \code{mat} can
-be converted into a covariance matrix if \code{H} is likewise divided by the
-same degrees of freedom.
-The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} and
-\code{\link{glhHmat}} are provided to automatically create the matrices 
-\code{mat} and \code{H} for linear regression/canonical correlation analyis,
-linear discriminant analysis and general linear hypothesis specified by the user.
+these and other classical multivariate methodologies.
+
+In the setting of a generalized linear model, criterion Wald can be used 
+to select subsets according to the (lack of) significance of the discarded
+variables, as measured by the respective Wald's statistic (see
+reference [4] for further details). In this setting arguments \code{mat} and \code{H} 
+should be set respectively to FI and \code{FI \%*\% b \%*\% t(b) \%*\% FI}, where b is a 
+column vector of variable coefficient estimates and FI is an estimate of the 
+corresponding Fisher information matrix.
+
+The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}} 
+\code{\link{glhHmat}} and \code{\link{glmHmat}} are provided to automatically 
+create the matrices \code{mat} and \code{H} in all the cases considered.
 }
 
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
-include = NULL, setseed = FALSE, criterion = "RM", pcindices="first_k",
+include = NULL, setseed = FALSE, criterion = "default", pcindices="first_k",
 initialsol = NULL, force = FALSE, H=NULL, r=0,
 tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps) 
 }
 
 \arguments{
 
-  \item{mat}{a covariance/correlation or sums of squares and products
-    matrix of the variables from which the k-subset is to be selected. See the \code{Details} section below.}
+ \item{mat}{a covariance/correlation, information or sums of squares and products
+    matrix of the variables from which the k-subset is to be selected. 
+    See the \code{Details} section below.}
 
   \item{kmin}{the cardinality of the smallest subset that is wanted.}
 
@@ -125,12 +117,13 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 
   \item{criterion}{Character variable, which indicates which criterion
   is to be used in judging the quality of the subsets. Currently, 
-  the "Rm", "Rv", "Gcd", "Tau2", "Xi2", "Zeta2" and "ccr12" criteria are
-  supported  (see the \code{Details} section, the \code{References} and
+  the "Rm", "Rv", "Gcd", "Tau2", "Xi2", "Zeta2", "ccr12" and "Wald" criteria 
+  are supported  (see the \code{Details} section, the \code{References} and
   the links   \code{\link{rm.coef}},  
   \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
   \code{\link{xi2.coef}}, \code{\link{zeta2.coef}} and
- \code{\link{ccr12.coef}} for further details).}
+ \code{\link{ccr12.coef}} for further details). The default
+  criterion is "Rm" if parameter \code{r} is zero, and "Tau2" otherwise.}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the Gcd
@@ -228,7 +221,8 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
 \code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
-\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}}.}
+\code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}},
+\code{\link{glmHmat}}.}
 
 \references{
 [1] Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
@@ -239,9 +233,11 @@ context of principal components. \emph{Computational Statistics \& Data Analysis
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,
 Biological and Environmental Statistics}, Vol. 6, 62-79.
 
-
-[3]uarte Silva, A.P. (2001) Efficient Variable Screening for Multivariate Analysis,
+[3]Duarte Silva, A.P. (2001) Efficient Variable Screening for Multivariate Analysis,
 \emph{Journal of Multivariate Analysis}, Vol. 76, 35-62.
+
+[4] Lawless, J. and Singhal, K. (1978). Efficient Screening of Nonnormal 
+Regression Models, \emph{Biometrics}, Vol. 34, 318-327.
 
 }
 
@@ -523,25 +519,57 @@ improve(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e
 ##  The H matrix has been replaced by its symmetric part.
 ##  in: validnovcrit(mat, criterion, H, r, p, tolval, tolsym) 
 
-
-## The selected best variable subsets
-
-colnames(CarsHmat$mat)[c(3,4,11,13)]
-
-## [1] "EngineSize" "Horsepower" "Width"      "Weight"    
-
-colnames(CarsHmat$mat)[c(3,4,9,11,13)]
-
-## [1] "EngineSize" "Horsepower" "Length"     "Width"      "Weight"    
-
-colnames(CarsHmat$mat)[c(3,4,5,9,10,11)]
-
-## [1] "EngineSize" "Horsepower" "RPM"        "Length"     "Wheelbase" 
-## [6] "Width"     
-
-
-
 ## --------------------------------------------------------------------
+
+##  6) An example of variable selection in the context of a logistic 
+##  regression model. We consider the last 100 observations of
+##  the iris data set (versicolor and verginica species) and try
+##  to find the best variable subsets for the model that takes species
+##  as response variable.
+
+data(iris)
+iris2sp <- iris[iris$Species != "setosa",]
+logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,iris2sp,family=binomial)
+Hmat <- glmHmat(logrfit)
+improve(Hmat$mat,1,3,H=Hmat$H,r=1,criterion="Wald")
+
+## $subsets
+## , , Card.1
+##
+##           Var.1 Var.2 Var.3
+## Solution 1     4     0     0
+
+## , , Card.2
+
+##            Var.1 Var.2 Var.3
+## Solution 1     1     3     0
+
+## , , Card.3
+
+##            Var.1 Var.2 Var.3
+## Solution 1     2     3     4
+
+
+## $values
+##              card.1   card.2   card.3
+## Solution 1 4.894554 3.522885 1.060121
+
+## $bestvalues
+##   Card.1   Card.2   Card.3 
+## 4.894554 3.522885 1.060121 
+
+## $bestsets
+##        Var.1 Var.2 Var.3
+## Card.1     4     0     0
+## Card.2     1     3     0
+## Card.3     2     3     4
+
+## $call
+## improve(mat = Hmat$mat, kmin = 1, kmax = 3, criterion = "Wald", 
+##     H = Hmat$H, r = 1)
+## --------------------------------------------------------------------
+
 
    }
 \keyword{manip}
+

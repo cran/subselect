@@ -47,8 +47,8 @@ class ccrdata :  public subsetdata {
 		void settmatcoef(vind i,vind j,real val)	{ (*tmat)(i,j) = val;  }
 		void sethtinvel(vind i,vind j,real val)		{ htinv[i][j] = val; }
 		virtual void  getpdata(partialdata *pd);  
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialccrdata and ccrdata classes or unpredictable behaviour will result  
 	(general partialdata and subsetdata classes were used in order to garantee upward compability)
@@ -56,7 +56,7 @@ class ccrdata :  public subsetdata {
 		virtual const real*	getbnds(void)	const	{ return 0; }	
 		virtual void setorgvarl(vind *) {  }
 	protected:
-		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt) const = 0;   
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt) const = 0;   
 		void updatest(real& newwilksst,real& newbartpist,vind varind,
 						partialccrdata* newdtpnt) const;  
 		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
@@ -81,7 +81,7 @@ class rnk2ccrdata : public ccrdata {
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new rnk2ccrdata(nvar,totalnv,partialnv,wilksst,bartpist,ccr12);  }
 	private:
-		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt) const;   
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt) const;   
 };
 
 }

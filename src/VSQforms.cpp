@@ -40,24 +40,24 @@ void  vsqfdata::setvc(real* x,vind nparcels)
 	for (vind j=0;j<nparcels;j++) vc[j] = x[j];
 }
 
-real vsqfdata::updatesum(direction d,mindices& mmind,vind var,vind dim,partialvsqfdata* pdt) const
+real vsqfdata::updatesum(direction dir,mindices& mmind,vind var,vind dim,partialvsqfdata* pdt) const
 { 
-	if (mmind.direct()) return updatesum(d,(*(mmind.idpm()))[var-1],dim,pdt); 
-	else return updatesum(d,(*(mmind.iipm()))[var-1],dim,pdt); 
+	if (mmind.direct()) return updatesum(dir,(*(mmind.idpm()))[var-1],dim,pdt); 
+	else return updatesum(dir,(*(mmind.iipm()))[var-1],dim,pdt); 
 }
 
-void vsqfdata::pivot(direction d,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last)
+void vsqfdata::pivot(direction dir,mindices& mmind,vind vp,vind t,vind dim,partialvsqfdata* pdt,vsqfdata* fdt,bool last)
 { 
-	if (mmind.direct()) pivot(d,*(mmind.idpm()),vp,t,dim,pdt,fdt,last); 
-	else pivot(d,*(mmind.iipm()),vp,t,dim,pdt,fdt,last); 
+	if (mmind.direct()) pivot(dir,*(mmind.idpm()),vp,t,dim,pdt,fdt,last); 
+	else pivot(dir,*(mmind.iipm()),vp,t,dim,pdt,fdt,last); 
 }
 
-real vsqfdata::updatesum(direction d,vind varind,vind dim,partialvsqfdata* newdata) const
+real vsqfdata::updatesum(direction dir,vind varind,vind dim,partialvsqfdata* newdata) const
 {
 	vind maxk=0;
 	real inc,newsum=0.,e1=(*e)(varind,varind);
 	real *tv = newdata->gettmpv(),*newvc=newdata->gettmpvc();
-	switch (d)  {
+	switch (dir)  {
 		case forward:
 			maxk = dim+1;
 			if (maxk > r) maxk = r;
@@ -85,14 +85,14 @@ real vsqfdata::updatesum(direction d,vind varind,vind dim,partialvsqfdata* newda
 	return newsum;
 }
 
-void vsqfdata::pivot(direction d,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
+void vsqfdata::pivot(direction dir,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
 {
 	vind pivotind,newdim=0,maxk=0;
 	pivotind = prtmmit[vp-1];
 	real pivotval = newpdata->getpivotval();
 	real *tv = newpdata->gettmpv();
 
-	switch (d)  {
+	switch (dir)  {
 		case forward:
 			maxk = (newdim = dim+1) + t;
 			if (maxk > r) maxk = r;
@@ -115,14 +115,14 @@ void vsqfdata::pivot(direction d,lagindex<d>& prtmmit,vind vp,vind t,vind dim,pa
 		vectorpivot(prtmmit,ve[j],newfdata->ve[j],*e,tv[j],vp,t); 
 }
 
-void vsqfdata::pivot(direction d,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
+void vsqfdata::pivot(direction dir,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last)
 {
 	vind pivotind,newdim=0,maxk=0;
 	pivotind = prtmmit[vp-1];
 	real pivotval = newpdata->getpivotval();
 	real *tv = newpdata->gettmpv();
 
-	switch (d)  {
+	switch (dir)  {
 		case forward:
 			maxk = (newdim = dim+1) + t;
 			if (maxk > r) maxk = r;

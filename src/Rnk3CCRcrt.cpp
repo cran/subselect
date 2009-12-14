@@ -57,13 +57,13 @@ void  rnk3ccrdata::getpdata(partialdata* pd)
 	lawhotst = pdasrnk3ccr->getlawhot();
 }
 
-inline real rnk3ccrdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,real rqbound) const
+inline real rnk3ccrdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,real rqbound) const
 { 
-	if (mmind.direct()) return updatecrt(d,(*(mmind.idpm()))[var-1],pdt,rqbound); 
-	else return updatecrt(d,(*(mmind.iipm()))[var-1],pdt,rqbound); 
+	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt,rqbound); 
+	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt,rqbound); 
 }
 
-real rnk3ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt,real rqbound) const  
+real rnk3ccrdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,real rqbound) const  
 {  
 	partialrnk3ccrdata *newdata = static_cast<partialrnk3ccrdata *>(newdtpnt);    
 	
@@ -90,7 +90,7 @@ real rnk3ccrdata::updatecrt(direction d,vind varind,partialdata* newdtpnt,real r
 
 	updatest(newwilksst,newbartpist,varind,newdata);
 	
-	if (d==forward) newdata->nvar=nvar+1 ; 
+	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1;
 	
 	if (newdata->nvar == 1) newccr12 = newbartpist; 

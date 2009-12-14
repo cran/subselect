@@ -1,7 +1,6 @@
 leaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,criterion="default",pcindices="first_k",timelimit=15,H=NULL,r=0,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 {
-
-
+        
         
 #####################################
 #  set parameters to default values #
@@ -16,9 +15,7 @@ leaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cri
 # general validation of input #
 ###############################
 
-
         validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
-
 
 
 #############################################################
@@ -31,11 +28,11 @@ leaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cri
         
 ######################################################################
 # Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
-# "ZETA_2" or "CCR1_2"                                               #
+# "ZETA_2", "CCR1_2" or "WALD"                                       #
 ######################################################################
 
 if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
-"ZETA_2" || criterion == "CCR1_2") validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+"ZETA_2" || criterion == "CCR1_2" || criterion == "WALD" ) validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
 
 
 ##########################################
@@ -70,23 +67,25 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
            Ei <- solve(E)
         }
 	else  E <- Ei <- NULL
- 
-	if (criterion == "XI_2" || criterion == "ZETA_2" || criterion == "CCR1_2") 	{
+
+	if (criterion == "XI_2" || criterion == "WALD" || criterion == "ZETA_2" || criterion == "CCR1_2" ) 	{
 	  HSpectd <- eigen(H,symmetric=TRUE)
 	  if (r > 1) Hegvct <- HSpectd$vectors[,1:r] %*% sqrt(diag(HSpectd$values[1:r])) 
 	  else Hegvct <- HSpectd$vectors[,1] * sqrt(HSpectd$values[1]) 
         }
 	else  Hegvct <- NULL
-	if (criterion == "XI_2" || criterion == "CCR1_2") HegvctTinv <- solve(mat,Hegvct)
+	if (criterion == "XI_2" || criterion == "WALD" || criterion == "CCR1_2" ) HegvctTinv <- solve(mat,Hegvct)
 	else HegvctTinv <- NULL
 	if (criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3)) HegvctEinv <- solve(E,Hegvct) 
 	else HegvctEinv <- NULL
 
 	if ( criterion == "TAU_2" || (criterion == "CCR1_2" && r > 1) ) Wilksval <- det(E) / det(mat)
 	else Wilksval <- 0.
-	if ( criterion == "XI_2" || criterion == "CCR1_2"  ) HSi <- t(solve(mat,H))
-	if ( criterion == "XI_2" || (criterion == "CCR1_2" && r > 1) ) BartPival <- sum(diag(HSi))	
+	if ( criterion == "XI_2" || criterion == "WALD" || criterion == "CCR1_2" ) HSi <- t(solve(mat,H))
+	if ( criterion == "XI_2" || (criterion == "CCR1_2" && r > 1) ) BartPival <- sum(diag(HSi))
 	else BartPival <- 0.
+        if (criterion == "WALD") Waldval <- sum(diag(HSi))
+        else Waldval <- 0.
 	if ( criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3) ) LawHotval <- sum(diag(solve(E,H)))	
 	else LawHotval <- 0.
 	if ( criterion == "CCR1_2") CCR12val <- as.numeric(eigen(HSi,symmetric=FALSE,only.values=TRUE)$values[1])	
@@ -106,10 +105,24 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
         names(bestvalues)   <-  paste("Card",kmin:kmax,sep=".")
         dimnames(bestsets)  <-  list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
 
-
 ############################
 # Call to the C subroutine #
 ############################
+
+         
+	if (criterion == "WALD")   {
+
+###       Convert a min Wald problem into an (artificial) equivalent max XI2 problem
+        
+		Hegvct <- Hegvct / sqrt(Waldval)
+		HegvctTinv <- HegvctTinv / sqrt(Waldval)
+		criterion <- "XI_2"
+		criterio <- 5
+		BartPival <- 1.
+		Walddec <- TRUE
+	}
+        else Walddec <- FALSE
+
 
 	 Cout <- .C("leaps",
            as.double(mat),
@@ -157,8 +170,16 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
             NULL
          }
 	 else {
-           output <- c(Cout[30:33],match.call())
-           names(output) <- c("subsets","values","bestvalues","bestsets","call")
-           output
+	    output <- c(Cout[30:33],match.call())
+	    names(output) <- c("subsets","values","bestvalues","bestsets","call")
+            if (Walddec)  {
+		criterion <- "WALD"
+		criterio <- 8
+		validvalues <- output$values[output$values > 0.]
+		output$values[output$values > 0.] <- rep(Waldval,length(validvalues)) - validvalues * Waldval
+		output$bestvalues <- rep(Waldval,klength) - output$bestvalues * Waldval  
+	    }	
+            output
          } 
 }
+

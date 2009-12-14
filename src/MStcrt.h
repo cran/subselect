@@ -31,7 +31,7 @@ class wilksdata :  public subsetdata {
 		virtual void setcriterion(real w)        { wilksst = w; }	
 		virtual const real indice(void)	const; 
 		virtual void  getpdata(partialdata *pd);  
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
 		virtual void pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialwilksdata and wilksdata classes
@@ -45,7 +45,7 @@ class wilksdata :  public subsetdata {
 		void settmatcoef(vind i,vind j,real val)   { (*tmat)(i,j) = val;  }
 		virtual void setorgvarl(vind *) {  }
 	private:
-		real updatecrt(direction d,vind varind,partialdata* newdtpnt) const;   
+		real updatecrt(direction dir,vind varind,partialdata* newdtpnt) const;   
 		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		vind		nvar;
@@ -78,8 +78,8 @@ class tracedata :  public subsetdata {
 		virtual void setcriterion(real c);	
 		virtual void setorgvarl(vind *) {  }
 		virtual void  getpdata(partialdata *);  
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialtracedata and tracedata classes
 		  or unpredictable behaviour will result  

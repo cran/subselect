@@ -30,8 +30,8 @@ class rnk3ccrdata : public ccrdata {
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new rnk3ccrdata(nvar,totalnv,partialnv,wilksst,bartpist,lawhotst,ccr12);  }
 	private:
-		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt) const { return updatecrt(d,varind,newdtpnt,0.); }
-		virtual real updatecrt(direction d,vind var,partialdata* pdt,real rqbound) const;
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt) const { return updatecrt(dir,varind,newdtpnt,0.); }
+		virtual real updatecrt(direction dir,vind var,partialdata* pdt,real rqbound) const;
 		template<accesstp tp> 
 			void rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		real			lawhotst;

@@ -55,8 +55,8 @@ class rvdata :  public subsetdata {
 		virtual const real criterion(void)	const	{ return crt;  }
 		virtual void setcriterion(real c)		{ crt = c; }
 		virtual const real indice(void)		const	{ return sqrt(crt/gdt->trs2()); } 
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
 /*
 	Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour will result 
 	(general subsetdata class was used in order to garantee upward compability)
@@ -71,10 +71,10 @@ class rvdata :  public subsetdata {
 		void  sets2m1(vind i,vind j,real val)		{ s2m1[i][j] = val; }
 		real  gets2m1(vind i,vind j) const		{ return s2m1[i][j]; }
 	private:
-		real updatecrt(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt) const;   
-		real updatecrt(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt) const;   
-		void pivot(direction d,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
-		void pivot(direction d,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		real updatecrt(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt) const;   
+		real updatecrt(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt) const;   
+		void pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+		void pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
 		void cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
 		void cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst) const;
 /*  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists  */
