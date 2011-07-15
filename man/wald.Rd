@@ -32,14 +32,14 @@ portions of the FI and H matrices associated with the selected variables.
 
 The FI and H matrices can be retrieved (from a glm object) by the \code{\link{glmHmat}}
 function and may be used as input to the search functions \code{\link{anneal}}, 
-\code{\link{genetic}}, \code{\link{improve}} and \code{\link{leaps}}. The Wald function
+\code{\link{genetic}}, \code{\link{improve}} and \code{\link{eleaps}}. The Wald function
 computes the value of Wald statistc from these matrices for a subset specified by \code{indices}  
 
 The fact that \code{indices} can be a matrix or 3-d array allows for
 the computation of the Wald statistic values of subsets produced by the search
 functions \code{\link{anneal}}, \code{\link{genetic}}, 
 \code{\link{improve}} and
-\code{\link{leaps}} (whose output option \code{$subsets} are
+\code{\link{eleaps}} (whose output option \code{$subsets} are
 matrices or 3-d arrays), using a different criterion (see the example
 below).
 
@@ -106,7 +106,8 @@ lFL <- log(crabs$FL)
 lRW <- log(crabs$RW)
 lCL <- log(crabs$CL)
 lCW <- log(crabs$CW)
-logrfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,crabs,family=binomial) 
+logrfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,
+crabs,family=binomial) 
 ## Warning message:
 ## fitted probabilities numerically 0 or 1 occurred in: glm.fit(x = X, y = Y, 
 ## weights = weights, start = start, etastart = etastart, 
@@ -135,13 +136,15 @@ lFL <- log(crabs$FL)
 lRW <- log(crabs$RW)
 lCL <- log(crabs$CL)
 lCW <- log(crabs$CW)
-probfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,crabs,family=binomial(link=probit)) 
+probfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,
+crabs,family=binomial(link=probit)) 
 ## Warning message:
 ## fitted probabilities numerically 0 or 1 occurred in: glm.fit(x = X, y = Y, 
 ## weights = weights, start = start, etastart = etastart) 
 
 pHmat <- glmHmat(probfit) 
-probresults <-leaps(pHmat$mat,kmin=3,kmax=3,nsol=5,criterion="Wald",H=pHmat$H,r=1,tolsym=1E-10)
+probresults <-eleaps(pHmat$mat,kmin=3,kmax=3,nsol=5,criterion="Wald",H=pHmat$H,
+r=1,tolsym=1E-10)
 ## Warning message:
 
 ## The covariance/total matrix supplied was slightly asymmetric: 
@@ -150,7 +153,8 @@ probresults <-leaps(pHmat$mat,kmin=3,kmax=3,nsol=5,criterion="Wald",H=pHmat$H,r=
 ## It has been replaced by its symmetric part.
 ## in: validmat(mat, p, tolval, tolsym) 
 
-logrfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,crabs,family=binomial) 
+logrfit <- glm(sex ~ FL + RW + CL + CW  + lFL + lRW + lCL + lCW,
+crabs,family=binomial) 
 ## Warning message:
 ## fitted probabilities numerically 0 or 1 occurred in: glm.fit(x = X, y = Y, 
 ## weights = weights, start = start, etastart = etastart)

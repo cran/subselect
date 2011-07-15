@@ -1,19 +1,11 @@
 validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym){
 
+
 ##########################################################
 #  general validation of input for all search functions  #
 ##########################################################
 
          if (tolval < 0) stop("\n The 'tolval' argument must be non-negative.")
-
-####################################################################
-# checking for an input matrix that must be square, of full rank,  #
-#    symmetric, positive definite  - calls the 'validmat' routine  #
-####################################################################
-
-         p <- dim(mat)[2]
-         validmat(mat,p,tolval,tolsym)
-
 
 #################################################
 # checking acceptability of criterion requested #
@@ -49,6 +41,22 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 	if (criterio == 7)  criterion <- "CCR1_2"
 	if (criterio == 8)  criterion <- "WALD"
 
+####################################################################
+# checking for an input matrix that must be square, of full rank,  #
+#    symmetric, positive definite  - calls the 'validmat' routine  #
+####################################################################
+
+         p <- dim(mat)[2]
+
+        if (criterion=="TAU_2" || criterion=="XI_2" || criterion=="ZETA_2" || criterion=="CCR1_2")
+        {   		
+         	if (validmat(mat,p,tolval,tolsym,allowsingular=TRUE) == "singularmat")  singularmat <- TRUE  	
+         	else singularmat <- FALSE						 			
+	}                                                				 			
+        else {						 							
+		validmat(mat,p,tolval,tolsym,allowsingular=FALSE)   						
+         	singularmat <- FALSE						 				
+	}					 								
         
 ######################################################################
 #  checking consistency of the requested values of kmin, kmax        #
@@ -142,6 +150,9 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
          assign("exc",exc,pos=parent.frame())         
          assign("inc",inc,pos=parent.frame())         
          assign("esp",esp,pos=parent.frame())
+
+         if (singularmat==TRUE) return("singularmat")   
+         else return("validmat")			
        }
 
 

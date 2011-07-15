@@ -1,13 +1,14 @@
 \name{glmHmat}
 \alias{glmHmat}
+\alias{glmHmat.glm}
 \title{Input matrices for subselect search routines in generalized linear models}
 
-\description{glmHmat uses a glm object (fittedmodel) to build an estimate of 
+\description{glmHmat uses a glm object (fitdglmmodel) to build an estimate of 
 Fisher's Information (FI) matrix together with an auxiliarly rank-one positive-defenite 
 matrix (H), such that the positive eigenvalue of \eqn{FI^{-1} H} equals the value of Wald's statistic 
-for testing the global significance of fittedmodel. These matrices may be used as input to the
+for testing the global significance of fitdglmmodel. These matrices may be used as input to the
 variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} 
-\code{\link{improve}} or \code{\link{leaps}}, usign the minimization of Wald's statistic
+\code{\link{improve}} or \code{\link{eleaps}}, usign the minimization of Wald's statistic
 as criterion for discarding variables. }
 
 \details{
@@ -35,7 +36,7 @@ portions of the FI and H matrices associated with the selected variables.
 
 glmHmat retrieves the values of the FI and H matrices from a glm object. These matrices may 
 then be used as input to the search functions \code{\link{anneal}}, 
-\code{\link{genetic}}, \code{\link{improve}} and \code{\link{leaps}}.
+\code{\link{genetic}}, \code{\link{improve}} and \code{\link{eleaps}}.
 
 }
 
@@ -49,12 +50,15 @@ Program for Generalized Models I. Statistical and Computational Background,
 }
 
 \usage{
-glmHmat(fittedmodel)
+
+\method{glmHmat}{glm}(fitdglmmodel,...)
+
 }
 
 \arguments{
-  \item{fittedmodel}{A glm object containaing the estimates, and respective
+  \item{fitdglmmodel}{A glm object containaing the estimates, and respective
     covariance matrix, of a generalized linear model.}
+  \item{...}{further arguments for the method.} 
   }
 
 \value{
@@ -66,7 +70,7 @@ A list with four items:
 }
 
 \seealso{\code{\link{anneal}}, \code{\link{genetic}},
-\code{\link{improve}}, \code{\link{leaps}}, \code{\link{glm}}.} 
+\code{\link{improve}}, \code{\link{eleaps}}, \code{\link{glm}}.} 
 \examples{
 ##----------------------------------------------------------------
 
@@ -106,11 +110,11 @@ Hmat
 ## [1] 1
 
 ## $call
-## glmHmat(fittedmodel = modelfit)
+## glmHmat(fitdglmmodel = modelfit)
 
 # Search for the 3 best variable subsets of each dimensionality by an exausitve search 
 
-leaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
+eleaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
 
 ## $subsets
 ## , , Card.1
@@ -152,8 +156,16 @@ leaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
 ## Card.3     2     3     4
 
 ## $call
-## leaps(mat = Hmat$mat, nsol = 3, criterion = "Wald", H = Hmat$H, 
+## eleaps(mat = Hmat$mat, nsol = 3, criterion = "Wald", H = Hmat$H, 
 ##    r = 1)
+
+
+## It should be stressed that, unlike other criteria in the
+## subselect package, the Wald criterion is not bounded above by
+## 1 and is a decreasing function of subset quality, so that the
+## 3-variable subsets do, in fact, perform better than their smaller-sized
+## counterparts.
+
 
 ## > 
 ## > proc.time()

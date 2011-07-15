@@ -72,7 +72,7 @@ U}{X = A B + U},
 criteria Ccr12, Tau2, Xi2 and Zeta2 can be used to select subsets
 according to their  contribution to an effect characterized by the
 violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
-reference [2] for 
+reference [3] for 
 further details). In this setting, arguments \code{mat} and \code{H}
 should be set respectively to the usual Total (Hypothesis + Error) and
 Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices. 
@@ -101,7 +101,7 @@ create the matrices \code{mat} and \code{H} in all the cases considered.
 = NULL, include = NULL, improvement = TRUE, setseed = FALSE,
 cooling = 0.05,  temp = 1, coolfreq = 1, criterion = "default",
 pcindices = "first_k", initialsol=NULL, force=FALSE, H=NULL, r=0, 
-tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)} 
+tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)} 
 
 \arguments{
 
@@ -152,7 +152,9 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
   \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
   \code{\link{xi2.coef}}, \code{\link{zeta2.coef}} and
  \code{\link{ccr12.coef}} for further details). The default
-  criterion is "Rm" if parameter \code{r} is zero, and "Tau2" otherwise.}
+  criterion is "Rm" if parameter \code{r} is zero (exploratory and PCA problems),
+  "Wald" if \code{r} is equal to one and \code{mat} has a "FisherI" attribute set to TRUE 
+  (generalized linear models), and "Tau2" otherwise (multivariate linear model framework).}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the GCD
@@ -246,7 +248,7 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
-\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{anneal}}, \code{\link{eleaps}}, \code{\link{trim.matrix}},
 \code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}},
 \code{\link{glmHmat}}.}
 
@@ -374,7 +376,8 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="RM",exclude=c(6))
 
 data(swiss)
 rmresults<-anneal(cor(swiss),2,3,nsol=4,niter=10, setseed=TRUE)
-anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd", initialsol=rmresults$subsets)
+anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd",
+initialsol=rmresults$subsets)
 
 ##$subsets
 ##, , Card.2
@@ -417,16 +420,20 @@ anneal(cor(swiss),2,3,nsol=4,niter=10,criterion="gcd", initialsol=rmresults$subs
 ## --------------------------------------------------------------------
 
 ## (4) An example of subset selection in the context of Multiple Linear
-## Regression. Variable 5 in the Cars93 MASS library data set is
-## regressed on 13 other variables.  A best subset of linear predictors is
-## sought, using the "TAU_2" criterion which, in the case of a Linear 
-## Regression, is merely  the standard Coefficient of Determination, R^2 
-## (like the other three criteria for the multivariate linear hypothesis, 
+## Regression. Variable 5 (average car price) in the Cars93 MASS library 
+## data set is regressed on 13 other variables.  A best subset of linear 
+## predictors is sought, using the "TAU_2" criterion which, in the case 
+## of a Linear Regression, is merely  the standard Coefficient of Determination, 
+## R^2 (like the other three criteria for the multivariate linear hypothesis, 
 ## "XI_2", "CCR1_2" and "ZETA_2"). 
 
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+
+names(Cars93[,5,drop=FALSE])
+##  [1] "Price"
+
 colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
@@ -533,6 +540,10 @@ anneal(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+
+names(Cars93[,4:6])
+## [1] "Min.Price" "Price"     "Max.Price"
+
 colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
@@ -541,7 +552,8 @@ colnames(CarsHmat$mat)
 ## [10] "Wheelbase"          "Width"              "Turn.circle"       
 ## [13] "Weight"            
 
-anneal(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=CarsHmat$r, crit="tau2" , tolsym=1e-9)
+anneal(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=CarsHmat$r,
+crit="tau2" , tolsym=1e-9)
 
 ## $subsets
 ## , , Card.4
@@ -596,7 +608,8 @@ anneal(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=CarsHmat$r, crit="tau2" , t
 
 data(iris)
 iris2sp <- iris[iris$Species != "setosa",]
-logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,iris2sp,family=binomial)
+logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+iris2sp,family=binomial)
 Hmat <- glmHmat(logrfit)
 anneal(Hmat$mat,1,3,H=Hmat$H,r=1,criterion="Wald")
 
@@ -636,6 +649,12 @@ anneal(Hmat$mat,1,3,H=Hmat$H,r=1,criterion="Wald")
 ##     H = Hmat$H, r = 1)
 ## --------------------------------------------------------------------
 
-   }
+## It should be stressed that, unlike other criteria in the
+## subselect package, the Wald criterion is not bounded above by
+## 1 and is a decreasing function of subset quality, so that the
+## 3-variable subsets do, in fact, perform better than their smaller-sized
+## counterparts.
+
+}
 \keyword{manip}
 

@@ -24,16 +24,16 @@ class rnk3ccrdata : public ccrdata {
 		virtual ~rnk3ccrdata(void) { }
 		virtual void  getpdata(partialdata *pd);  
 		void setheinvel(vind i,vind j,real val)	{ heinv[i][j] = val; }
-		virtual real updatecrt(direction,mindices& mmind,vind var,partialdata* pdt,real rqbound) const; 
+		virtual bool spdcupd(void)  { return true; }
 		virtual bool usebounds(void)  { return true; }
-		virtual void pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new rnk3ccrdata(nvar,totalnv,partialnv,wilksst,bartpist,lawhotst,ccr12);  }
 	private:
-		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt) const { return updatecrt(dir,varind,newdtpnt,0.); }
-		virtual real updatecrt(direction dir,vind var,partialdata* pdt,real rqbound) const;
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const;
 		template<accesstp tp> 
-			void rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last);
+			void rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+					bool& reliable,const double tol);
 		real			lawhotst;
 		vector< vector<real> >	heinv;
 };

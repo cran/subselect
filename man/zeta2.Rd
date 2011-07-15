@@ -2,7 +2,7 @@
 
 \alias{zeta2.coef}
 
-\title{Computes the Zeta squared coefficient for variable subset selection} 
+\title{Computes the Zeta squared coefficient for a multivariate linear hypothesis} 
 \description{
 Computes the Zeta squared  index of "effect magnitude".  
 The maximization of this criterion is equivalent to the maximization of the traditional test statistic, the Lawley-Hotelling  trace.
@@ -63,19 +63,13 @@ The fact that \code{indices} can be a matrix or 3-d array allows for
 the computation of the \eqn{\zeta^2} values of subsets produced by the search
 functions \code{\link{anneal}}, \code{\link{genetic}}, 
 \code{\link{improve}} and
-\code{\link{leaps}} (whose output option \code{$subsets} are
+\code{\link{eleaps}} (whose output option \code{$subsets} are
 matrices or 3-d arrays), using a different criterion (see the example
 below).
 }
 
 \value{
 The value of the \eqn{\zeta^2}{zeta2} coefficient.
-}
-
-\references{
- Duarte Silva, A.P. (2001) Efficient Variable Screening for Multivariate Analysis,
-\emph{Journal of Multivariate Analysis}, Vol. 76, 35-62.
-
 }
 
 \examples{
@@ -98,7 +92,8 @@ zeta2.coef(irisHmat$mat,H=irisHmat$H,r=2,c(1,3))
 ## subsets produced when the anneal function attempted to optimize  
 ## the ccr1_2 criterion (using an absurdly small number of iterations).
 
-ccr1results<-anneal(irisHmat$mat,2,nsol=2,niter=2,criterion="ccr12",H=irisHmat$H,r=2)
+ccr1results<-anneal(irisHmat$mat,2,nsol=2,niter=2,criterion="ccr12",
+H=irisHmat$H,r=2)
 zeta2.coef(irisHmat$mat,H=irisHmat$H,r=2,ccr1results$subsets)
 
 ##              Card.2

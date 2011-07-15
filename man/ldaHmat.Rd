@@ -3,8 +3,9 @@
 \alias{ldaHmat.default}
 \alias{ldaHmat.formula}
 \alias{ldaHmat.data.frame}
+\alias{ldaHmat.lda}
 \title{Total and Between-Group Deviation Matrices in Linear Discriminant Analysis}
-\description{Computes total and between-group matrices of Sums of Squares and Cross-Product (SSCP) deviations in linear discriminant analysis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{leaps}}.}  
+\description{Computes total and between-group matrices of Sums of Squares and Cross-Product (SSCP) deviations in linear discriminant analysis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{eleaps}}.}  
 
 \usage{
 
@@ -13,6 +14,8 @@
 \method{ldaHmat}{data.frame}(x,grouping,...)
 
 \method{ldaHmat}{formula}(formula,data=NULL,...)
+
+\method{ldaHmat}{lda}(fitdldamodel,...)
 
 }
 \arguments{
@@ -24,6 +27,8 @@ That is, the response is the grouping factor and the right hand side
 specifies the (non-factor) discriminators.} 
   \item{data}{Data frame from which variables specified in 'formula'
 are preferentially to be taken.}  
+  \item{fitdldamodel}{An object of class \code{lda}, as produced by the
+    \code{lda} function of R package \code{MASS}.}  
   \item{...}{further arguments for the method.}
 }
   
@@ -38,7 +43,7 @@ are linearly dependent.}
   \item{call}{The function call which generated the output.}
 }
 \seealso{\code{\link{anneal}}, \code{\link{genetic}},
-\code{\link{improve}}, \code{\link{leaps}}, \code{\link{lda}}.} 
+\code{\link{improve}}, \code{\link{eleaps}}, \code{\link{lda}}.} 
 \examples{
 ##--------------------------------------------------------------------
 

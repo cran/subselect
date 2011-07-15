@@ -8,7 +8,7 @@ symtwodarray::symtwodarray(const vind dim)
   :	dimension(dim)
 {	
 	data.assign(dim,vector<real>());
-	for (vind i=0;i<dim;i++) data[i].reserve(i+1);
+	for (vind i=0;i<dim;i++) data[i].resize(i+1);
 }
 
 symtwodarray::~symtwodarray()   {  }
@@ -29,7 +29,7 @@ symtwodarray& symtwodarray::operator=(const symtwodarray& org )
 matvectarray::matvectarray(const vind dim,symtwodarray* m,vind const mr) 
 : dimension(dim), mat(m), matrowind(mr)
 {
-	owndata.reserve(dimension);
+	owndata.resize(dimension);
 }
 
 

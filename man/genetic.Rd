@@ -72,7 +72,7 @@ U}{X = A B + U},
 criteria Ccr12, Tau2, Xi2 and Zeta2 can be used to select subsets
 according to their  contribution to an effect characterized by the
 violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
-reference [2] for 
+reference [3] for 
 further details). In this setting, arguments \code{mat} and \code{H}
 should be set respectively to the usual Total (Hypothesis + Error) and
 Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices. 
@@ -100,7 +100,7 @@ create the matrices \code{mat} and \code{H} in all the cases considered.}
 mutate = FALSE, mutprob = 0.01, maxclone = 5, exclude = NULL,
 include = NULL, improvement = TRUE, setseed= FALSE, criterion = "default",
 pcindices = "first_k", initialpop = NULL, force = FALSE, H=NULL, r=0,
-tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
+tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 }
 
 \arguments{
@@ -161,7 +161,9 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
   \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
   \code{\link{xi2.coef}}, \code{\link{zeta2.coef}} and
  \code{\link{ccr12.coef}} for further details). The default
-  criterion is "Rm" if parameter \code{r} is zero, and "Tau2" otherwise.}
+  criterion is "Rm" if parameter \code{r} is zero (exploratory and PCA problems),
+  "Wald" if \code{r} is equal to one and \code{mat} has a "FisherI" attribute set to TRUE 
+  (generalized linear models), and "Tau2" otherwise (multivariate linear model framework).}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the Gcd
@@ -242,7 +244,7 @@ tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 \seealso{\code{\link{rm.coef}}, \code{\link{rv.coef}},
 \code{\link{gcd.coef}}, \code{\link{tau2.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}}, \code{\link{genetic}},
-\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{anneal}}, \code{\link{eleaps}}, \code{\link{trim.matrix}},
 \code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}},
 \code{\link{glmHmat}}.}
 
@@ -325,17 +327,21 @@ genetic(cor(swiss),3,4,popsize=10,nger=5,criterion="Rv")
 
 ##
 ## 2) An example of subset selection in the context of Multiple Linear
-## Regression. Variable 5 in the Cars93 MASS library data set is
-## regressed on 13 other variables. The six-variable subsets of linear
-## predictors are chosen using the "CCR1_2" criterion which, in the
-## case of a Linear Regression, is merely  the standard Coefficient of
-## Determination, R^2 (as are the other three criteria for the
+## Regression. Variable 5 (average car price) in the Cars93 MASS library 
+## data set is regressed on 13 other variables. The six-variable subsets 
+## of linear predictors are chosen using the "CCR1_2" criterion which, 
+## in the case of a Linear Regression, is merely  the standard Coefficient 
+## of Determination, R^2 (as are the other three criteria for the
 ## multivariate linear hypothesis, "XI_2", "TAU_2" and "ZETA_2").
 ##
 
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+
+names(Cars93[,5,drop=FALSE])
+##  [1] "Price"
+
 colnames(CarsHmat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
@@ -418,6 +424,10 @@ genetic(CarsHmat$mat, kmin=6,  H=CarsHmat$H, r=1, crit="CCR12")
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
+
+names(Cars93[,4:6])
+## [1] "Min.Price" "Price"     "Max.Price"
+
 colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        

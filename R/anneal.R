@@ -2,23 +2,14 @@ anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,
 exclude=NULL, include=NULL, improvement=TRUE, 
 setseed = FALSE, cooling=0.05, temp=1,
 coolfreq=1, criterion="default", pcindices="first_k", initialsol=NULL,
-force=FALSE,H=NULL,r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
-
-
-        
-#####################################
-#  set parameters to default values #
-#####################################
-
-	if (r==0 && criterion=="default")  criterion <- "RM"
-        if (r>0  && criterion=="default")  criterion <- "TAU_2"
-        p <- nrow(mat)
+force=FALSE,H=NULL,r=0, tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
 
         
 ###############################
 # general validation of input #
 ###############################
 
+        initialization(mat, criterion, r)
         validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")

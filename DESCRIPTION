@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.10-1
-Date: 2009-12-14
+Version: 0.11-1
+Date: 2011-07-15
 Title: Selecting variable subsets
 Author: Jorge Orestes Cerdeira <orestes@isa.utl.pt> Pedro Duarte Silva
         <psilva@porto.ucp.pt> Jorge Cadima <jcadima@isa.utl.pt> Manuel
@@ -11,7 +11,8 @@ Description: A collection of functions which (i) assess the quality of
         an exploratory data analysis or in the context of a
         multivariate linear model, and (ii) search for subsets which
         are optimal under various criteria.
+Suggests: MASS, ISwR
 License: GPL-2
-Packaged: 2009-12-13 16:57:10 UTC; root
+Packaged: 2011-07-27 10:57:55 UTC; root
 Repository: CRAN
-Date/Publication: 2009-12-13 19:47:51
+Date/Publication: 2011-07-27 15:55:51

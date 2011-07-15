@@ -8,7 +8,7 @@
 namespace extendedleaps {
 
 wilksdata::wilksdata(vind nv,vind tnv,vind nvtopiv,vind hr,real wst)
-  :  nvar(nv), p(tnv), k(nvtopiv), hrank(hr), wilksst(wst)
+ :  p(tnv), k(nvtopiv), hrank(hr), nvar(nv), wilksst(wst), unreliable(false)
 {
 	emat = new symtwodarray(k);
 	tmat = new symtwodarray(k);
@@ -40,21 +40,22 @@ void  wilksdata::getpdata(partialdata* pd)
 	nvar = pdaswilks->nvar;
 }
 
-real wilksdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
+real wilksdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
 { 
-	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt); 
-	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt); 
+	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt,reliable,tol); 
+	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt,reliable,tol); 
 }
    
-		
-void wilksdata::pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+void wilksdata::pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
 { 
-	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last); 
-	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last); 
+	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last,reliable,tol); 
+	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 
 }
 
-real wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt) const  
+real  wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
 {  
+	real *rpl[3];
+
 	partialwilksdata *newdata = static_cast<partialwilksdata *>(newdtpnt);    
 	
 	/* Attention: newdtpnt MUST point to partialwilksdata object !!!
@@ -73,6 +74,11 @@ real wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt) const
 	fpcnt1 += 2;
 	#endif
 
+	rpl[0] = &e1;
+	rpl[1] = &t1;
+	rpl[2] = &newwilksst;
+	reliable = errcheck(rpl,tol,3);
+
 	newdata->setepivot(e1);
 	newdata->settpivot(t1);
 	newdata->setcrt(newwilksst);
@@ -80,7 +86,7 @@ real wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt) const
 	return newwilksst;
 } 
 
-void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    
@@ -92,11 +98,11 @@ void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt
 	wilksdata* newfdata = dynamic_cast<wilksdata *>(newfdtpnt);
 	assert(newpdata && newfdata);                                              */
 
-	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t);
-	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t);
+	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t,reliable,tol);
+	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t,reliable,tol);
 } 
 
-void wilksdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last)
+void wilksdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    
@@ -108,14 +114,19 @@ void wilksdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt
 	wilksdata* newfdata = dynamic_cast<wilksdata *>(newfdtpnt);
 	assert(newpdata && newfdata);                                              */
 
-	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t);
-	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t);
+	symatpivot(prtmmit,newpdata->getepivot(),*emat,*(newfdata->emat),vp,t,reliable,tol);
+	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t,reliable,tol);
 } 
 
 partialtracedata::partialtracedata(vind nvars,vind hrank)		
 {
 	nvar = nvars;
 	pqf = new partialsqfdata(hrank); 
+}
+
+partialtracedata::~partialtracedata(void)
+{ 	
+	delete pqf;  
 }
 
   const real partialtracedata::getcrt(void) const	
@@ -130,6 +141,10 @@ tracedata::tracedata(vind nv,vind tnv,vind nvtopiv,vind hr,real crt)
 	sqf = new sqfdata(tnv,nvtopiv,hr,crt);		
 }
 
+tracedata::~tracedata(void) 
+{ 
+	delete sqf;
+}
 		
 const real tracedata::criterion(void) const	
 { 
@@ -155,7 +170,7 @@ void  tracedata::getpdata(partialdata* pd)
 	nvar = pdastracest->nvar;
 }
 
-real tracedata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
+real tracedata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
 {  
 	partialtracedata *newdata = static_cast<partialtracedata *>(pdt);    
 	
@@ -167,10 +182,10 @@ real tracedata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pd
 
 	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
-	return sqf->updatesum(mmind,var,newdata->pqf);  
+	return sqf->updatesum(mmind,var,newdata->pqf,reliable,tol);
 } 
 
-void tracedata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+void tracedata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
 {	
 	partialtracedata* newpdata = static_cast<partialtracedata *>(pdt);    
 	tracedata* newfdata = static_cast<tracedata *>(fdt);    
@@ -182,8 +197,23 @@ void tracedata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* 
 	tracedata* newfdata = dynamic_cast<tracedata *>(fdt);
 	assert(newpdata && newfdata);                                  */
 
-	sqf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
+	sqf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->sqf,last,reliable,tol);
 } 
+
+bool tracedata::nopivot(void) const
+{ 
+	return sqf->nopivot(); 
+}
+
+void tracedata::forbidpivot(void)
+{ 
+	sqf->forbidpivot(); 
+}
+
+void tracedata::allowpivot(void)
+{ 
+	sqf->allowpivot(); 
+}
 
 const real bartpistdata::indice(void)	const	
 {

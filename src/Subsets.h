@@ -35,9 +35,9 @@ class sbstsort {
 		cmp_mode  mode;
 };
 
-typedef  sbset*				psbst;
-typedef  std::set<sbset *,sbstsort>	sbstlist;
-typedef  sbstlist*			psbstlist;
+typedef  sbset*					psbst;
+typedef  std::multiset<sbset *,sbstsort>	sbstlist;
+typedef  sbstlist*				psbstlist;
 
 }
 

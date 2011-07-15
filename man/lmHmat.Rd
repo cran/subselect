@@ -3,8 +3,9 @@
 \alias{lmHmat.default}
 \alias{lmHmat.formula}
 \alias{lmHmat.data.frame}
+\alias{lmHmat.lm}
 \title{Total and Effect Deviation Matrices for Linear Regression and Canonical Correlation Analysis}
-\description{Computes total an effect matrices of Sums of Squares and Cross-Product (SSCP) deviations, divided by a normalizing constant, in linear regression or canonical correlation analysis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{leaps}}.}  
+\description{Computes total an effect matrices of Sums of Squares and Cross-Product (SSCP) deviations, divided by a normalizing constant, in linear regression or canonical correlation analysis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{eleaps}}.}  
 
 \usage{
 
@@ -14,7 +15,10 @@
 
 \method{lmHmat}{formula}(formula,data=NULL,...)
 
+\method{lmHmat}{lm}(fitdlmmodel,...)
+
 }
+
 \arguments{
   \item{x}{A matrix or data frame containing the variables for which
 the SSCP matrix is to be computed.} 
@@ -25,6 +29,8 @@ variables, the association of x is to be measured with.}
     side specifies the variables whose subsets are to be compared.} 
   \item{data}{Data frame from which variables specified in 'formula'
 are preferentially to be taken.} 
+  \item{fitdlmmodel}{An object of class \code{lm}, as produced by R's
+    \code{lm} function.} 
   \item{...}{further arguments for the method.} 
 }
 \details{Let x and y be two different groups of linearly independent
@@ -44,7 +50,7 @@ we will focus on the former product. \code{lmHmat} computes a scaled version
 of \eqn{T_x} and \eqn{H_{x/y}} such that \eqn{T_x} is converted into a
 covariance matrix. These matrices can be used as input to the search routines
 \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} and
-\code{\link{leaps}} that try to select x subsets based on several
+\code{\link{eleaps}} that try to select x subsets based on several
 functions of their squared correlations with y. We note that when
 there is only one variable in the y set, this is equivalent to
 selecting predictors for linear regression based on the traditional
@@ -61,7 +67,7 @@ different from \code{r} if the linear independence condition fails.}
   \item{call}{The function call which generated the output.}
 }
 \seealso{\code{\link{anneal}}, \code{\link{genetic}},
-\code{\link{improve}}, \code{\link{leaps}}, \code{\link{lm}}.} 
+\code{\link{improve}}, \code{\link{eleaps}}, \code{\link{lm}}.} 
 \examples{
 ##------------------------------------------------------------------
 
@@ -213,6 +219,10 @@ CarsHmat1
 library(MASS)
 data(Cars93)
 CarsHmat2 <- lmHmat(Cars93[c(7:8,12:15,17:22,25)],Cars93[4:6])
+
+names(Cars93[4:6])
+## [1] "Min.Price" "Price"     "Max.Price"
+
 CarsHmat2
 
 ##$mat

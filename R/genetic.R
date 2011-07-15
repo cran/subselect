@@ -1,22 +1,15 @@
 genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="default", pcindices="first_k",
-initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
-
-        
-#####################################
-#  set parameters to default values #
-#####################################
-
-	if (r==0 && criterion=="default")  criterion <- "RM"
-        if (r>0  && criterion=="default")  criterion <- "TAU_2"
-        p <- nrow(mat)
+initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
 
         
 ###############################
 # general validation of input #
 ###############################
 
+  
+        initialization(mat, criterion, r)
         validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")

@@ -1,4 +1,4 @@
-validmat<-function(mat,p,tolval,tolsym)
+validmat<-function(mat,p,tolval,tolsym,allowsingular)
 {
 #   Function validmat
 #   Checks the main (covariance/total sums of squares and products)
@@ -24,16 +24,27 @@ validmat<-function(mat,p,tolval,tolsym)
                     warning("\n The covariance/total matrix supplied was slightly asymmetric: \n symmetric entries differed by up to ",maxabssym,".\n (less than the 'tolsym' parameter).\n It has been replaced by its symmetric part.\n")
 }
 
-  # Positive definiteness
-  
- 	if ( eigen(mat,symmetric=TRUE,only.values=TRUE)$values[p] < -1*tolval )
-            stop("\n The covariance/correlation matrix supplied is not positive definite")
+        eigvals <- eigen(mat,symmetric=TRUE,only.values=TRUE)$values
+	repcnumb <- eigvals[p]/eigvals[1] 
 
+
+  # Positive definiteness
+
+ 	if ( repcnumb < -1*tolval )
+            stop("\n The covariance/correlation matrix supplied is not positive definite")
+ 
 # checking for ill-conditioned 'total' matrix
 
-         eigvals<-eigen(mat,symmetric=TRUE)
-         if (eigvals$values[p]/eigvals$values[1] < tolval) stop(paste("\n The covariance/correlation matrix supplied has reciprocal condition number \n smaller than the specified threshold of",tolval,". \n Setting a lower value of the 'tolval' function argument may force a solution, \n but numerical accuracy  may be compromised. \n Try a new function call after excluding  variables responsible for the \n (real or approximate) linear dependences. See help(trim.matrix) for  \n assistance in this respect."))
-  
+         if (repcnumb < tolval) {    
+		if (allowsingular==TRUE)  { 			
+			warning(paste("\n The covariance/correlation matrix supplied has reciprocal condition number smaller than \n the specified threshold of ",tolval,".\n Therefore the full variable set might not have a well defined criterion value and the search \n will be restricted to subsets where correlation matrices are well conditioned.\n Setting a lower value of the 'tolval' function argument may force more solutions, but numerical \n accuracy may be compromised. \n You can also try a new function call after excluding  variables responsible for the (real or \n approximate) linear dependences. See help(trim.matrix) for assistance in this respect.",sep=""))  
+        		return("singularmat")   
+         	}                                    
+		if (allowsingular==FALSE)   	
+			stop(paste("\n The covariance/correlation matrix supplied has reciprocal condition number \n smaller than the specified threshold of", tolval,".\n Setting a lower value of the 'tolval' function argument may force a solution, but numerical \n accuracy  may be compromised. \n Try a new function call after excluding  variables responsible for the \n (real or approximate) linear dependences. See help(trim.matrix) for  \n assistance in this respect."))  
+	}	
+
+        return("validmat")
 
 }
 

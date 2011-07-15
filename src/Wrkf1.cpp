@@ -6,15 +6,16 @@
 
 namespace extendedleaps {
 
+extern vind *dmyv,*Flp;   
+extern double *Fl;	  
 extern int *sbsetcnt;                                                 
 
 const int SRC  = 1;
 const int INV  = 0;
-
-const real   NOBND = 1E99;
+const double   NOBND = 1E99;
 
 sbset *csbset(vind n,vind* v,real c,real ind);
-void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vind maxvi);
+void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minvi,vind maxvi,bool revord);	 
 void getactv(wrkspace *,vind,vind,vind);
 void actvcnv(vind,vind,vind *,vind *);
 bool leap(vind,real,const real *,vind,vind);
@@ -26,7 +27,7 @@ void showcnt(int,int,vind);
 #endif
 
 extern vind maxdim,*prvks;    
-extern short int	pcrttp;                                         
+extern short int pcrttp;                                         
 extern pcskept pcsets;
 extern real   crub,*bndl;
 extern psbstlist *bsts;
@@ -45,6 +46,11 @@ int cmp(const void *a,const void *b)
 		else if (Fl[ai] > Fl[bi]) return -1;
 			else return 0;
 	}
+}
+
+int revcmp(const void *a,const void *b)	  
+{
+	return -cmp(a,b);
 }
 
 void actvcnv(vind p,vind p1,vind *v0,vind *v1)
@@ -75,100 +81,236 @@ void getactv(wrkspace *w,vind t,vind k1,vind nv)
 		{ for (vind i=0;i<nv;i++) actv[i] = wlst->getithvar(wlst->getvar(i+1)-1)+1; }
 }
 
-void prcksp1(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind vi,vind minvi,vind maxvi)
+void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minvi,vind maxvi,bool revord)   
 {
-	real crt,ind,acptbound;              
+	double crt,ind,acptbound(-NOBND);
+	bool success;
+	vind vi;
 	sbset *prevsbset,*st;
 	sbstlist::iterator ptprevsbset;
-	
+	subsetdata *curdata;
+
 	assert(k0 > k1);
-	if (w->usebounds())  {
-		acptbound = getbounds(pcrttp,minvi,maxvi);
-		if (k1 == 0)  w->pivot(vi,0,k0,0,true,acptbound);
-		else w->pivot(vi,p-1-vi,k0,k1,true,acptbound);
-	}
-	else {
-		if (k1 == 0)  w->pivot(vi,0,k0,0,false,0.);
-		else w->pivot(vi,p-1-vi,k0,k1,false,0.);
-	}
-	if (nv < mindim || nv > maxdim) return;
+	if (revord) vi = p-u+1;
+	else vi = u;
+
+	curdata = w->subsetat(k1+1).getdatap();
+	if (curdata->spdcupd())  acptbound = getbounds(pcrttp,minvi,maxvi);
+	else if (pcrttp == MINIMZ ) acptbound *= -1;
+
+	if (k1 == 0)  success = w->pivot(vi,0,k0,0,acptbound);
+	else success = w->pivot(vi,t,k0,k1,acptbound);
+	if (nv < mindim || nv > maxdim || !success) return;
 	#ifdef COUNTING
 	++cntg;
 	#endif
-	crt = w->subsetat(k1+1).getdata().criterion();  
-	ind = w->subsetat(k1+1).getdata().indice();  
 	
-	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	/* Check if new subset is better than any of the     */
-	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	/* sets in current best set list for this dimension  */
-	
+	crt = curdata->criterion();
+	ind = curdata->indice();
+	curdata->allowpivot();		
+	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	// Check if new subset is better than any of the
+	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	// sets in current best set list for this dimension
+
 	getactv(w,tree,k1,nv);
 	st = csbset(nv,actv,crt,ind);	
 	psbstlist curlist = bsts[nv-mindim];
 
-	if (sbsetcnt[nv-mindim] == ms)  {				/* Remove and discard worst subset saved     */
+	if (sbsetcnt[nv-mindim] == ms)  {	// Remove and discard worst subset saved
 		prevsbset = *(ptprevsbset=curlist->begin());
 		curlist->erase(ptprevsbset);
 		dsbset(prevsbset);
 	}
-	else sbsetcnt[nv-mindim]++; 
-	curlist->insert(st);					/* Insert new subset in best sets list        */
-	if (sbsetcnt[nv-mindim] == ms)	{			   
+	else sbsetcnt[nv-mindim]++;
+	curlist->insert(st);	// Insert new subset in best sets list
+	if (sbsetcnt[nv-mindim] == ms)  { 
 		if (pcrttp == MAXIMZ) lbnd[nv-mindim] = (*curlist->begin())->crt();
 		else ubnd[nv-mindim] = (*curlist->begin())->crt();
 	}
 	return;
 }
 
-bool prcksp(vind k,vind ks,vind nvs,vind nvi,vind fv)
+bool Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vind nvbckwrd)  
 {
-	vind ks0;
-	static vind k1;
-	vind nv,maxnvs,maxnvi,maxnv,minnvs,minnvi,minnv;  
-	real   bnd = NOBND;
-	const  real*	cbnd;
+	vind nv,minnv,maxnv,minnvfrd,minnvbkrd,maxnvfrd,maxnvbkrd;
+	vind u,t,frwind(frwind0);
+	real maxstcrt(NOBND);
+	const real*	icrtcmpll;
+// pointer to list with individual criterion components for sums of qadratic form criteria
+// with as many parcels as variables in each subset
+	subsetdata* prvdatapt;
 
-	if (p-fv > 10) {
-		if (clock()-btime > maxtime) return false;
+	if (p-lvind > 10) {
+		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
 	} 
 
-	if ( (maxnvs=nvs+k) > maxdim) maxnvs = maxdim;
-	maxnvi = nvi-1;
-	{ for (vind i=0;i<k;i++)  {
-		if (i == 0) ks0 = ks;
-		else ks0 = k1;
-		k1 = p-1-fv-i;
-		if (k1 > 0) prvks[k1-1] = ks0;
-		nv = minnvs = nvs+1+i;
-		if (maxnvs >= mindim && minnvs <= maxdim) {
-			if (minnvs < mindim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,mindim,maxnvs);
-			else {
-				if (minnvs < maxdim) prcksp1(SW,SRC,ks0,k1,nv,fv+i,minnvs,maxnvs);
-				else prcksp1(SW,SRC,ks0,0,nv,fv+i,minnvs,maxnvs);
-			}
+//  Find maximal subset dimensionalities of current tree branches
+	
+	if ( (maxnvfrd=nvfrwd+bckind0) > maxdim) maxnvfrd = maxdim;
+	maxnvbkrd = nvbckwrd-1;
+
+//  Start pivoting variables 
+
+	{ for (vind i=fvind;i<lvind;i++)  {
+
+		u = lvind-i+1; // convert index of increasing order (i) into index of decreasing order (u)
+		t = u-2; 
+
+//		Set number of variables in the susbset where the current foward pivot will be performed
+		nv = minnvfrd = nvfrwd+1+i-fvind;
+		if (maxnvfrd >= mindim && minnvfrd <= maxdim)  {
+
+//			Make a forward pivot	
+			if (minnvfrd < mindim) pivot(SW,SRC,frwind,t,nv,u,t,mindim,maxnvfrd,true);
+			else if (minnvfrd < maxdim) pivot(SW,SRC,frwind,t,nv,u,t,minnvfrd,maxnvfrd,true);
+				 else pivot(SW,SRC,frwind,0,nv,u,t,minnvfrd,maxnvfrd,true);
 		}
-		nv = nvi - 1;
-		if ( (minnvi=nvi-k+i) < mindim) minnvi = mindim;
-		if (maxnvi >= mindim && minnvi <= maxdim) {
-			if (maxnvi > maxdim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxdim);
-			else {
-				if (maxnvi > mindim) prcksp1(IW,INV,k,k1,nv,fv+i,minnvi,maxnvi);
-				else prcksp1(IW,INV,k,0,nv,fv+i,minnvi,maxnvi);
-			}
+
+		if (t > 0) {	//	Keep track of source memory for current forward search results
+			prvks[t-1] = frwind; 
+			frwind = t;	// Update memory index for forward search
 		}
+
+//		Set number of variables in the susbset where the current backward pivot will be performed
+		nv = nvbckwrd - 1;
+		if ( (minnvbkrd=nvbckwrd-bckind0+i-fvind) < mindim) minnvbkrd = mindim;
+
+		if (maxnvbkrd >= mindim && minnvbkrd <= maxdim) 
+
+//			Make a backward pivot
+			if (maxnvbkrd > maxdim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxdim,true);
+			else if (maxnvbkrd > mindim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxnvbkrd,true);
+				 else pivot(IW,INV,bckind0,0,nv,u,t,minnvbkrd,maxnvbkrd,true);
 	} }
-	{ for (vind i=1;i<k;i++)   {
-		minnv = nvs+k-i;
-		maxnv = nvi-2;
+
+//  Process recursevly the subtrees created by the previous cycle
+
+	{ for (vind i=1;i<lvind-fvind;i++)   {
+		minnv = nvfrwd+lvind-fvind-i;
+		maxnv = nvbckwrd-2;
 		if (minnv <= maxdim && maxnv >= mindim) {
 			if (minnv < mindim) minnv = mindim;
 			if (maxnv > maxdim) maxnv = maxdim;
 			if (minnv > maxnv) minnv = maxnv;
-			bnd = IW->subsetat(i+1).getdata().criterion();  
-			cbnd = IW->subsetat(i+1).getdata().getbnds();
-			if (!leap(pcrttp,bnd,cbnd,minnv,maxnv) )
-				if (!prcksp(i,prvks[i-1],nvs+k-i-1,nvi-1,p-i)) return false;
+			prvdatapt = &IW->subsetat(i+1).getdata();
+			if  ( !prvdatapt->nopivot() ) {
+				maxstcrt = prvdatapt->criterion();	// Get criterion for maximal subset in the next subtree
+				icrtcmpll = prvdatapt->getsqfparcels();
+				if (!leap(pcrttp,maxstcrt,icrtcmpll,minnv,maxnv) ) // test if maxstcrt is better than current bounds
+	 				if (!Leaps_Search(prvks[i-1],i,fvind,fvind+i,nvfrwd+bckind0-i-1,nvbckwrd-1)) return false;
+			}
 		}
 	} }
+
+	return true;
+}
+
+bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vind nvbckwrd)
+{
+	vind prvbckind,bckind(bckind0);  
+	vind nv,t,minnv,maxnv,minnvfrd,minnvbkrd,maxnvfrd,maxnvbkrd;  
+	real maxstcrt(NOBND);
+	const real*	icrtcmpll; 	
+// pointer to list with individual criterion components for sums of quadratic form
+// criteria with as many parcels as variables in each subset
+	subsetdata* prvdatapt;
+
+	if (p-fvind > 10) {
+		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
+	} 
+
+//  Find minimal subset dimensionalities of current tree branches
+	
+	if ( (minnvbkrd=nvbckwrd-frwind0) < mindim) minnvbkrd = mindim;
+	minnvfrd = nvfrwd+1;
+
+//  Start pivoting variables
+
+	{ for (vind u=fvind;u<lvind;u++)  {
+
+		t = lvind-u-1; 
+
+//		Get number of variables in the susbset where the current forward pivot will be performed
+		nv = nvfrwd + 1;
+		if ( (maxnvfrd=nvfrwd+frwind0+fvind-i) > maxdim) maxnvfrd = maxdim;
+		if (maxnvfrd >= mindim && minnvfrd <= maxdim)
+
+//			Make a forward pivot 				
+			if (minnvfrd < mindim) pivot(SW,SRC,frwind0,t,nv,u,t,mindim,lvind,false);
+			else if (minnvfrd < maxdim) pivot(SW,SRC,frwind0,t,nv,u,t,minnvfrd,lvind,false);
+				 else pivot(SW,SRC,frwind0,0,nv,u,t,minnvfrd,lvind,false);
+
+//		Get number of variables in the susbset where the current backward pivot will be performed
+		nv = maxnvbkrd = nvbckwrd-1+fvind-u;
+		if (maxnvbkrd >= mindim && minnvbkrd <= maxdim) {
+
+//			Make a backward pivot 				
+			if (maxnvbkrd > maxdim) pivot(IW,INV,bckind,t,nv,u,t,minnvbkrd,maxdim,false);
+			else if (maxnvbkrd > mindim) pivot(IW,INV,bckind,t,nv,u,t,minnvbkrd,maxnvbkrd,false);
+				 else pivot(IW,INV,bckind,0,nv,u,t,minnvbkrd,maxnvbkrd,false);
+		}
+
+		if (t > 0) {	//	Keep track of source memory for current backward search results
+				prvks[t-1] = bckind; 
+				bckind = t;	// Update memory index for forward search
+		}
+	} }
+
+//  Process recursevly the subtrees created by the previous cycle
+
+	{ for (vind i=1;i<lvind-fvind;i++)   {
+		minnv = nvfrwd+2;
+		maxnv = nvfrwd+i+1;
+		if (minnv <= maxdim && maxnv >= mindim) {
+			if (minnv < mindim) minnv = mindim;
+			if (maxnv > maxdim) maxnv = maxdim;
+			if (minnv > maxnv) minnv = maxnv;
+			prvdatapt = &IW->subsetat((prvbckind=prvks[i-1])+1).getdata();
+			if  ( !prvdatapt->nopivot() ) {
+				maxstcrt = prvdatapt->criterion();	// Get criterion for maximal subset in the next subtree
+				icrtcmpll = prvdatapt->getsqfparcels();
+				if (!leap(pcrttp,maxstcrt,icrtcmpll,minnv,maxnv) ) // test if maxstcrt is better than current bounds
+					if (!Rev_Leaps_Search(i,prvks[i-1],lvind-i,lvind,nvfrwd+1,nvbckwrd-frwind0+i+1)) return false;
+			}
+		}
+	} }
+
+	return true;
+}
+
+bool Forward_BreadthF_Search(vind frwind0,vind nvfrwd,vind fvind,vind lvind)
+{
+	vind nv,t,minnv,maxnv,prvfrwind;  
+
+	if (p-fvind > 10) {
+		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
+	} 
+
+//  Find maximal subset dimensionaly of current tree branch
+	
+	if ( (maxnv=nvfrwd+lvind-fvind+1) > maxdim) maxnv = maxdim;
+
+//  Start pivoting variables
+
+	{ for (vind u=fvind;u<=lvind;u++)  {
+
+		t = lvind-u; 
+
+//		Get number of variables in the susbset where the current pivot will be performed
+		nv = minnv = nvfrwd + 1;
+
+		if (maxnv >= mindim && minnv <= maxdim)  {  //	Make a  pivot  
+			if (minnv < mindim) pivot(SW,SRC,frwind0,t,nv,u,t,mindim,lvind,false);
+			else pivot(SW,SRC,frwind0,t,nv,u,t,minnv,lvind,false);
+		}
+
+	} }
+
+//  Process recursevly the subtrees created by the previous cycle
+
+	{ for (vind i=1;i<=lvind-fvind;i++)   if  ( !(SW->subsetat(i).getdata().nopivot()) )  
+		if (!Forward_BreadthF_Search(i,nvfrwd+1,lvind-i+1,lvind)) return false;
+	}
+
 	return true;
 }
 

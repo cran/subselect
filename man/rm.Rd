@@ -40,7 +40,7 @@ This definition is equivalent to:
 \deqn{RM = \sqrt{\frac{\sum\limits_{i=1}^{p}\lambda_i
 (r)_i^2}{\sum\limits_{j=1}^{p}\lambda_j}} }{RM = sqrt(sum_i(lambda_i
 r_i^2)/sum_j(lambda_j))}
-where \eqn{\lambda_i}{lambda_i} stands for the $i$-th largest
+where \eqn{\lambda_i}{lambda_i} stands for the \eqn{i}-th largest
 eigenvalue of the covariance matrix defined by X and
 \eqn{r} stands for the multiple correlation between the
 \code{i}-th Principal Component and the k-variable subset.

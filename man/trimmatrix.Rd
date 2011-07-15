@@ -41,7 +41,7 @@ algorithms in this package.}
 }
 
 \note{
-When the \code{\link{trim.matrix}} function is used to produce a well-conditioned matrix for use with the \code{\link{anneal}}, \code{\link{genetic}}, \code{\link{improve}} or \code{\link{leaps}} functions, care must be taken in interpreting the output of those functions. In those search functions, the selected variable subsets are specified by variable numbers, and those variable numbers indicate the position of the variables in the input matrix. Hence, if a trimmed matrix is supplied to functions \code{anneal}, \code{genetic}, \code{improve} or \code{leaps}, variable numbers refer \emph{to the trimmed matrix}.
+When the \code{\link{trim.matrix}} function is used to produce a well-conditioned matrix for use with the \code{\link{anneal}}, \code{\link{genetic}}, \code{\link{improve}} or \code{\link{eleaps}} functions, care must be taken in interpreting the output of those functions. In those search functions, the selected variable subsets are specified by variable numbers, and those variable numbers indicate the position of the variables in the input matrix. Hence, if a trimmed matrix is supplied to functions \code{anneal}, \code{genetic}, \code{improve} or \code{eleaps}, variable numbers refer \emph{to the trimmed matrix}.
 }
 
 \references{

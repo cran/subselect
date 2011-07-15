@@ -2,7 +2,7 @@
 
 \alias{ccr12.coef}
 
-\title{Computes the $ccr\_1^2$ coefficient for variable subset selection} 
+\title{First Squared Canonical Correlation  for a multivariate linear hypothesis} 
 \description{
 Computes the first squared canonical correlation.  
 The maximization of this criterion is equivalent to the maximization of the Roy first root.
@@ -72,13 +72,6 @@ below).
 The value of the \eqn{ccr_1^2}{ccr12} coefficient.
 }
 
-\references{
- Duarte Silva, A.P. (2001) Efficient Variable Screening for
-Multivariate Analysis, \emph{Journal of Multivariate Analysis},
-Vol. 76, 35-62. 
-
-}
-
 \examples{
 
 ## 1) A Linear Discriminant Analysis example with a very small data set. 
@@ -96,7 +89,8 @@ ccr12.coef(irisHmat$mat,H=irisHmat$H,r=2,c(1,3))
 ## subsets produced when the anneal function attempted to optimize
 ## the zeta_2 criterion (using an absurdly small number of iterations).
 
-zetaresults<-anneal(irisHmat$mat,2,nsol=2,niter=2,criterion="zeta2",H=irisHmat$H,r=2)
+zetaresults<-anneal(irisHmat$mat,2,nsol=2,niter=2,criterion="zeta2",
+H=irisHmat$H,r=2)
 ccr12.coef(irisHmat$mat,H=irisHmat$H,r=2,zetaresults$subsets)
 
 ##              Card.2

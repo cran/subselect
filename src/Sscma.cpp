@@ -10,14 +10,15 @@
 
 using std::vector;
 
-
 namespace extendedleaps {
 
 vind		p,q,fp,lp,mindim,flst,lastvar,*actv;  
-real		trs,trs2,*lbnd,*ubnd;
+real		trs,trs2;
+double		*lbnd,*ubnd;
 double 		btime,maxtime; 
 int		pcrt; 
-int		ms,*sbsetcnt;                      
+unsigned long	ms;                      
+int		*sbsetcnt;                      
 pcskept		pcsets;
 std::string 	memmsg("Unable to find enough memory to run leaps with this data\n");
 
@@ -41,13 +42,16 @@ const int  NOTFOUND = 99;
 subsetdata *idata,*fulldata;
 globaldata *gidata,*gfulldata;
 vector<partialdata *> pdata;
-vind ndim,maxdim,*prvks,*dmyv,*cmpl,*Flp,*ivlst,*ovlst;                
+vind ndim,maxdim,*prvks,*cmpl,*ivlst,*ovlst;      
 vind flsts,flsti;
-int	pcrttp;                                         
+short int	pcrttp;                                         
 SRCwrkspace*   SW;   
 INVwrkspace*   IW;   
-real  c0,v0,*vc0,*Fl;                               				                   
+double  c0,v0,*vc0;                    				                   
 int maxsbqe,maxcmp;
+extern vind *dmyv,*Flp;   
+extern double *Fl;	 
+extern bool numericalprob;	
 
 #ifdef COUNTING
 int  cntp,fpcnt0;   
@@ -57,20 +61,22 @@ psbst*		sbsarr;
 psbstlist*	bsts;
 
 void resetvar(void);
-int getpcrt(char* st,bool fixed);
+int getpcrt(const char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
 void cleanlists(void);
-void fillres(vind fk,vind nk,int ns,int* bst,int* st,real* bvl,real* vl);
-void saveset(psbstlist,int *,real *l,int,vind);
+void fillres(vind fk,vind nk,int ns,int* bst,int* st,double* bvl,double* vl);	
+void saveset(psbstlist,int *,double *l,int,vind);						
 extern "C" int trivialcmp(const void *,const void *);
 void matasvcttranspose(int m,int n,int* data);
 void asgmemory(void);
 void cleanup(void);
-
-void fsort(void);
+void isort(bool reverse);	
+void fsort(bool reverse);	
 
 void resetvar()
 {
+	SW = 0;
+	IW = 0;
 	actv = prvks = dmyv = cmpl = Flp = ivlst = ovlst= 0;
 	idata = fulldata = 0;
 	gidata = gfulldata = 0;
@@ -79,12 +85,13 @@ void resetvar()
 	sbsarr = 0;
 	bsts = 0;
 	sbsetind = 0;
+	numericalprob = false;	
 	#ifdef COUNTING
 	cntp = 0;   
 	#endif
 }
 
-int getpcrt(char* st,bool fixed)
+int getpcrt(const char* st,bool fixed)
 {
 	if ( !strncmp(st,"TAU_2",5)  )		return TAU;
 	else if ( !strncmp(st,"XI_2",4)  )	return XI;
@@ -144,15 +151,17 @@ void cleanlists() {
 	delete[] cmpl;
 }
 
-bool sscma(bool fullwrksp,subsetdata *nullsetdt,subsetdata *fullsetdt)
+bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt)
 {
+	bool searchcompleted;
+
 	SW = new SRCwrkspace(fullwrksp,p,nullsetdt,ivlst,ovlst);
 	IW = new INVwrkspace(fullwrksp,p,fullsetdt,ivlst,ovlst);
 	flst = flsts;
 	#ifdef COUNTING  
 	fpcnt1 = 0;
 	#endif
-	if (p > fp+lp+1) fsort();
+	if (p > fp+lp+1) fsort(heuristic);
 	else lastvar = IW->subsetat(flsti+1).getithvar(p-1)+1;
 	assert(lastvar > 0 && lastvar <= p);
 	if (fp > 0 && fp == mindim) savfrst();
@@ -160,11 +169,63 @@ bool sscma(bool fullwrksp,subsetdata *nullsetdt,subsetdata *fullsetdt)
 	#ifdef COUNTING  
 	fpcnt = 0;
 	#endif
-	if (p <= fp+lp+1 || prcksp(flst,flst,fp,p-lp,fp+lp+1) )  return  true;
+	if (p > fp+lp+1) {
+		if (!heuristic) searchcompleted = Leaps_Search(flst,flst,fp+lp+1,p,fp,p-lp);
+		else searchcompleted = Rev_Leaps_Search(flst,flst,fp+lp+1,p,fp,p-lp);
+		return searchcompleted;
+	}
+	else return true;
+}
+
+bool sscma(subsetdata *nullsetdt)	// Version of sscma to be employed when only a forward search is performed    
+{
+	SW = new SRCwrkspace(true,p,nullsetdt,ivlst,ovlst);
+	flst = flsts;
+	#ifdef COUNTING  
+	fpcnt1 = 0;
+	#endif
+	if (p > fp+lp+1) isort(true);
+	if ( fp > 0 && fp == mindim && !SW->subsetat(flst+1).nopivot() ) savfrst();
+	#ifdef COUNTING  
+	fpcnt = 0;
+	#endif
+	if (p <= fp+lp || Forward_BreadthF_Search(flst,fp,fp+lp+1,p) )  return  true;
 	else return false;
 }
 
-void fsort()
+void isort(bool reverse)   
+{
+	vind var,*sind;                  
+	vind sskipvar=0;
+	subset *sl,*slt;
+
+	sl = &SW->subsetat(flsts+1);
+	sl->sort(forward,reverse,fp+lp+1,p);     	
+
+	for (vind i=1;i<=flsts;i++)  {
+		slt = &SW->subsetat(i);
+		for (vind j=fp+lp;j<p;j++)  slt->setithvar(j,sl->getithvar(j));
+	}
+	sind = new vind[p-fp-lp];
+
+	for (vind i=0;i<p-fp-lp;i++)  {
+		var = sl->getithvar(fp+lp+i);
+		if (fp == 0 && lp > 0) {
+			sskipvar = lp;
+			sind[i] = var+1;
+		}
+		else sind[i] = sl->getvarp(var)-fp-lp+1;
+	}
+	sl->asgvar(sskipvar,p-fp-lp,sind);
+	delete[] sind;
+
+	{  for (int i=1;i<=flsts+1;i++)  {
+		slt = &SW->subsetat(i);
+		for (int j=fp+lp;j<slt->getp();j++)  slt->setvarp(slt->getithvar(j),j);
+	} }
+}
+
+void fsort(bool reverse)   
 {
 	vind var,*iind,*sind;                  
 	vind sskipvar=0,iskipvar=0;
@@ -173,12 +234,12 @@ void fsort()
 	il = &IW->subsetat(flsti+1);
 	sl = &SW->subsetat(flsts+1);
 
-	il->sort(fp+lp+1,p);
+	il->sort(backward,reverse,fp+lp+1,p);     	
 	lastvar = il->getithvar(p-1)+1;
 
 	{ if (SW != NULL) for (vind i=1;i<=flsts+1;i++)  {
 		slt = &SW->subsetat(i);
-		for (vind j=fp+lp;j<p;j++)  slt->setithvar(j,il->getithvar(j));
+		for (vind j=fp+lp;j<p;j++) slt->setithvar(j,il->getithvar(j));
 	} }
 	{ for (vind i=1;i<=flsti;i++)  {
 		ilt = &IW->subsetat(i);
@@ -220,11 +281,11 @@ void fsort()
 	} }
 }
 
-void fillres(vind fk,vind nk,int ns,int *bst,int *st,real *bvl,real *vl)
+void fillres(vind fk,vind nk,int ns,int *bst,int* st,double* bvl,double* vl)	
 {
 	vind i,lk=fk+nk-1;
 	int *stmatp;
-	
+
 	for (i=0;i<nk;i++)  {
 		stmatp = &(st[i*ns*lk]);
 		saveset(bsts[i],stmatp,&(vl[i*ns]),ns,lk);
@@ -235,8 +296,7 @@ void fillres(vind fk,vind nk,int ns,int *bst,int *st,real *bvl,real *vl)
 	return;
 }
 
-
-void saveset(psbstlist pset,int *bvar,real *bcrtval,int nel,vind dim)
+void saveset(psbstlist pset,int *bvar,double *bcrtval,int nel,vind dim)	
 {
 	int i=0,j,*var;
 
@@ -246,6 +306,7 @@ void saveset(psbstlist pset,int *bvar,real *bcrtval,int nel,vind dim)
 		qsort(static_cast<void *>(var),(*qep)->nvar(),sizeof(*var),trivialcmp);
 		for (j=(*qep)->nvar();j<dim;j++) var[j] = 0; 
 		*bcrtval++ = (*qep)->indice();
+
 	}
 	for (i=pset->size();i<nel;i++)  {
 		for (vind j=0;j<dim;j++) bvar[i*dim+j] = 0;
@@ -275,6 +336,7 @@ void matasvcttranspose(int m,int n,int* data)
 		cleanup();
 		errmsg(memmsg);
 	}
+	tmp = new int[mn];
 	{ for (int i=0;i<m;i++)
 		for (int j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
 	{ for (int i=0;i<mn;i++) data[i] = tmp[i]; }
@@ -284,10 +346,9 @@ void matasvcttranspose(int m,int n,int* data)
 void asgmemory()
 {
 	try  {
-
 		actv = new vind[p];
 		dmyv = new vind[p];
-		Fl = new real[p];
+		Fl = new double[p];
 		Flp = new vind[p];
 
 		if (ms > 0) {
@@ -305,14 +366,14 @@ void asgmemory()
 			if (ms > 0) 
 				{ for (vind i=0;i<ndim;i++) bsts[i] = new sbstlist(sbstsort::descending);  }
 				if (ndim == p-fp-lp+1) { 
-					ubnd = new real[ndim-1];
+					ubnd = new double[ndim-1];
 					{ for (vind i=0;i<ndim-1;i++) 
-						ubnd[i] = std::numeric_limits<real>::infinity();  } 
+						ubnd[i] = std::numeric_limits<float>::infinity();  } 	   
 				}
 				else {
-					ubnd = new real[ndim];
+					ubnd = new double[ndim];
 					{ for (vind i=0;i<ndim;i++) 
-						ubnd[i] = std::numeric_limits<real>::infinity();;  }
+						ubnd[i] = std::numeric_limits<float>::infinity();  } 	
 				}
 			lbnd = 0;
 		}
@@ -321,21 +382,20 @@ void asgmemory()
 			if (ms > 0) {
 				{  for (vind i=0;i<ndim;i++) bsts[i] = new sbstlist(sbstsort::ascending);  }
 				if (ndim == p-fp-lp+1) { 
-					lbnd = new real[ndim-1];
+					lbnd = new double[ndim-1];
 					{ for (vind i=0;i<ndim-1;i++) lbnd[i] = 0.;  }
 				}
 				else {
-					lbnd = new real[ndim];
+					lbnd = new double[ndim];
 					{ for (vind i=0;i<ndim;i++) lbnd[i] = 0.;  }
 				}
 			}
 			ubnd = 0;
 		}
-		if ( pcrt == GCD && pcsets == firstk)  vc0 = new real[q];  
+		if ( pcrt == GCD && pcsets == firstk)  vc0 = new double[q];  
 		else vc0 = 0;
 		prvks = new vind[p-1];
 	}
-
 	catch (std::bad_alloc)   {
 		cleanup();
 		errmsg(memmsg);
@@ -372,3 +432,4 @@ void cleanup(void)
 }
 
 }
+

@@ -39,7 +39,8 @@ validnovcrit<-function(mat,criterion,H,r,p,tolval,tolsym){
 
                 if (criterion != "WALD") {
 			Eeigval = eigen(mat-H,only.values=T)$value
-			if (abs(Eeigval[p]/Eeigval[1]) < tolval) stop("\nError matrix (E=T-H) is not positive definite. Check whether the efects (H) matrix has been correctly specified.\n")
+
+			if (Eeigval[p]/Eeigval[1] < -tolval) stop("\nError matrix (E=T-H) is not positive definite. Check whether the efects (H) matrix has been correctly specified.\n") 
 		}
 
 }

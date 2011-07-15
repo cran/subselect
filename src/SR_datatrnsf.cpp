@@ -17,6 +17,7 @@
 
 namespace extendedleaps {
 
+extern double *Fl;
 extern double	btime,maxtime;
 
 extern const int  GCD      = 1;
@@ -31,7 +32,9 @@ extern const int  NOTFOUND = 99;
 extern int pcrt;    
 
 bool fwrkspace = false;
-
+bool numericalprob = false;	
+double timelimit,numtol;	
+bool stddata=false,onlyf=false;	
 using std::deque;
 
 extern subsetdata *idata,*fulldata;
@@ -39,35 +42,42 @@ extern globaldata *gidata,*gfulldata;
 extern vector<partialdata *> pdata;
 extern int *prvks,*cmpl,*ivlst,*ovlst;    
 extern vind ndim,maxdim;      
-extern real  c0,v0,*vc0;                    
+// extern real  c0,v0,*vc0;                    
+extern double  c0,v0,*vc0;                    
+extern bool onlyf;		
 
-void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank);
-void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,
-				int hrank);
+bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt);
+bool sscma(subsetdata *nullsetdt);		  									
+void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward);		  	
+void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward);	
 void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
-			   double *Hegvct,double *HegvctTinv,double *HegvctEinv,
-			   double ccr12,double wstval,double bartpival,double lawhotval,int hrank);
-void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs);
-void trnsfdrm(double *S,double *Sinv);
-void trnsfdrv(double *S,double *Sinv,double *Ssqr);
+			double *Hegvct,double *HegvctTinv,double *HegvctEinv,
+			double ccr12,double wstval,double bartpival,double lawhotval,int hrank,const bool onlyforward);		
+void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward);		  	
+void trnsfdrm(double *S,double *Sinv,const bool onlyforward);		  							
+void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward);		  					
 
 void resetvar(void);
-int getpcrt(char* st,bool fixed);
+int getpcrt(const char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
-void fillres(vind fk,vind nk,int ns,int* bst,int* st,real* bvl,real* vl);
-void asgmemory(void);
+void fillres(vind fk,vind nk,int ns,int* bst,int* st,double* bvl,double* vl);	
+void asgmemory(void);								
 void cleanup(void);
 
-int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
-	  double* E,double* Ei,double* Hegvct,double* HegvctTinv,double* HegvctEinv,
-	  double wilksval,double bartpival,double lawhotval,double ccr12val,int r,
-	  int kmin,int kmax,int nsol,int* out,int* in,int nout,int nin,
-	  char* cmpcr,int fixed,int* pcind,int nind,int nvar,double timelimit,
-	  int* found,int* subs,double* subsv,double* bestsv,int* bests)
+int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,		
+	  double* E,double* Ei,double* Hegvct,double* HegvctTinv,double* HegvctEinv,	
+	  double wilksval,double bartpival,double lawhotval,double ccr12val,int r,	
+	  int kmin,int kmax,int nsol,int* out,int* in,int nout,int nin,			
+	  const char* cmpcr,int fixed,int* pcind,int nind,int nvar,double timelimit,			
+	  double ntol,int* found,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests)		
 {
-	resetvar();
+	bool heuristic;
+
+ 	resetvar();
 	btime = clock();
+	onlyf = onlyforward;				
 	maxtime = timelimit*CLOCKS_PER_SEC;
+	numtol = ntol;					
 	p = nvar;
 	ms = nsol;
 	if (kmin > nin) mindim = kmin;
@@ -80,47 +90,61 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 		errmsg(st1+st2+st3);
 	}
 	initvlist(in,out,pcind,nin,nout,nind);
-	asgmemory();
-
+	asgmemory();                                                                          					
 	switch (pcrt)  {
 		case TAU:    
-			trnsfdwst(S,Si,E,Ei,wilksval,r);
+			trnsfdwst(S,Si,E,Ei,wilksval,r,onlyf);									
 			break;
 		case XI: 
-			trnsfdtrst(S,Si,Hegvct,HegvctTinv,bartpival,r);
+			trnsfdtrst(S,Si,Hegvct,HegvctTinv,bartpival,r,onlyf);							
 			break;
 		case ZETA: 
-			trnsfdtrst(E,Ei,Hegvct,HegvctEinv,lawhotval,r);
+			trnsfdtrst(E,Ei,Hegvct,HegvctEinv,lawhotval,r,onlyf);							
 			break;
 		case CCR1:    
-			trnsfdccr(S,Si,E,Ei,Hegvct,HegvctTinv,HegvctEinv,ccr12val,wilksval,bartpival,lawhotval,r);
+			trnsfdccr(S,Si,E,Ei,Hegvct,HegvctTinv,HegvctEinv,ccr12val,wilksval,bartpival,lawhotval,r,onlyf);	
 			break;
 		case GCD: 
-			trnsfdgcd(S,Si,Segval,Segvct,q);
+			trnsfdgcd(S,Si,Segval,Segvct,q,onlyf);									
 			break;
 		case MCB2: 
-			trnsfdrm(S,Si);
+			trnsfdrm(S,Si,onlyf);											
 			break;
 		case RV: 
-			trnsfdrv(S,Si,S2);
+			trnsfdrv(S,Si,S2,onlyf);										
 			break;
 	}
-	if ( (*found = sscma(fwrkspace,idata,fulldata)) == true)
-		fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);
+	if (fulldata) {													
+		if (log(timelimit) < -100+5*p) heuristic = true;
+		else heuristic = false;
+		*found = sscma(fwrkspace,heuristic,idata,fulldata);								
+	}														
+	else  *found = sscma(idata);
+	fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);							
+
+	if (!*found) {													
+		char timelascstr[10];											
+		sprintf(timelascstr,"%f",timelimit);									
+		std::string st1("\nWarning: An exact search could not be completed in "),st2(timelascstr),st3(" seconds\n");	
+		msg(st1+st2+st3);											
+	}															
+	if (numericalprob) msg("\nWarning: Because of numerical problems some subsets were excluded from the analysis\n");
+
 	cleanup();
 	return 0;
 }
 
-void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank)
+void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward)	
 {
 	wilksdata  *idataaswilks=0,*fulldataaswilks=0;
 			
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		{ for (int j=0;j<=p;j++) pdata[j] = 0; }
 		for (int j=0;j<=p;j++) pdata[j] = new partialwilksdata(p,0.);
 		idataaswilks = static_cast<wilksdata *>(idata = new wilksdata(0,p,p,hrank,1.));
-		fulldataaswilks = static_cast<wilksdata *>(fulldata = new wilksdata(p,p,p,hrank,wstval));  
+		if (!onlyforward)											
+			fulldataaswilks = static_cast<wilksdata *>(fulldata = new wilksdata(p,p,p,hrank,wstval)); 	
 	}
 	catch (std::bad_alloc)   {
 		cleanup();
@@ -130,27 +154,31 @@ void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int h
 		for (int j=0;j<=i;j++) {
 			idataaswilks->setematcoef(i,j,E[j*p+i]); 
 			idataaswilks->settmatcoef(i,j,S[j*p+i]); 
-			fulldataaswilks->setematcoef(i,j,-Einv[j*p+i]); 
-			fulldataaswilks->settmatcoef(i,j,-Sinv[j*p+i]); 
+			if (!onlyforward)  {						
+				fulldataaswilks->setematcoef(i,j,-Einv[j*p+i]);		
+				fulldataaswilks->settmatcoef(i,j,-Sinv[j*p+i]);		
+			}									
 		}
 	}
 }
 
-void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank)
+void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward)	
 {
 	tracedata  *idataastrst=0,*fulldataastrst=0;
 			
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		{ for (int j=0;j<=p;j++) pdata[j] = 0; }
 		for (int j=0;j<=p;j++) pdata[j] = new partialtracedata(p,hrank);
 		if (pcrt == XI)  {
 			idataastrst = static_cast<tracedata *>(idata = new bartpistdata(0,p,p,hrank,0.));
-			fulldataastrst= static_cast<tracedata *>(fulldata = new bartpistdata(p,p,p,hrank,v0=trval));  
+			if (!onlyforward)											
+				fulldataastrst= static_cast<tracedata *>(fulldata = new bartpistdata(p,p,p,hrank,v0=trval));	
 		}
 		else if (pcrt == ZETA)  {
 			idataastrst = static_cast<tracedata *>(idata = new lawlhotstdata(0,p,p,hrank,0.));
-			fulldataastrst= static_cast<tracedata *>(fulldata = new lawlhotstdata(p,p,p,hrank,v0=trval));  
+			if (!onlyforward)											
+				fulldataastrst= static_cast<tracedata *>(fulldata = new lawlhotstdata(p,p,p,hrank,v0=trval));	
 		}
 	}
 	catch (std::bad_alloc)   {
@@ -160,13 +188,15 @@ void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double 
 	{ for (int i=0;i<p;i++)   
 		for (int j=0;j<=i;j++) {
 			idataastrst->getqfdata()->setcoefmatel(i,j,M[j*p+i]); 
-			fulldataastrst->getqfdata()->setcoefmatel(i,j,-Minv[j*p+i]); 
+			if (!onlyforward)									
+				fulldataastrst->getqfdata()->setcoefmatel(i,j,-Minv[j*p+i]);			
 		}
 	}
 	{ for (int i=0;i<hrank;i++)  {
 		for (int j=0;j<p;j++) {
-			idataastrst->getqfdata()->setvectel(i,j,Hegvct[i*p+j]); 
-			fulldataastrst->getqfdata()->setvectel(i,j,-HegvctMinv[i*p+j]); 
+			idataastrst->getqfdata()->setvectel(i,j,Hegvct[i*p+j]);  
+			if (!onlyforward)										
+				fulldataastrst->getqfdata()->setvectel(i,j,-HegvctMinv[i*p+j]);			
 		}
 	} }
 	return;
@@ -175,34 +205,34 @@ void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double 
 
 void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 			   double *Hegvct,double *HegvctTinv,double *HegvctEinv,
-			   double ccr12,double wstval,double bartpival,double lawhotval,int hrank)
+			   double ccr12,double wstval,double bartpival,double lawhotval,int hrank,const bool onlyforward)
 {
 	singleqfdata  *idataassgqf=0,*fulldataassgqf=0;
 	ccrdata  *idataasccr=0,*fulldataasccr=0;
 	rnk3ccrdata *idataasrnk3ccr=0,*fulldataasrnk3ccr=0;
 		
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		{ for (int j=0;j<=p;j++) pdata[j] = 0; }
 		if (hrank == 1)  {
 			for (int j=0;j<=p;j++) pdata[j] = new partialsingleqfdata();
 			idataassgqf = 
 				static_cast<singleqfdata *>(idata = new singleqfdata(p,p,0.));
-			fulldataassgqf = 
+			if (!onlyforward) fulldataassgqf = 							
 				static_cast<singleqfdata *>(fulldata = new singleqfdata(p,p,ccr12));
 		}
 		else if (hrank == 2)  {
 			for (int j=0;j<=p;j++) pdata[j] = new partialccrdata(0,hrank);
 			idataasccr = 
 				static_cast<ccrdata *>(idata = new rnk2ccrdata(0,p,p,1.,0.,0.));
-			fulldataasccr = 
+			if (!onlyforward) fulldataasccr = 								
 				static_cast<ccrdata *>(fulldata = new rnk2ccrdata(p,p,p,wstval,bartpival,ccr12));
 		}
 		else if (hrank == 3)  {
 			for (int j=0;j<=p;j++) pdata[j] = new partialrnk3ccrdata(0,hrank);
 			idataasrnk3ccr = static_cast<rnk3ccrdata *>( idataasccr = 
 					static_cast<ccrdata *>(idata = new rnk3ccrdata(0,p,p,1.,0.,0.,0.)) );
-			fulldataasrnk3ccr = static_cast<rnk3ccrdata *>( fulldataasccr = 
+			if (!onlyforward) fulldataasrnk3ccr = static_cast<rnk3ccrdata *>( fulldataasccr = 			
 				static_cast<ccrdata *>(fulldata = new rnk3ccrdata(p,p,p,wstval,bartpival,lawhotval,ccr12)) );
 		}
 	}
@@ -214,34 +244,36 @@ void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 		for (int i=0;i<p;i++)  { 
 			for (int j=0;j<=i;j++) {
 				idataassgqf->getqfdata()->setcoefmatel(i,j,S[j*p+i]); 
-				fulldataassgqf->getqfdata()->setcoefmatel(i,j,-Sinv[j*p+i]); 
+				if (!onlyforward) fulldataassgqf->getqfdata()->setcoefmatel(i,j,-Sinv[j*p+i]);		
 			}
 		}
 		for (int j=0;j<p;j++) {
 			idataassgqf->getqfdata()->setvectel(0,j,Hegvct[j]); 
-			fulldataassgqf->getqfdata()->setvectel(0,j,-HegvctTinv[j]); 
+			if (!onlyforward) fulldataassgqf->getqfdata()->setvectel(0,j,-HegvctTinv[j]);		
 		}
 	}
 	else  {
 		{ for (int i=0;i<p;i++)   
 			for (int j=0;j<=i;j++) {
 				idataasccr->settmatcoef(i,j,S[j*p+i]); 
-				fulldataasccr->settmatcoef(i,j,-Sinv[j*p+i]); 
 				idataasccr->setematcoef(i,j,E[j*p+i]); 
-				fulldataasccr->setematcoef(i,j,-Einv[j*p+i]);
+				if (!onlyforward)  {									
+					fulldataasccr->settmatcoef(i,j,-Sinv[j*p+i]); 					
+					fulldataasccr->setematcoef(i,j,-Einv[j*p+i]);					
+				}											
 			}
 		}
 		{ for (int i=0;i<hrank;i++)  {
 			for (int j=0;j<p;j++) {
 				idataasccr->sethtinvel(i,j,Hegvct[i*p+j]); 
-				fulldataasccr->sethtinvel(i,j,-HegvctTinv[i*p+j]); 
+				if (!onlyforward) fulldataasccr->sethtinvel(i,j,-HegvctTinv[i*p+j]); 		
 			}
 		} }
 		if (hrank == 3) { 
 			for (int i=0;i<3;i++)  {
 				for (int j=0;j<p;j++) {
 					idataasrnk3ccr->setheinvel(i,j,Hegvct[i*p+j]); 
-					fulldataasrnk3ccr->setheinvel(i,j,-HegvctEinv[i*p+j]); 
+					if (!onlyforward) fulldataasrnk3ccr->setheinvel(i,j,-HegvctEinv[i*p+j]); 	
 				}
 			}
 		}
@@ -249,25 +281,27 @@ void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 	return;
 }
 
-void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs)
+void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward)			
 {
 	real srtegval;
 	gcddata  *idataasgcd=0,*fulldataasgcd=0;
 			
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		for (int j=0;j<=p;j++) pdata[j] = 0;
 		switch (pcsets)  {
 			case (given): {
 					for (int j=0;j<=p;j++) pdata[j] = new partialfgcddata(p,npcs);
 					idataasgcd = static_cast<gcddata *>(idata = new fgcddata(0,p,p,npcs,0.));
-					fulldataasgcd = static_cast<gcddata *>(fulldata = new fgcddata(p,p,p,npcs,v0=npcs));  
+					if (!onlyforward)										
+						fulldataasgcd = static_cast<gcddata *>(fulldata = new fgcddata(p,p,p,npcs,v0=npcs));	 
 				}
 				break;
 			case (firstk): {
 					{ for (int j=0;j<=p;j++) pdata[j] = new partialvgcddata(p,p); }
 					idataasgcd = static_cast<gcddata *>(idata = new vgcddata(0,p,p,0.,0.));
-					fulldataasgcd = static_cast<gcddata *>(fulldata = new vgcddata(p,p,p,1.,v0=p));  
+					if (!onlyforward)									  
+						fulldataasgcd = static_cast<gcddata *>(fulldata = new vgcddata(p,p,p,1.,v0=p));	
 					for (int j=0;j<npcs;j++) vc0[j] = 0.;  
 				}
 				break;
@@ -280,19 +314,19 @@ void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs)
 	{ for (int i=0;i<p;i++)   
 		for (int j=0;j<=i;j++) {
 			idataasgcd->getqfdata()->setcoefmatel(i,j,S[j*p+i]); 
-			fulldataasgcd->getqfdata()->setcoefmatel(i,j,-Sinv[j*p+i]); 
+			if (!onlyforward) fulldataasgcd->getqfdata()->setcoefmatel(i,j,-Sinv[j*p+i]);		
 		}
 	}
 	{ for (int i=0;i<npcs;i++)  {
-		srtegval = sqrt(Segval[i]);
+		srtegval = sqrt(static_cast<real>(Segval[i]));
 		for (int j=0;j<p;j++) {
 			idataasgcd->getqfdata()->setvectel(i,j,srtegval*Segvct[i*p+j]); 
-			fulldataasgcd->getqfdata()->setvectel(i,j,-Segvct[i*p+j]/srtegval); 
+			if (!onlyforward) fulldataasgcd->getqfdata()->setvectel(i,j,-Segvct[i*p+j]/srtegval);		
 		}
 	} } 
 }
 
-void trnsfdrm(double *S,double *Sinv)
+void trnsfdrm(double *S,double *Sinv,const bool onlyforward)	
 {
 	deque<bool>	avars(p,false); 
 	rmdata *idataasrmdt=0,*fulldataasrmdt=0;
@@ -300,14 +334,14 @@ void trnsfdrm(double *S,double *Sinv)
 	real trs = S[0];
 	{ for (int i=1;i<p;i++) trs += S[i*p+i]; }
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		{ for (int j=0;j<=p;j++) pdata[j] = 0; }
 		for (int j=0;j<=p;j++) pdata[j] = new partialrmdata(p);
 		rmgdata *gdataasrmdt = static_cast<rmgdata *>(gidata = new rmgdata(p));
 		idataasrmdt = static_cast<rmdata *>(idata = new rmdata(p,p,p,gdataasrmdt,avars,trs));
 		gdataasrmdt->settrs(trs);
 		avars.assign(p,true);
-		fulldataasrmdt = static_cast<rmdata *>(fulldata = new rmdata(p,p,p,gdataasrmdt,avars,c0=0.));
+		if (!onlyforward) fulldataasrmdt = static_cast<rmdata *>(fulldata = new rmdata(p,p,p,gdataasrmdt,avars,c0=0.));	
 	}
 	catch (std::bad_alloc)   {
 		cleanup();
@@ -316,11 +350,11 @@ void trnsfdrm(double *S,double *Sinv)
 	for (int i=0;i<p;i++)
 		for (int j=0;j<=i;j++) {
 			idataasrmdt->setcoefmatel(i,j,S[j*p+i]); 
-			fulldataasrmdt->setcoefmatel(i,j,-Sinv[j*p+i]); 
+			if (!onlyforward) fulldataasrmdt->setcoefmatel(i,j,-Sinv[j*p+i]);	
 		}
 }
 
-void trnsfdrv(double *S,double *Sinv,double *Ssqr)
+void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)			
 {
 	deque<bool>	avars(p,false); 
 	rvdata *idataasrvdt=0,*fulldataasrvdt=0;
@@ -328,7 +362,7 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr)
 	real trs2 = Ssqr[0];
 	for (int i=1;i<p;i++) trs2 += Ssqr[i*p+i];
 	try  {
-		pdata.reserve(p+1);
+		pdata.resize(p+1);
 		{ for (int j=0;j<=p;j++) pdata[j] = 0; }
 		for (int j=0;j<=p;j++) pdata[j] = new partialrvdata(p);
 		rvgdata *gdataasrvdt = static_cast<rvgdata *>(gidata = new rvgdata(p));
@@ -336,7 +370,7 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr)
 			for (int j=0;j<=i;j++) gdataasrvdt->sets2(i,j,Ssqr[j*p+i]);  }
 		idataasrvdt =  static_cast<rvdata *>(idata = new rvdata(p,p,p,gdataasrvdt,avars,0,0.));
 		avars.assign(p,true);
-		fulldataasrvdt = static_cast<rvdata *>(fulldata = new rvdata(p,p,p,gdataasrvdt,avars,0,c0=trs2));
+		if (!onlyforward) fulldataasrvdt = static_cast<rvdata *>(fulldata = new rvdata(p,p,p,gdataasrvdt,avars,0,c0=trs2));
 		gdataasrvdt->settrs2(trs2);		
 	}
 	catch (std::bad_alloc)   {
@@ -348,12 +382,14 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr)
 			idataasrvdt->setcoefmatel(i,j,S[j*p+i]); 
 			idataasrvdt->sets2m1(i,j,0.); 
 			idataasrvdt->sets2m1(j,i,0.); 
-			fulldataasrvdt->setcoefmatel(i,j,-Sinv[j*p+i]); 
-			fulldataasrvdt->sets2m1(i,j,S[j*p+i]); 
-			fulldataasrvdt->sets2m1(j,i,S[j*p+i]); 
+			if (!onlyforward)  {
+				fulldataasrvdt->setcoefmatel(i,j,-Sinv[j*p+i]);	
+				fulldataasrvdt->sets2m1(i,j,S[j*p+i]); 
+				fulldataasrvdt->sets2m1(j,i,S[j*p+i]);	
+			}
 		}
 	} 
-	fwrkspace = true; 
+//	fwrkspace = true; 
 }
 
 }

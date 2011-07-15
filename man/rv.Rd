@@ -36,7 +36,7 @@ code, which only requires the covariance (or correlation) matrix of
 the data under consideration.
 
 The fact that \code{indices} can be a matrix or 3-d array allows for
-the computation of the RM values of subsets produced by the search
+the computation of the RV values of subsets produced by the search
 functions \code{\link{anneal}}, \code{\link{genetic}} and
 \code{\link{improve}} (whose output option \code{$subsets} are
 matrices or 3-d arrays), using a different criterion (see the example

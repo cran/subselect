@@ -43,12 +43,19 @@ class gcddata :  public subsetdata {
 	public:
 		virtual ~gcddata(void) { delete sqf; }
 		sqfdata*  getqfdata(void) const	{ return sqf; };
+		virtual bool max(void)  { return true; }
 		virtual const real criterion(void) const;
 		virtual void setcriterion(real c);	
 		virtual void setorgvarl(vind *) {  }
+		virtual bool nopivot(void) const	{ return sqf->nopivot(); }
+		virtual void forbidpivot(void)	{ sqf->forbidpivot(); }	
+		virtual void allowpivot(void)   { sqf->allowpivot(); }
 	protected:
 		vind		nvar;
 		sqfdata*	sqf;
+	private:
+		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
+		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
 };
 
 class fgcddata :  public gcddata {
@@ -57,8 +64,8 @@ class fgcddata :  public gcddata {
 		virtual ~fgcddata(void) { };
 		virtual const real indice(void)	const; 
 		virtual void  getpdata(partialdata *);  
-		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialfgcddata and fgcddata classes
 		  or unpredictable behaviour will result  
@@ -80,8 +87,8 @@ class vgcddata :  public gcddata {
 			{ return static_cast<vsqfdata *>(sqf); }
 		virtual const real indice(void)	const; 
 		virtual void  getpdata(partialdata *);  
-		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const;
-		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last);
+		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point  to partialvgcddata and vgcddata classes
 		  or unpredictable behaviour will result  
@@ -90,6 +97,7 @@ class vgcddata :  public gcddata {
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new vgcddata(nvar,totalnv,partialnv,totalnv,criterion());  }
 		virtual const real*	getbnds(void) const; 	
+		virtual const real*	getsqfparcels(void) const;	
 };
 
 }

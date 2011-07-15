@@ -61,7 +61,7 @@ void  fgcddata::getpdata(partialdata* pd)
 	nvar = pdasfgcd->nvar;
 }
 
-real fgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
+real fgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
 {  
 	partialfgcddata *newdata = static_cast<partialfgcddata *>(pdt);    
 	
@@ -73,11 +73,12 @@ real fgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt
 
 	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
- 	return sqf->updatesum(mmind,var,newdata->pqf);  
+ 	return sqf->updatesum(mmind,var,newdata->pqf,reliable,tol);
 } 
 
-void fgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last)
+void fgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol) 
 {	
+
 	partialfgcddata* newpdata = static_cast<partialfgcddata *>(pdt);    
 	fgcddata* newfdata = static_cast<fgcddata *>(fdt);    
 	
@@ -88,7 +89,7 @@ void fgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* p
 	gcddata* newfdata = dynamic_cast<gcddata *>(fdt);
 	assert(newpdata && newfdata);                                       */
 
-	sqf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->sqf,last);  
+	sqf->pivot(dir,mmind,vp,t,newpdata->pqf,newfdata->sqf,last,reliable,tol); 
 } 
 
 vgcddata::vgcddata(vind nv,vind tnv,vind nvtopiv,real vc0,real crt)
@@ -122,7 +123,7 @@ void  vgcddata::getpdata(partialdata* pd)
 	getvqfdata()->setvc(pdasvgcd->getpvqfdata()->gettmpvc());
 }
 
-real vgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt) const
+real vgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
 {  
 	partialvgcddata *newdata = static_cast<partialvgcddata *>(pdt);    
 	
@@ -134,11 +135,10 @@ real vgcddata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt
 
 	if (dir==forward) newdata->nvar=nvar+1 ; 
 	else newdata->nvar=nvar-1; 
-	return getvqfdata()->updatesum(dir,mmind,var,nvar,newdata->getpvqfdata());  
+	return getvqfdata()->updatesum(dir,mmind,var,nvar,newdata->getpvqfdata(),reliable,tol);	
 } 
 
-void vgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,
-					partialdata* pdt,subsetdata* fdt,bool last)
+void vgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
 {	
 	partialvgcddata* newpdata = static_cast<partialvgcddata *>(pdt);    
 	vgcddata* newfdata = static_cast<vgcddata *>(fdt);    
@@ -150,12 +150,18 @@ void vgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,
 	vgcddata* newfdata = dynamic_cast<vgcddata *>(fdt);
 	assert(newpdata && newfdata);                                            */
 
-	getvqfdata()->pivot(dir,mmind,vp,t,nvar,newpdata->getpvqfdata(),newfdata->getvqfdata(),last);  
+	getvqfdata()->pivot(dir,mmind,vp,t,nvar,newpdata->getpvqfdata(),newfdata->getvqfdata(),last,reliable,tol);
 } 
 
 inline const real* vgcddata::getbnds(void)	const	
 { 
 	return getvqfdata()->getvc(); 
 } 	
+
+inline const real* vgcddata::getsqfparcels(void)	const	
+{ 
+	return getvqfdata()->getvc(); 
+} 	
+
 
 }

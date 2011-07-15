@@ -1,6 +1,8 @@
-\name{leaps}
+\name{eleaps}
 
+\alias{eleaps}
 \alias{leaps}
+
 \concept{Leaps and Bounds algorithm}
 
 \title{A Leaps and Bounds Algorithm for finding the best variable subsets} 
@@ -11,12 +13,12 @@ set of variables, or to a set of its Principal Components.}
 
 \details{
 For each cardinality k (with k ranging from \code{kmin} to \code{kmax}),
-leaps performs a branch and bound search for the best \code{nsol} variable 
+\code{eleaps} performs a branch and bound search for the best \code{nsol} variable 
 subsets according to a specified criterion. Leaps implements Duarte Silva's 
 adaptation (references [2] and [3]) of Furnival and Wilson's Leaps and
 Bounds Algorithm (reference [4]) for variable selection in Regression
 Analysis. If the search is  not completed within a user defined time
-limit, leaps exits with a warning message. 
+limit, \code{eleaps} exits with a warning message. 
 
 The user may force variables to be included and/or excluded from the
 \emph{k}-subsets.
@@ -30,9 +32,9 @@ and [3].
 The function checks for ill-conditioning of the input matrix
 (specifically, it checks whether the ratio of the input matrix's
 smallest and largest eigenvalues is less than \code{tolval}). For an
-ill-conditioned input matrix, execution is aborted. The function
-\code{\link{trim.matrix}} may be used to obtain a well-conditioned input
-matrix.
+ill-conditioned input matrix, the search is restricted to its 
+well-conditioned subsets. The function \code{\link{trim.matrix}} may 
+be used to obtain a well-conditioned input matrix.
 
 In a general descriptive (Principal Components Analysis) setting, the
 three criteria Rm, Rv and Gcd can be used to select good k-variable
@@ -45,7 +47,7 @@ U}{X = A B + U},
 criteria Ccr12, Tau2, Xi2 and Zeta2 can be used to select subsets
 according to their  contribution to an effect characterized by the
 violation of  a reference hypothesis, \eqn{C \Psi = 0}{CB = 0} (see
-reference [2] for 
+reference [3] for 
 further details). In this setting, arguments \code{mat} and \code{H}
 should be set respectively to the usual Total (Hypothesis + Error) and
 Hypothesis, Sum of Squares and Cross-Products (SSCP) matrices. 
@@ -54,7 +56,7 @@ Currently, for reasons of computational efficiency,
 criterion Ccr12 is available only when \eqn{\code{r} \leq  3}{\code{r}<=3}. 
 Particular cases in this setting include Linear Discriminant Analyis
 (LDA), Linear Regression Analysis (LRA), Canonical Correlation
-Analysis (CCA) with one set of variables fixed  and several extensions of
+Analysis (CCA) with one set of variables fixed, and several extensions of
 these and other classical multivariate methodologies.
 
 In the setting of a generalized linear model, criterion Wald can be used 
@@ -70,9 +72,10 @@ The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}}
 create the matrices \code{mat} and \code{H} in all the cases considered.
 }
 
-\usage{leaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,
-include=NULL,criterion="default",pcindices="first_k",timelimit=15,H=NULL,
-r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)} 
+\usage{eleaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,
+include=NULL,criterion="default",pcindices="first_k",timelimit=15,
+H=NULL,r=0, tolval=1000*.Machine$double.eps,
+tolsym=1000*.Machine$double.eps,maxaperr=1E-4)} 
 
 
 \arguments{
@@ -104,7 +107,9 @@ r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
   \code{\link{rv.coef}}, \code{\link{gcd.coef}}, \code{\link{tau2.coef}},
   \code{\link{xi2.coef}}, \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}} 
   and \code{\link{wald.coef}} for further details). The default
-  criterion is "Rm" if parameter \code{r} is zero, and "Tau2" otherwise.}
+  criterion is "Rm" if parameter \code{r} is zero (exploratory and PCA problems),
+  "Wald" if \code{r} is equal to one and \code{mat} has a "FisherI" attribute set to TRUE 
+  (generalized linear models), and "Tau2" otherwise (multivariate linear model framework).}
 
   \item{pcindices}{either a vector of ranks of Principal Components that are to be
   used for comparison with the k-variable subsets (for the Gcd
@@ -113,7 +118,7 @@ r=0, tolval=10*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
   cardinality \emph{k} that has been requested by the user.}
 
   \item{timelimit}{a user specified limit (in seconds) for the maximum time 
-   allowed to conduct the search. After this limit is exceeded, leaps exits
+   allowed to conduct the search. After this limit is exceeded, \code{eleaps} exits
    with a waring message stating that it was not possible to find the otpimal
    subsets within the allocated time.}
  
@@ -136,6 +141,10 @@ smaller than \code{tolval} will abort the search algorithm.}
    will be aborted. If corresponding entries are different, but by less
    than this value, the input matrix will be replaced by its symmetric
    part, i.e., input matrix A becomes (A+t(A))/2.}
+
+  \item{maxaperr}{the tolerance level for the relative rounding error of the 
+   criterion. Subsets where a first order estimate of this error is higher that 
+   "maxaperr" will be excluded from the analysis.}
 
  }
 
@@ -169,7 +178,7 @@ smaller than \code{tolval} will abort the search algorithm.}
 \code{\link{wald.coef}}, \code{\link{xi2.coef}},
 \code{\link{zeta2.coef}}, \code{\link{ccr12.coef}},
 \code{\link{anneal}}, \code{\link{genetic}},  
-\code{\link{anneal}}, \code{\link{leaps}}, \code{\link{trim.matrix}},
+\code{\link{anneal}}, \code{\link{trim.matrix}},
 \code{\link{lmHmat}}, \code{\link{ldaHmat}}, \code{\link{glhHmat}},
 \code{\link{glmHmat}}.}
 
@@ -205,7 +214,7 @@ Regression Models, \emph{Biometrics}, Vol. 34, 318-327.
 ##
 
 data(swiss)
-leaps(cor(swiss),nsol=3, criterion="RM")
+eleaps(cor(swiss),nsol=3, criterion="RM")
 
 ##$subsets
 ##, , Card.1
@@ -263,7 +272,7 @@ leaps(cor(swiss),nsol=3, criterion="RM")
 ##Card.5     1     2     3     5     6
 ##
 ##$call
-##leaps(cor(swiss), nsol = 3, criterion="RM")
+##eleaps(cor(swiss), nsol = 3, criterion="RM")
 
 
 ## --------------------------------------------------------------------
@@ -274,7 +283,7 @@ leaps(cor(swiss),nsol=3, criterion="RM")
 ## 
 
 data(swiss)
-leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="rm")
+eleaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="rm")
 
 ##$subsets
 ##, , Card.2
@@ -308,7 +317,7 @@ leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="rm")
 ##Card.3     1     2     5
 ##
 ##$call
-##leaps(cor(swiss), 2, 3, exclude = 6, nsol = 3, criterion = "gcd")
+##eleaps(cor(swiss), 2, 3, exclude = 6, nsol = 3, criterion = "gcd")
 
 ## --------------------------------------------------------------------
 
@@ -319,7 +328,7 @@ leaps(cor(swiss),2,3,exclude=6,nsol=3,criterion="rm")
 
 
 data(swiss)
-leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
+eleaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 
 ##$subsets
 ##, , Card.2
@@ -353,24 +362,28 @@ leaps(cor(swiss),2,3,criterion="gcd",pcindices=1:3,nsol=3)
 ##Card.3     4     5     6
 ##
 ##$call
-##leaps(cor(swiss), 2, 3, criterion = "gcd", pcindices = 1:3, nsol = 3)
+##eleaps(cor(swiss), 2, 3, criterion = "gcd", pcindices = 1:3, nsol = 3)
 
 
 ## --------------------------------------------------------------------
 
 ##
 ## 4) An example of subset selection in the context of Multiple Linear
-## Regression. Variable 5 in the Cars93 MASS library data set is
-## regressed on 13 other variables. A best subset of linear predictors
-## is sought, using the default criterion ("TAU_2") which, in the case 
-## of a Linear Regression, is merely  the standard Coefficient of
-## Determination, R^2 (as are the other three criteria for the
+## Regression. Variable 5 (average car price) in the Cars93 MASS library 
+## data set is regressed on 13 other variables. A best subset of linear 
+## predictors is sought, using the default criterion ("TAU_2") which, 
+## in the case of a Linear Regression, is merely  the standard Coefficient
+## of Determination, R^2 (as are the other three criteria for the
 ## multivariate linear hypothesis, "XI_2", "CCR1_2" and "ZETA_2").
 ##
 
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,5])
+
+names(Cars93[,5,drop=FALSE])
+## [1] "Price"
+
 colnames(CarsHmat$mat)
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
@@ -380,7 +393,7 @@ colnames(CarsHmat$mat)
 ## [13] "Weight"            
 
 
-leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1)
+eleaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1)
 
 ## $subsets
 ## , , Card.4
@@ -424,7 +437,7 @@ leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=1)
   
 data(iris)
 irisHmat <- ldaHmat(iris[1:4],iris$Species)
-leaps(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
+eleaps(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 
 ## $subsets
 ## , , Card.2
@@ -470,7 +483,11 @@ leaps(irisHmat$mat,kmin=2,kmax=3,H=irisHmat$H,r=2,crit="ccr12")
 library(MASS)
 data(Cars93)
 CarsHmat <- lmHmat(Cars93[,c(7:8,12:15,17:22,25)],Cars93[,4:6])
-colnames(CarsHmat$mat)
+
+names(Cars93[,4:6])
+## [1] "Min.Price" "Price"     "Max.Price"
+
+##  colnames(CarsHmat$mat)
 
 
 ##  [1] "MPG.city"           "MPG.highway"        "EngineSize"        
@@ -480,7 +497,8 @@ colnames(CarsHmat$mat)
 ## [13] "Weight"            
 
 
-leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9)
+eleaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3,
+crit="zeta2", tolsym=1e-9)
 
 ## $subsets
 ## , , Card.4
@@ -532,9 +550,10 @@ leaps(CarsHmat$mat, kmin=4, kmax=6, H=CarsHmat$H, r=3, crit="zeta2", tolsym=1e-9
 
 data(iris)
 iris2sp <- iris[iris$Species != "setosa",]
-logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,iris2sp,family=binomial)
+logrfit <- glm(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+iris2sp,family=binomial)
 Hmat <- glmHmat(logrfit)
-leaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
+eleaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
 
 ## $subsets
 ## , , Card.1
@@ -576,9 +595,16 @@ leaps(Hmat$mat,H=Hmat$H,r=1,criterion="Wald",nsol=3)
 ## Card.3     2     3     4
 
 ## $call
-## leaps(mat = Hmat$mat, nsol = 3, criterion = "Wald", H = Hmat$H, 
+## eleaps(mat = Hmat$mat, nsol = 3, criterion = "Wald", H = Hmat$H, 
 ##    r = 1)
 ## --------------------------------------------------------------------
+
+## It should be stressed that, unlike other criteria in the
+## subselect package, the Wald criterion is not bounded above by
+## 1 and is a decreasing function of subset quality, so that the
+## 3-variable subsets do, in fact, perform better than their smaller-sized
+## counterparts.
+
 
 }
 

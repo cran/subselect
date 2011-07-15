@@ -4,7 +4,7 @@
 \alias{glhHmat.formula}
 \alias{glhHmat.data.frame}
 \title{Total and Effect Deviation Matrices for General Linear Hypothesis}
-\description{Computes total an effect matrices of Sums of Squares and Cross-Product (SSCP) deviations for a general multivariate effect characterized by the violation of a linear hypothesis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{leaps}}.}  
+\description{Computes total and effect matrices of Sums of Squares and Cross-Product (SSCP) deviations for a general multivariate effect characterized by the violation of a linear hypothesis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{eleaps}}.}  
 
 \usage{
 
@@ -29,8 +29,8 @@ matrix.}
 are preferentially to be taken.}
   \item{...}{further arguments for the method.}  
 }
-\details{Consider a multivariate linear model \eqn{x = A Psi + U} and a
-reference hypothesis \eqn{H0: C Psi = 0}, with \eqn{Psi} being a
+\details{Consider a multivariate linear model \eqn{x = A \Psi + U} and a
+reference hypothesis \eqn{H0: C \Psi = 0}, with \eqn{\Psi} being a
 matrix of unknown 
 parameters and C a known coefficient matrix with rank \code{r}. It is well
 known that, under classical Gaussian assumptions, \eqn{H_0} can be tested by
@@ -42,20 +42,20 @@ or not the classical assumptions hold, the same eigenvalues can be
 used to define descriptive indices that measure an "effect"
 characterized by the violation of \eqn{H_0} (see reference [1] for further
 details).  
-Those SSCP matrices are given by \eqn{T = x'(I - P_{omega}) x} and \eqn{H =
-x'(P_{Omega} - P_{omega}) x}, where I is an identity matrix and
-\eqn{P_{Omega} = A(A'A)^-A'} , 
+Those SSCP matrices are given by \eqn{T = x'(I - P_{\omega}) x} and \eqn{H =
+x'(P_{\Omega} - P_{\omega}) x}, where I is an identity matrix and
+\eqn{P_{\Omega} = A(A'A)^-A'} , 
 
-\deqn{P_{omega} = A(A'A)^-A' - A(A'A)^-C'[C(A'A)^-C']^-C(A'A)^-A'}
+\deqn{P_{\omega} = A(A'A)^-A' - A(A'A)^-C'[C(A'A)^-C']^-C(A'A)^-A'}
 
 are projection matrices on the spaces spanned by the columns of A
-(space \eqn{Omega}) and by the linear combinations of these columns that
-satisfy the reference hypothesis (space \eqn{omega}). In these
+(space \eqn{\Omega}) and by the linear combinations of these columns that
+satisfy the reference hypothesis (space \eqn{\omega}). In these
 formulae \eqn{M'} denotes the transpose of \eqn{M} and \eqn{M^-} a
 generalized inverse. \code{glhHmat}  computes the \eqn{T} and \eqn{H}
 matrices which then can be used as input to the 
 search routines \code{\link{anneal}}, \code{\link{genetic}}
-\code{\link{improve}} and \code{\link{leaps}} that try to select
+\code{\link{improve}} and \code{\link{eleaps}} that try to select
 subsets of x according to their contribution to the violation of \eqn{H_0}.}
 
   
@@ -74,24 +74,21 @@ Screening for Multivariate Analysis, \emph{Journal of Multivariate
 Analysis}, Vol. 76, 35-62.} 
 
 \seealso{\code{\link{anneal}}, \code{\link{genetic}},
-\code{\link{improve}}, \code{\link{leaps}}, \code{\link{lmHmat}},
+\code{\link{improve}}, \code{\link{eleaps}}, \code{\link{lmHmat}},
 \code{\link{ldaHmat}}.} 
 \examples{
 ##----------------------------------------------------------------------------
 
-##  The following examples create T and H matrices for different
-## analysis of the MASS data set "crabs". This data 
-##  records physical measurements on 200 specimens of Leptograpsus
-## variegatus crabs observed on the shores of 
-##  Western Australia. The crabs are classified by two factors, sex
-## and sp (crab species as defined by its 
-##  colour: blue or orange), with two levels each. The measurement
-## variables include the carapace length (CL), c
-##  the carapace width (CW), the size of the frontal lobe (FL) and the
-## size of the rear width (RW). In the  
-##  analysis provided, we assume that there is an interest in
-## comparing the subsets of these variables measured in their original 
-##  and logarithmic scales.        
+## The following examples create T and H matrices for different analysis 
+## of the MASS data set "crabs". This data records physical measurements 
+## on 200 specimens of Leptograpsus variegatus crabs observed on the shores 
+## of Western Australia. The crabs are classified by two factors, sex and sp 
+## (crab species as defined by its colour: blue or orange), with two levels 
+## each. The measurement variables include the carapace length (CL), 
+## the carapace width (CW), the size of the frontal lobe (FL) and the size of 
+## the rear width (RW). In the  analysis provided, we assume that there is 
+## an interest in comparing the subsets of these variables measured in their 
+## original and logarithmic scales.        
 
 library(MASS)
 data(crabs)
@@ -156,125 +153,11 @@ Hmat1
 ##    lCW) ~ sp, C = c(0, 1), data = crabs)
 
 
-
-# 2) Create the T and H matrices associated with a linear discriminant
-# analysis on the groups defined by the sex factor. 
-# This call is equivalent to ldaHmat(sex ~ FL + RW + CL + CW  + lFL +
-# lRW + lCL + lCW,crabs) 
-
-Hmat2 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sex,c(0,1),crabs)
-Hmat2
-
-##$mat
-##           FL        RW         CL         CW        lFL        lRW        lCL
-##FL  2431.2422 1623.4509  4846.9787  5283.6093 162.718609 133.360397 158.865134
-##RW  1623.4509 1317.7935  3254.5776  3629.6884 109.877182 107.287243 108.335721
-##CL  4846.9787 3254.5776 10085.3039 11096.5140 326.243285 269.564742 330.912570
-##CW  5283.6093 3629.6884 11096.5140 12331.5680 356.317934 300.786770 364.620761
-##lFL  162.7186  109.8772   326.2433   356.3179  11.114733   9.188391  10.910730
-##lRW  133.3604  107.2872   269.5647   300.7868   9.188391   8.906350   9.130692
-##lCL  158.8651  108.3357   330.9126   364.6208  10.910730   9.130692  11.088706
-##lCW  152.7872  106.4277   321.0253   357.0051  10.503303   8.970570  10.765175
-##          lCW
-##FL  152.78716
-##RW  106.42775
-##CL  321.02534
-##CW  357.00510
-##lFL  10.50330
-##lRW   8.97057
-##lCL  10.76517
-##lCW  10.54334
-
-##$H
-##             FL          RW          CL         CW         lFL        lRW
-##FL    4.5602000  -22.604700   22.514100  17.651900  0.32592438 -1.7010955
-##RW  -22.6047000  112.050450 -111.601350 -87.499650 -1.61559202  8.4322517
-##CL   22.5141000 -111.601350  111.154050  87.148950  1.60911670 -8.3984551
-##CW   17.6519000  -87.499650   87.148950  68.328050  1.26160793 -6.5847043
-##lFL   0.3259244   -1.615592    1.609117   1.261608  0.02329431 -0.1215799
-##lRW  -1.7010955    8.432252   -8.398455  -6.584704 -0.12157987  0.6345612
-##lCL   0.6518995   -3.231436    3.218484   2.523412  0.04659224 -0.2431787
-##lCW   0.4199382   -2.081614    2.073271   1.625522  0.03001362 -0.1566499
-##            lCL         lCW
-##FL   0.65189948  0.41993818
-##RW  -3.23143550 -2.08161407
-##CL   3.21848386  2.07327092
-##CW   2.52341223  1.62552227
-##lFL  0.04659224  0.03001362
-##lRW -0.24317865 -0.15664992
-##lCL  0.09319173  0.06003190
-##lCW  0.06003190  0.03867113
-
-##$r
-##[1] 1
-
-##$call
-##glhHmat.formula(formula = cbind(FL, RW, CL, CW, lFL, lRW, lCL,
-##    lCW) ~ sex, C = c(0, 1), data = crabs)
-
-
-# 3)  Create the T and H matrices associated with a linear
-# discriminant analysis on the groups 
-# defined by all the combinations of the sp and sex factors
-
-C <- matrix(0.,3,4)
-C[row(C)+1 == col(C)] = 1.
-Hmat3 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sp*sex,C,crabs)
-Hmat3
-
-##$mat
-##           FL        RW         CL         CW        lFL        lRW        lCL
-##FL  2431.2422 1623.4509  4846.9787  5283.6093 162.718609 133.360397 158.865134
-##RW  1623.4509 1317.7936  3254.5777  3629.6884 109.877182 107.287243 108.335721
-##CL  4846.9787 3254.5777 10085.3040 11096.5141 326.243285 269.564742 330.912570
-##CW  5283.6093 3629.6884 11096.5141 12331.5680 356.317934 300.786770 364.620761
-##lFL  162.7186  109.8772   326.2433   356.3179  11.114733   9.188391  10.910730
-##lRW  133.3604  107.2872   269.5647   300.7868   9.188391   8.906350   9.130692
-##lCL  158.8651  108.3357   330.9126   364.6208  10.910730   9.130692  11.088706
-##lCW  152.7872  106.4277   321.0253   357.0051  10.503303   8.970570  10.765175
-##          lCW
-##FL  152.78716
-##RW  106.42775
-##CL  321.02534
-##CW  357.00510
-##lFL  10.50330
-##lRW   8.97057
-##lCL  10.76517
-##lCW  10.54334
-
-##$H
-##           FL        RW         CL         CW       lFL        lRW       lCL
-##FL  551.55100 293.31150  801.55410  727.64790 36.537625 22.9129133 26.415477
-##RW  293.31150 301.42895  350.66925  350.13055 19.340459 23.1337807 12.097519
-##CL  801.55410 350.66925 1242.66735 1147.48305 53.257490 27.5230613 40.712175
-##CW  727.64790 350.13055 1147.48305 1099.74375 48.431347 27.2991311 37.753929
-##lFL  36.53763  19.34046   53.25749   48.43135  2.420823  1.5108470  1.754902
-##lRW  22.91291  23.13378   27.52306   27.29913  1.510847  1.7762458  0.947673
-##lCL  26.41548  12.09752   40.71217   37.75393  1.754902  0.9476731  1.335819
-##lCW  21.16545  10.70126   33.04766   31.74540  1.408249  0.8331045  1.089158
-##           lCW
-##FL  21.1654465
-##RW  10.7012563
-##CL  33.0476579
-##CW  31.7454041
-##lFL  1.4082490
-##lRW  0.8331045
-##lCL  1.0891581
-##lCW  0.9182484
-
-##$r
-##[1] 3
-
-##$call
-##glhHmat.formula(formula = cbind(FL, RW, CL, CW, lFL, lRW, lCL,
-##    lCW) ~ sp * sex, C = C, data = crabs)
-
-
-# 4)  Create the T and H matrices associated with an analysis
+# 2)  Create the T and H matrices associated with an analysis
 # of the interactions between the sp and sex factors
 
-Hmat4 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sp*sex,c(0,0,0,1),crabs)
-Hmat4
+Hmat2 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sp*sex,c(0,0,0,1),crabs)
+Hmat2
 
 ##$mat
 ##           FL         RW         CL         CW        lFL        lRW        lCL
@@ -323,13 +206,19 @@ Hmat4
 ##glhHmat.formula(formula = cbind(FL, RW, CL, CW, lFL, lRW, lCL,
 ##    lCW) ~ sp * sex, C = c(0, 0, 0, 1), data = crabs)
 
-# 5)  Create the T and H matrices associated with an analysis
-# of the effect of the sp factor after controlling for sex
+## 3)  Create the T and H matrices associated with an analysis
+## of the effect of the sp factor after controlling for sex
 
 C <- matrix(0.,2,4)
 C[1,3] = C[2,4] = 1.
-Hmat5 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sp*sex,C,crabs)
-Hmat5
+C
+
+##       [,1] [,2] [,3] [,4]
+##  [1,]    0    0    1    0
+##  [2,]    0    0    0    1
+
+Hmat3 <- glhHmat(cbind(FL,RW,CL,CW,lFL,lRW,lCL,lCW) ~ sp*sex,C,crabs)
+Hmat3
 
 ##$mat
 ##           FL         RW         CL         CW        lFL        lRW        lCL

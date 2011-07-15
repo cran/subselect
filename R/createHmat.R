@@ -1,17 +1,7 @@
-lmHmat <- function(x,...) {
-  if (is.null(class(x))) class(x) <- data.class(x)
-  UseMethod("lmHmat",x) 
-}   
- 
-ldaHmat <- function(x,...) {
-  if (is.null(class(x))) class(x) <- data.class(x)
-  UseMethod("ldaHmat",x)
-}
 
-glhHmat <- function(x,...) { 
-  if (is.null(class(x))) class(x) <- data.class(x)
-  UseMethod("glhHmat",x)
-}
+#### lmHmat methods ##################
+
+lmHmat <- function(...)  UseMethod("lmHmat")
   
 lmHmat.default <- function(x,y,...)
 {
@@ -40,6 +30,43 @@ lmHmat.default <- function(x,y,...)
   res
 } 
 
+lmHmat.data.frame <- function(x,y,...)
+{
+   res <- lmHmat.default(data.matrix(x),as.matrix(y))
+   res$call <- match.call()
+   res
+}
+
+lmHmat.formula <- function(formula,data=NULL,...)
+{
+   m <- match.call()
+   if (is.matrix(eval(m$data,sys.parent()))) m$data <- as.data.frame(data)
+   m[[1]] <- as.name("model.frame")
+   m <- eval(m,sys.parent())
+   Terms <- attr(m,"terms")
+   y <- model.extract(m,"response")
+   x <- model.matrix(Terms,m)
+   xint <- match("(Intercept)",dimnames(x)[[2]],nomatch=0)
+   if (xint>0) x <- x[,-xint,drop=F]
+   res <- lmHmat.default(x,y)
+   res$call <- match.call()
+   res 
+}
+
+lmHmat.lm <- function(fitdlmmodel,...)
+  {
+    formula <- fitdlmmodel$call$formula
+    data <- fitdlmmodel$model
+    res <- lmHmat.formula(formula=formula,data=data)
+    res$call <- match.call()
+    res
+  }
+
+ 
+#### ldaHmat methods ##################
+
+ldaHmat <- function(...) UseMethod("ldaHmat")
+
 ldaHmat.default <- function(x,grouping,...)
 {
  if  ( !is.matrix(x) || !is.factor(grouping) ) stop("Arguments of wrong type")
@@ -55,6 +82,52 @@ ldaHmat.default <- function(x,grouping,...)
   res <- list(mat=T,H=H,r=min(ncol(x),k-1),call=match.call())
   res
 }
+
+ldaHmat.data.frame <- function(x,grouping,...)
+{
+   res <- ldaHmat.default(data.matrix(x),grouping)
+   res$call <- match.call()
+   res
+}
+
+ldaHmat.formula <- function(formula,data=NULL,...)
+{
+   m <- match.call()
+   if (is.matrix(eval(m$data,sys.parent()))) m$data <- as.data.frame(data)
+   m[[1]] <- as.name("model.frame")
+   m <- eval(m,sys.parent())
+   Terms <- attr(m,"terms")
+   grouping <- model.extract(m,"response")
+   x <- model.matrix(Terms,m)
+   xint <- match("(Intercept)",dimnames(x)[[2]],nomatch=0)
+   if (xint>0) x <- x[,-xint,drop=F]
+   res <- ldaHmat.default(x,grouping)
+   res$call <- match.call()
+   res
+}
+
+ldaHmat.lda <- function(fitdldamodel,...)
+{
+    scndcallarg <- eval(fitdldamodel$call[[2]])
+    if (is.matrix(scndcallarg) || is.data.frame(scndcallarg))  { 
+    	x <- data.matrix(scndcallarg)
+    	# assumes argument 2 of lda$call remains the data matrix - if that is ever changed, will need a fix
+    	grouping <- eval(fitdldamodel$call[[3]])
+    	# assumes argument 3 of lda$call remains the grouping factor - if that is ever changed, will need a fix
+    	res <- ldaHmat.default(x, grouping)
+    }
+    else  {
+    	formula <- fitdldamodel$call$formula
+   	# assumes that if argument 2 of lda$call is not a matrix or data frame, it should be a formula - if that is ever changed, will need a fix
+    	data <- fitdldamodel$model
+    	res <- ldaHmat.formula(formula=formula,data=data)
+    }	
+    res
+}
+
+#### glhHmat methods ##################
+
+glhHmat <- function(...)  UseMethod("glhHmat")
 
 glhHmat.default <- function(x,A,C,...)
 {
@@ -76,56 +149,10 @@ glhHmat.default <- function(x,A,C,...)
    res
 }
 
-lmHmat.data.frame <- function(x,y,...)
-{
-   res <- lmHmat.default(data.matrix(x),as.matrix(y))
-   res$call <- match.call()
-   res
-}
-
-ldaHmat.data.frame <- function(x,grouping,...)
-{
-   res <- ldaHmat.default(data.matrix(x),grouping)
-   res$call <- match.call()
-   res
-}
-
 glhHmat.data.frame <- function(x,A,C,...)
 {
    if (is.vector(C)) res <- glhHmat.default(data.matrix(x),as.matrix(A),C)
    else res <- glhHmat.default(data.matrix(x),as.matrix(A),as.matrix(C))
-   res$call <- match.call()
-   res
-}
-
-lmHmat.formula <- function(formula,data=NULL,...)
-{
-   m <- match.call()
-   if (is.matrix(eval(m$data,sys.parent()))) m$data <- as.data.frame(data)
-   m[[1]] <- as.name("model.frame")
-   m <- eval(m,sys.parent())
-   Terms <- attr(m,"terms")
-   y <- model.extract(m,"response")
-   x <- model.matrix(Terms,m)
-   xint <- match("(Intercept)",dimnames(x)[[2]],nomatch=0)
-   if (xint>0) x <- x[,-xint,drop=F]
-   res <- lmHmat.default(x,y)
-   res$call <- match.call()
-   res 
-}
-
-ldaHmat.formula <- function(formula,data=NULL,...)
-{
-   m <- match.call()
-   if (is.matrix(eval(m$data,sys.parent()))) m$data <- as.data.frame(data)
-   m[[1]] <- as.name("model.frame")
-   m <- eval(m,sys.parent())
-   Terms <- attr(m,"terms")
-   grouping <- model.extract(m,"response")
-   x <- model.matrix(Terms,m)
-   xint <- match("(Intercept)",dimnames(x)[[2]],nomatch=0)
-   if (xint>0) x <- x[,-xint,drop=F]
-   res <- ldaHmat.default(x,grouping)
    res$call <- match.call()
    res
 }
@@ -146,17 +173,22 @@ glhHmat.formula <- function(formula,C,data=NULL,...)
    res
 }
 
-glmHmat <- function(fittedmodel)
+#### glmHmat methods ##################
+
+glmHmat <- function(...)  UseMethod("glmHmat")
+
+glmHmat.glm <- function(fitdglmmodel,...)
 {
-    if ( names(coef(fittedmodel)[1]) == "(Intercept)" )  {
-    	b <- coef(fittedmodel)[-1]
-    	Sb <- vcov(fittedmodel)[-1,-1]
+    if ( names(coef(fitdglmmodel)[1]) == "(Intercept)" )  {
+    	b <- coef(fitdglmmodel)[-1]
+    	Sb <- vcov(fitdglmmodel)[-1,-1]
     }
     else  {	
-    	b <- coef(fittedmodel)
-    	Sb <- vcov(fittedmodel)
+    	b <- coef(fitdglmmodel)
+    	Sb <- vcov(fitdglmmodel)
     }
     FI <- solve(Sb)
+    attr(FI,"FisherI") <- TRUE
     h <- solve(Sb,b)
     H <- h %o% h
     list(mat=FI,H=H,r=1,call=match.call())
