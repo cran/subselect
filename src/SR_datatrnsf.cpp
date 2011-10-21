@@ -15,6 +15,8 @@
 #include "CCRcrt.h"
 #include "Rnk3CCRcrt.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 extern double *Fl;
@@ -318,7 +320,7 @@ void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,con
 		}
 	}
 	{ for (int i=0;i<npcs;i++)  {
-		srtegval = sqrt(static_cast<real>(Segval[i]));
+		srtegval = std::sqrt(static_cast<real>(Segval[i]));
 		for (int j=0;j<p;j++) {
 			idataasgcd->getqfdata()->setvectel(i,j,srtegval*Segvct[i*p+j]); 
 			if (!onlyforward) fulldataasgcd->getqfdata()->setvectel(i,j,-Segvct[i*p+j]/srtegval);		

@@ -4,6 +4,8 @@
 #include "Vsmabo.h"
 #include "RMcrt.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 #ifdef COUNTING  

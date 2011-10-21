@@ -5,6 +5,8 @@
 #include "Sscma.h"
 #include "Vsmabo.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 const double INF = std::numeric_limits<double>::infinity(); 
@@ -55,7 +57,7 @@ bool INVwrkspace::pivot(vind vp,vind t,vind li,vind lo,double acpbound)
 
 void wrkspace::initwrkspace(bool pivotall,vind nv,subsetdata *data0,vind lstind,vind nvattop,vind nvatbot,vind* vattop,vind* vatbot)
 {
-	vind j2,lastv;
+	vind lastv;
 	vind* tlst=0;
 	subset *ispc;
 	subsetdata *newdata;

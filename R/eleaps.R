@@ -2,16 +2,27 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
                  timelimit=15,H=NULL,r=0,tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps,maxaperr=1E-4) 
 {
 
+###############################
+# auxiliary  variables        #
+###############################
+
+	p <- ncol(mat)    				# Number of original variables
+	nexclude <- length(exclude)     		# Number of excluded variables
+	ninclude <- length(include)     		# Number of included variables
+	if (pcindices != "first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
+
         
 ###############################
 # general validation of input #
 ###############################
 
-  
+
          initialization(mat, criterion, r)
          if (validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym) == "singularmat")  singularmat = TRUE  
          else singularmat = FALSE         
 
+        
 #############################################################
 # validation specific for the input to the eleaps function  #
 #############################################################

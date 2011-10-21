@@ -42,7 +42,7 @@ class rmdata :  public subsetdata {
 		virtual bool max(void)  { return false; }
 		virtual const real criterion(void)	const	{ return crt;  }
 		virtual void setcriterion(real c)		{ crt = c; }
-		virtual const real indice(void)		const	{ return sqrt(1.-crt/gdt->trs()); } 
+		virtual const real indice(void)		const	{ return std::sqrt(1.-crt/gdt->trs()); } 
 		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
 		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /*

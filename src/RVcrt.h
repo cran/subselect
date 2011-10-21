@@ -55,7 +55,7 @@ class rvdata :  public subsetdata {
 		virtual bool max(void)  { return true; }
 		virtual const real criterion(void)	const	{ return crt;  }
 		virtual void setcriterion(real c)		{ crt = c; }
-		virtual const real indice(void)		const	{ return sqrt(crt/gdt->trs2()); } 
+		virtual const real indice(void)		const	{ return std::sqrt(crt/gdt->trs2()); } 
 		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
 		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /*

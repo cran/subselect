@@ -2,6 +2,20 @@ improve<-function(mat, kmin, kmax=kmin, nsol=1, exclude=NULL,
 include=NULL, setseed = FALSE, criterion="default", pcindices="first_k",
 initialsol=NULL, force=FALSE, H=NULL,r=0, tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
 
+#########################################################################################
+# auxiliary  variables (includes declarations to avoid "no visible binding" NOTE)       #
+#########################################################################################
+  
+	p <- ncol(mat)    				# Number of original variables
+	nexclude <- length(exclude)     		# Number of excluded variables
+	ninclude <- length(include)     		# Number of included variables				 
+	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
+	if (!is.null(initialsol)) silog <- TRUE		# The user has specified a set of initial solutions
+	else silog <- FALSE				# The user has not specified a set of initial solutions
+	exc <- exclude					# Name for vector of excluded variables after 'validation' routine 
+	inc <- include					# Name for vector of included variables after 'validation' routine 
+
         
 ###############################
 # general validation of input #

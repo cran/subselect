@@ -279,7 +279,7 @@ bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrw
 
 bool Forward_BreadthF_Search(vind frwind0,vind nvfrwd,vind fvind,vind lvind)
 {
-	vind nv,t,minnv,maxnv,prvfrwind;  
+	vind nv,t,minnv,maxnv;  
 
 	if (p-fvind > 10) {
 		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded

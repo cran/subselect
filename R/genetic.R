@@ -3,6 +3,21 @@ mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="default", pcindices="first_k",
 initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
 
+
+#########################################################################################
+# auxiliary  variables (includes declarations to avoid "no visible binding" NOTE)       #
+#########################################################################################
+
+	p <- ncol(mat)    				# Number of original variables
+	nexclude <- length(exclude)     		# Number of excluded variables
+	ninclude <- length(include)     		# Number of included variables				 
+	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
+	if (!is.null(initialpop)) pilog <- TRUE		# The user has specified an initial population
+	else pilog <- FALSE				# The user has not specified an initial population
+	exc <- exclude					# Name for vector of excluded variables after 'validation' routine 
+	inc <- include					# Name for vector of included variables after 'validation' routine 
+
         
 ###############################
 # general validation of input #

@@ -1,7 +1,12 @@
 
-########## Version 0.11-1 (July 2011) #######################
+########## Version 0.11-2 (October 2011) #######################
 
-* A Subversion repository was created for the subselect project
+* Minor changes in the C++ and R code to try and avoid errors in the Solaris compilation, a warning in Fedora compilation and Notes in all other compilations.
+
+* "using namespace std" added to several *.cpp files.
+
+
+########## Version 0.11-1 (July 2011) #######################
 
 * The "leaps" function was renamed "eleaps", to distinguish it from 
 other "leaps" functions in R packages. The former "leaps" function is 
@@ -24,6 +29,7 @@ created.
 * A new attribute "FisherI" created, to indicate that an object is of 
 class glm and that the Wald criterion should be the default criterion.
 
+* A Subversion repository was created for the subselect project
 
 
 ########## Version 0.10.1 (December 2009) ###################

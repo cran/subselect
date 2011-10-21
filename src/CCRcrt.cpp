@@ -3,6 +3,8 @@
 #include "Vsmabo.h"
 #include "CCRcrt.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 partialccrdata::partialccrdata(vind nvars,vind hrank)
@@ -150,7 +152,7 @@ real rnk2ccrdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool
 	
 	if (newdata->nvar == 1) newccr12 = newbartpist; 
  	else  {
-		newccr12 = 0.5 * ( newbartpist +  sqrt(static_cast<real>(newbartpist*newbartpist -4.*(newbartpist+newwilksst-1.))) );
+		newccr12 = 0.5 * ( newbartpist +  std::sqrt(static_cast<real>(newbartpist*newbartpist -4.*(newbartpist+newwilksst-1.))) );
 
 		#ifdef COUNTING 
 		fpcnt1 += 3;

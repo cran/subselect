@@ -5,6 +5,8 @@
 #include "VSQforms.h"
 #include "GCDcrt.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 inline const real partialgcddata::getcrt(void) const	
@@ -43,7 +45,7 @@ fgcddata::fgcddata(vind nv,vind tnv,vind nvtopiv,vind npcs,real crt)
 
 inline const real fgcddata::indice(void) const	
 {
-	return criterion()/sqrt(static_cast<real>(q*nvar)); 
+	return criterion()/std::sqrt(static_cast<real>(q*nvar)); 
 } 
 
 

@@ -5,6 +5,8 @@
 #include "NewtonRp.h"
 #include "Rnk3CCRcrt.h"
 
+using namespace std;
+
 using namespace newtonrp;
 
 namespace extendedleaps {
@@ -92,7 +94,7 @@ real rnk3ccrdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool
 	
 	if (newdata->nvar == 1) newccr12 = newbartpist; 
  	else if (newdata->nvar == 2)  
-		newccr12 = 0.5 * ( newbartpist +  sqrt(static_cast<real>(newbartpist*newbartpist -4.*(newbartpist+newwilksst-1.))) );
+		newccr12 = 0.5 * ( newbartpist +  std::sqrt(static_cast<real>(newbartpist*newbartpist -4.*(newbartpist+newwilksst-1.))) );
 	else newccr12 = findccr12(newwilksst,newbartpist,newlawhotst,rqbound);
 	newdata->setlawhot(newlawhotst);
 	newdata->setcrt(newccr12);
@@ -127,8 +129,8 @@ double findccr12(double w,double u,double v,double minacpt)
 	b = 2*u -3 + w*(v+3);
 	c = -b + u + w - 1;
 
-	y2 = lhs( x2 = (-a+sqrt(static_cast<double>(a*a-3*b)))/3 );
-	frstap = x2 + sqrt(static_cast<double>(-y2/(3*x2+a)));
+	y2 = lhs( x2 = (-a+std::sqrt(static_cast<double>(a*a-3*b)))/3 );
+	frstap = x2 + std::sqrt(static_cast<double>(-y2/(3*x2+a)));
   /* aproximate r1_2 by a second order expansion (noting that first derivative of lhs is null at x2)  */
 	if (frstap > minacpt) 
 		r1_2 = lsrch(frstap,lhs,lhsd,lhsd2,x2,frstap);    /* find r1_2 exact value   */	

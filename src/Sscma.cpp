@@ -8,6 +8,8 @@
 #include "Subsets.h"
 #include "Vsmabo.h"
 
+using namespace std;
+
 using std::vector;
 
 namespace extendedleaps {
