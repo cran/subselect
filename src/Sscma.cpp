@@ -1,5 +1,5 @@
+// #include <cassert>
 #include <cstdlib>
-#include <cassert>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -7,8 +7,6 @@
 #include "Sscma.h"
 #include "Subsets.h"
 #include "Vsmabo.h"
-
-using namespace std;
 
 using std::vector;
 
@@ -165,7 +163,7 @@ bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fulls
 	#endif
 	if (p > fp+lp+1) fsort(heuristic);
 	else lastvar = IW->subsetat(flsti+1).getithvar(p-1)+1;
-	assert(lastvar > 0 && lastvar <= p);
+//	assert(lastvar > 0 && lastvar <= p);
 	if (fp > 0 && fp == mindim) savfrst();
 	if (maxdim == p-lp) savfull();
 	#ifdef COUNTING  

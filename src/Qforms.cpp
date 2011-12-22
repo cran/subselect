@@ -1,5 +1,3 @@
-#include <cassert>
-#include <cmath>
 #include "Sscma.h"
 #include "Vsmabo.h"
 #include "Qforms.h"
@@ -32,7 +30,7 @@ qfdata::~qfdata()
 	delete e;
 }
 
-void qfdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last,bool& reliable,const double tol)
+void qfdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last,bool& reliable,const double tol)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last,reliable,tol); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 
@@ -93,7 +91,7 @@ real sqfdata::updatesum(vind varind,partialsqfdata* newdata,bool& reliable,const
 	return newsum;
 }
 
-real singleqfdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
+real singleqfdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const
 {
 	partialsingleqfdata *newdata = static_cast<partialsingleqfdata *>(pdt);
 	

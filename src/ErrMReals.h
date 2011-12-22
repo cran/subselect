@@ -4,6 +4,8 @@
 #include <limits>
 #include <cmath>
 
+using namespace std;
+
 namespace  ErrMReals {
 
 template <class T>
@@ -81,9 +83,8 @@ template<class T>
 errmonitreal<T>& errmonitreal<T>::operator+=(const errmonitreal<T>& rhs)
 {	
 	T res = val + rhs.value();
-//	if (!dropec) er = (fabs(val)*er+fabs(rhs.value())*rhs.err())/fabs(res)+RNDERR;
 	if (!dropec) {
-		T absres = fabs(res);
+		T absres = std::fabs(res);
 		if (absres < std::numeric_limits<T>::min()) er = std::numeric_limits<T>::max();
 		else er = (fabs(val)*er+fabs(rhs.value())*rhs.err())/absres+RNDERR;
 	}
@@ -95,9 +96,8 @@ template<class T>
 errmonitreal<T>& errmonitreal<T>::operator-=(const errmonitreal<T>& rhs)
 {	
 	T res = val - rhs.value();;
-//	if (!dropec) er = (fabs(val)*er+fabs(rhs.value())*rhs.err())/fabs(res)+RNDERR;
 	if (!dropec) {
-		T absres = fabs(res);
+		T absres = std::fabs(res);
 		if (absres < std::numeric_limits<T>::min()) er = std::numeric_limits<T>::max();
 		else er = (fabs(val)*er+fabs(rhs.value())*rhs.err())/absres+RNDERR;
 	}
@@ -125,12 +125,10 @@ template<class T>
 const errmonitreal<T> operator+(const errmonitreal<T>& lhs,const errmonitreal<T>& rhs)
 {	
 	T res = lhs.value() + rhs.value();
-//	if (!errmonitreal<T>::dropec) 
-//		return errmonitreal<T>(res,(fabs(lhs.value())*lhs.err()+fabs(rhs.value())*rhs.err())/fabs(res)+errmonitreal<T>::RNDERR);
 	if (!errmonitreal<T>::dropec) {
-		T er,absres=fabs(res);
+		T er,absres=std::fabs(res);
 		if (absres < std::numeric_limits<T>::min()) er = std::numeric_limits<T>::max();
-		else er = (fabs(lhs.value())*lhs.err()+fabs(rhs.value())*rhs.err())/absres + errmonitreal<T>::RNDERR;
+		else er = (std::fabs(lhs.value())*lhs.err()+std::fabs(rhs.value())*rhs.err())/absres + errmonitreal<T>::RNDERR;
 		return errmonitreal<T>(res,er);
 	}
 	else return errmonitreal<T>(res);
@@ -140,12 +138,10 @@ template<class T>
 const errmonitreal<T> operator-(const errmonitreal<T>& lhs,const errmonitreal<T>& rhs)
 {	
 	T res = lhs.value()-rhs.value();
-//	if (!errmonitreal<T>::dropec) 
-//		return errmonitreal<T>(res,(fabs(lhs.value())*lhs.err()+fabs(rhs.value())*rhs.err())/fabs(res)+errmonitreal<T>::RNDERR);
 	if (!errmonitreal<T>::dropec) {
-		T er,absres=fabs(res);
+		T er,absres=std::fabs(res);
 		if (absres < std::numeric_limits<T>::min()) er = std::numeric_limits<T>::max();
-		else er = (fabs(lhs.value())*lhs.err()+fabs(rhs.value())*rhs.err())/absres + errmonitreal<T>::RNDERR;
+		else er = (std::fabs(lhs.value())*lhs.err()+std::fabs(rhs.value())*rhs.err())/absres + errmonitreal<T>::RNDERR;
 		return errmonitreal<T>(res,er);
 	}
 	else return errmonitreal<T>(res);

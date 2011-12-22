@@ -1,5 +1,4 @@
-#include <cmath>
-#include <cassert>
+// #include <cassert>
 #include "Sscma.h"
 #include "Subsets.h"
 
@@ -12,7 +11,7 @@ extern sbset    **sbsarr;
 
 sbset *csbset(vind n,vind* v,real c,real ind)
 {
-	assert(sbsetind < maxsbst);
+//	assert(sbsetind < maxsbst);
 	sbset    *s = sbsarr[sbsetind++];
 	s->nvar_ = n; 
 	for (vind i=0;i<n;i++) s->actvar_[i] = v[i];
@@ -23,7 +22,7 @@ sbset *csbset(vind n,vind* v,real c,real ind)
 
 void dsbset(sbset *s)
 {
-	assert(sbsetind > 0);
+//	assert(sbsetind > 0);
 	(sbsarr[s->pos]=sbsarr[--sbsetind])->pos = s->pos;
 	(sbsarr[sbsetind]=s)->pos = sbsetind;
 	return;

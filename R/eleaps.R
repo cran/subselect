@@ -9,7 +9,7 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
 	p <- ncol(mat)    				# Number of original variables
 	nexclude <- length(exclude)     		# Number of excluded variables
 	ninclude <- length(include)     		# Number of included variables
-	if (pcindices != "first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
 	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
 
         
@@ -22,7 +22,7 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
          if (validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym) == "singularmat")  singularmat = TRUE  
          else singularmat = FALSE         
 
-        
+
 #############################################################
 # validation specific for the input to the eleaps function  #
 #############################################################
@@ -161,7 +161,7 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 #######################################
  
 	 if (Cout$found == FALSE) {
-	    stop("\nEleaps was not able to complete an exact search within the specified time limit.\nTo search for better solutions either increase this limit or try one of the available meta-heuristics.\n") 
+	    warning("Eleaps was not able to complete an exact search within the specified time limit of ",timelimit," seconds, \n and the optimality of the returned solutions cannot be guaranteed.\n To search for better solutions either increase the value of the function argument 'timelimit',\n or try one of the available meta-heuristics (anneal, genetic or improve).\n") 
          }
 	 output <- c(Cout[-5],call=match.call()) 
          dimnames(output$subsets)<-list(paste("Solution",1:nsol,sep=" "),paste("Var",1:kmax,sep="."),paste("Card",kmin:kmax,sep="."))

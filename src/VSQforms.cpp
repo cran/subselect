@@ -1,5 +1,3 @@
-#include <cassert>
-#include <cmath>
 #include <vector>
 #include "Sscma.h"
 #include "Vsmabo.h"

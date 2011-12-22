@@ -56,8 +56,8 @@ class rvdata :  public subsetdata {
 		virtual const real criterion(void)	const	{ return crt;  }
 		virtual void setcriterion(real c)		{ crt = c; }
 		virtual const real indice(void)		const	{ return std::sqrt(crt/gdt->trs2()); } 
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /*
 	Note: subsetdata pointer must point to rvgdata class or unpredictable behaviour will result 
 	(general subsetdata class was used in order to garantee upward compability)

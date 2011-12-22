@@ -88,7 +88,7 @@ class subsetdata {
 		virtual const real indice(void)    const { return criterion(); }
 		   // Returns comparison indice - a monotone function of the comparison
 		   // criterion, used for reporting the results
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double rqbound) const = 0;
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double rqbound) const = 0;
         /* 
 		Updates and returns the comparison criterion 
 		Arguments:
@@ -109,7 +109,7 @@ class subsetdata {
 		virtual bool spdcupd(void)  { return false; }
 //		speed criterion updates - returns true if before finalizing the criterion update computations it may 
 //					already be possible to prove that the current bounds can not be improved
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol) = 0;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol) = 0;
     /* 
 		Updates the data necessary to compute the comparison criterion for future subsets
 		Arguments:
@@ -177,7 +177,7 @@ class subset {
 		vind getvarp(vind ele)	{ return orgvarpos[ele];}
 		void setnvar (vind n)	{ k = n; }
 		vind getnvar(void)	{ return k; }
-		bool pivot(direction d,vind vp,vind t,subset *newsp,bool last,double acpbound);
+		bool pivot(direction dir,vind vp,vind t,subset *newsp,bool last,double acpbound);
 		bool nopivot(void)	{ return data->nopivot(); } 
 		virtual void forbidpivot(void)	{ data->forbidpivot(); }
 		void sort(direction dir,bool reverse,vind fv,vind lv);

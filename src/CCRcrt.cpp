@@ -3,8 +3,6 @@
 #include "Vsmabo.h"
 #include "CCRcrt.h"
 
-using namespace std;
-
 namespace extendedleaps {
 
 partialccrdata::partialccrdata(vind nvars,vind hrank)
@@ -53,13 +51,13 @@ void  ccrdata::getpdata(partialdata* pd)
 
 }
 
-real ccrdata::updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double rqbound) const
+real ccrdata::updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double rqbound) const
 { 
-	if (mmind.direct()) return updatecrt(d,(*(mmind.idpm()))[var-1],pdt,reliable,tol,rqbound); 
-	else return updatecrt(d,(*(mmind.iipm()))[var-1],pdt,reliable,tol,rqbound); 
+	if (mmind.direct()) return updatecrt(dir,(*(mmind.idpm()))[var-1],pdt,reliable,tol,rqbound); 
+	else return updatecrt(dir,(*(mmind.iipm()))[var-1],pdt,reliable,tol,rqbound); 
 }
 
-void ccrdata::pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
+void ccrdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
 { 
 	if (mmind.direct()) pivot(*(mmind.idpm()),vp,t,pdt,fdt,last,reliable,tol); 
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 

@@ -15,8 +15,6 @@
 #include "CCRcrt.h"
 #include "Rnk3CCRcrt.h"
 
-using namespace std;
-
 namespace extendedleaps {
 
 extern double *Fl;
@@ -44,7 +42,6 @@ extern globaldata *gidata,*gfulldata;
 extern vector<partialdata *> pdata;
 extern int *prvks,*cmpl,*ivlst,*ovlst;    
 extern vind ndim,maxdim;      
-// extern real  c0,v0,*vc0;                    
 extern double  c0,v0,*vc0;                    
 extern bool onlyf;		
 
@@ -71,9 +68,10 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	  double wilksval,double bartpival,double lawhotval,double ccr12val,int r,	
 	  int kmin,int kmax,int nsol,int* out,int* in,int nout,int nin,			
 	  const char* cmpcr,int fixed,int* pcind,int nind,int nvar,double timelimit,			
-	  double ntol,int* found,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests)		
+	  double ntol,int* found,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests,
+	  bool printmsg=true)		
 {
-	bool heuristic;
+ 	bool heuristic;
 
  	resetvar();
 	btime = clock();
@@ -124,16 +122,19 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	else  *found = sscma(idata);
 	fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);							
 
-	if (!*found) {													
+	if (!*found &&	printmsg)  {												
 		char timelascstr[10];											
 		sprintf(timelascstr,"%f",timelimit);									
 		std::string st1("\nWarning: An exact search could not be completed in "),st2(timelascstr),st3(" seconds\n");	
-		msg(st1+st2+st3);											
-	}															
-	if (numericalprob) msg("\nWarning: Because of numerical problems some subsets were excluded from the analysis\n");
+		msg(st1+st2+st3);	
+	}
+	if (numericalprob && printmsg) msg("\nWarning: Because of numerical problems some subsets were excluded from the analysis\n");
 
 	cleanup();
-	return 0;
+	if ( !*found && !numericalprob) return 1;
+	if ( *found && numericalprob) return 2;
+	if ( !*found && numericalprob) return 3;
+	if ( *found && !numericalprob) return 0;
 }
 
 void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward)	

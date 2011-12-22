@@ -37,7 +37,7 @@ validmat<-function(mat,p,tolval,tolsym,allowsingular)
 
          if (repcnumb < tolval) {    
 		if (allowsingular==TRUE)  { 			
-			warning(paste("\n The covariance/correlation matrix supplied has reciprocal condition number smaller than \n the specified threshold of ",tolval,".\n Therefore the full variable set might not have a well defined criterion value and the search \n will be restricted to subsets where correlation matrices are well conditioned.\n Setting a lower value of the 'tolval' function argument may force more solutions, but numerical \n accuracy may be compromised. \n You can also try a new function call after excluding  variables responsible for the (real or \n approximate) linear dependences. See help(trim.matrix) for assistance in this respect.",sep=""))  
+			warning(paste("\n The covariance/correlation matrix supplied has reciprocal condition number smaller than \n the specified threshold of ",tolval,".\n Therefore the full variable set might not have a well defined criterion value and the search \n will be restricted to subsets where correlation matrices are well conditioned.\n Setting lower values for the 'tolval' and 'maxaperr' function arguments may force more solutions, but numerical \n accuracy may be compromised. \n You can also try a new function call after excluding  variables responsible for the (real or \n approximate) linear dependences. See help(trim.matrix) for assistance in this respect.",sep=""))  
         		return("singularmat")   
          	}                                    
 		if (allowsingular==FALSE)   	

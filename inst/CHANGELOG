@@ -1,4 +1,15 @@
 
+
+########## Version 0.11-3 (December 2011) #######################
+
+* More changes in the C++ and R code to try and avoid remaining errors in 
+the Solaris compilation and Notes in five other compilations.
+
+* Bug correction in eleaps function: the change made in July 2011 to allow 
+for "partial" searches when the H matrix is singular was also conducting 
+partial searches when the H matrix was OK. 
+
+
 ########## Version 0.11-2 (October 2011) #######################
 
 * Minor changes in the C++ and R code to try and avoid errors in the Solaris compilation, a warning in Fedora compilation and Notes in all other compilations.

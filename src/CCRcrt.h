@@ -60,7 +60,7 @@ class ccrdata :  public subsetdata {
 		virtual void forbidpivot(void)	{ unreliable = true; }
 		virtual void allowpivot(void)   { unreliable = false; }
 	protected:
-		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const = 0; 
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const = 0; 
 		void updatest(real& newwilksst,real& newbartpist,vind varind,partialccrdata* newdtpnt,bool& reliable,const double tol) const;
 		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool las,bool& reliable,const double tol);
 		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
@@ -86,8 +86,8 @@ class rnk2ccrdata : public ccrdata {
 		virtual ~rnk2ccrdata(void) { }
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new rnk2ccrdata(nvar,totalnv,partialnv,wilksst,bartpist,ccr12);  }
-	private:
-		virtual real updatecrt(direction d,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double) const; 
+	protected:
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const; 
 };
 
 }

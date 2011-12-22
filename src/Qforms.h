@@ -47,7 +47,7 @@ class qfdata   {
 	public:
 		qfdata(vind tnv,vind nvtopiv,vind nparcels);
 		virtual ~qfdata(void);
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last,bool& reliable,const double tol);
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last,bool& reliable,const double tol);
 		void setvectel(vind i,vind j,real val)		{ ve[i][j] = val; }
 		void setcoefmatel(vind i,vind j,real val)	{ (*e)(i,j) = val;  }
 		virtual bool nopivot(void) const    { return unreliable; }
@@ -90,8 +90,8 @@ class singleqfdata :  public subsetdata {
 		virtual const real criterion(void) const	{ return qf->qfsum(); }
 		virtual void setcriterion(real c)		{ qf->setqfsum(c); }
 		virtual void setorgvarl(vind *)			{  }
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialsingleqfdata and singleqfdata classes
 		  or unpredictable behaviour will result  

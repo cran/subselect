@@ -1,11 +1,9 @@
+// #include <cassert>
 #include <cstdlib>
-#include <cassert>
 #include <vector>
 #include <limits>
 #include "Sscma.h"
 #include "Vsmabo.h"
-
-using namespace std;
 
 namespace extendedleaps {
 
@@ -190,7 +188,7 @@ void subset::sort(direction dir,bool reverse,vind fv,vind lv)
 	bool reliable(true);
 	double trivbnd(-INF);
 
-	assert(fv > 0 && lv > fv && lv <= p);
+//	assert(fv > 0 && lv > fv && lv <= p);
 	if (!data->max())  trivbnd *= -1;
 	if (!nxtres) nxtres = new knownres[t];
 	for (vind i=0;i<=lv-fv;i++)  {
@@ -238,7 +236,7 @@ void subset::asgvar(vind fvar,vind nv,vind *list)
 	}
 }
 
-bool subset::pivot(direction d,vind vp,vind t,subset *newsp,bool last,double acpbound)
+bool subset::pivot(direction dir,vind vp,vind t,subset *newsp,bool last,double acpbound)
 {
 	bool reliable=true;
 	partialdata* pdt;
@@ -254,7 +252,7 @@ bool subset::pivot(direction d,vind vp,vind t,subset *newsp,bool last,double acp
 		else vporgi = (*(memii->iipm()))[vp-1];  
 		pdt = nxtres[vporgi].pres;
 	}
-	else data->updatecrt(d,*memii,vp,pdt=pdata[0],reliable,numtol,acpbound);
+	else data->updatecrt(dir,*memii,vp,pdt=pdata[0],reliable,numtol,acpbound);
 
 	if (!reliable) {
 		newsp->forbidpivot(); 	
@@ -262,7 +260,7 @@ bool subset::pivot(direction d,vind vp,vind t,subset *newsp,bool last,double acp
 		return false;
 	}
 	newsp->getdatap()->getpdata(pdt);
-	if (!last) data->pivot(d,*memii,vp,t,pdt,newsp->data,last,reliable,INF); 
+	if (!last) data->pivot(dir,*memii,vp,t,pdt,newsp->data,last,reliable,INF); 
 	
 	return true;
 }

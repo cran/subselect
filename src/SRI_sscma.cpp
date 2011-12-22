@@ -1,4 +1,5 @@
 #include "SRI_sscma.h"
+#include "ErrMReals.h" 
 
 extern "C" 
 SEXP eleaps(SEXP S,SEXP S2,SEXP Si,SEXP Segval,SEXP Segvct,
@@ -7,7 +8,7 @@ SEXP eleaps(SEXP S,SEXP S2,SEXP Si,SEXP Segval,SEXP Segvct,
 	SEXP  r,SEXP kmin,SEXP kmax,SEXP nsol,
 	SEXP exclude,SEXP include,SEXP nexclude,SEXP ninclude,
 	SEXP criterion,SEXP fixed,SEXP pcindices,SEXP nbindices,
-	SEXP dim,SEXP timelimit,SEXP ntol,SEXP onlyforward)
+	SEXP dim,SEXP timelimit,SEXP maxaperr,SEXP onlyforward)
 {
 	SEXP subsets,values,bestsets,bestvalues,dimsub,dimval,dimbsets,ans,ans_names;
 
@@ -16,21 +17,31 @@ SEXP eleaps(SEXP S,SEXP S2,SEXP Si,SEXP Segval,SEXP Segvct,
 	int kmax1 = INTEGER(kmax)[0]; 
 	int kmin1 = INTEGER(kmin)[0]; 
 	int klength = kmax1 - kmin1 + 1;
+	int checkcolinearity = INTEGER(onlyforward)[0];  
+
+	if (!checkcolinearity) ErrMReals::errmonitreal<double>::dropec = true;   
+	else ErrMReals::errmonitreal<double>::dropec = false;   
 
    	PROTECT(subsets = allocVector(INTSXP,nsol1*kmax1*klength));
    	PROTECT(values = allocVector(REALSXP,nsol1*klength));
    	PROTECT(bestsets = allocVector(INTSXP,kmax1*klength));
    	PROTECT(bestvalues = allocVector(REALSXP,klength));
-	extendedleaps::callsscma(
+	int retcode = extendedleaps::callsscma(
 		REAL(S),REAL(S2),REAL(Si),REAL(Segval),REAL(Segvct),
 		REAL(E),REAL(Ei),REAL(Hegvct),REAL(HegvctTinv),REAL(HegvctEinv),
 		REAL(wilksval)[0],REAL(bartpival)[0],REAL(lawhotval)[0],REAL(ccr12val)[0],
 		INTEGER(r)[0],kmin1,kmax1,nsol1,
 		INTEGER(exclude),INTEGER(include),INTEGER(nexclude)[0],INTEGER(ninclude)[0],
 		CHAR(STRING_ELT(criterion,0)),INTEGER(fixed)[0],INTEGER(pcindices),INTEGER(nbindices)[0],
-		INTEGER(dim)[0],REAL(timelimit)[0],REAL(ntol)[0],found,INTEGER(onlyforward)[0],
-		INTEGER(subsets),REAL(values),REAL(bestvalues),INTEGER(bestsets)
+		INTEGER(dim)[0],REAL(timelimit)[0],REAL(maxaperr)[0],found,checkcolinearity,
+		INTEGER(subsets),REAL(values),REAL(bestvalues),INTEGER(bestsets),
+		false
 	);
+	if (retcode==2 || retcode==3)  {
+		Rprintf("\nWarning: Because of numerical problems some subsets were excluded from the analysis\n");
+		Rprintf("You can try to increase the number of subsets to be compared by reducing the value\n");
+		Rprintf("of the function argument maxaperr, but the numerical accuracy of results may be compromised\n\n");
+	}
 
    	PROTECT(dimsub = allocVector(INTSXP,3));
    	INTEGER(dimsub)[0] = nsol1;

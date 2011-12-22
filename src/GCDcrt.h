@@ -64,8 +64,8 @@ class fgcddata :  public gcddata {
 		virtual ~fgcddata(void) { };
 		virtual const real indice(void)	const; 
 		virtual void  getpdata(partialdata *);  
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialfgcddata and fgcddata classes
 		  or unpredictable behaviour will result  
@@ -87,8 +87,8 @@ class vgcddata :  public gcddata {
 			{ return static_cast<vsqfdata *>(sqf); }
 		virtual const real indice(void)	const; 
 		virtual void  getpdata(partialdata *);  
-		virtual real updatecrt(direction d,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
-		virtual void pivot(direction d,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point  to partialvgcddata and vgcddata classes
 		  or unpredictable behaviour will result  

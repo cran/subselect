@@ -1,4 +1,4 @@
-#include <cassert>
+// #include <cassert>
 #include <ctime>
 #include "Sscma.h"
 #include "Subsets.h"
@@ -90,7 +90,7 @@ void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minv
 	sbstlist::iterator ptprevsbset;
 	subsetdata *curdata;
 
-	assert(k0 > k1);
+//	assert(k0 > k1);
 	if (revord) vi = p-u+1;
 	else vi = u;
 
@@ -139,7 +139,7 @@ bool Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vi
 // with as many parcels as variables in each subset
 	subsetdata* prvdatapt;
 
-	if (p-lvind > 10) {
+	if (lvind-fvind > 10) {
 		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
 	} 
 
@@ -175,7 +175,6 @@ bool Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vi
 		if ( (minnvbkrd=nvbckwrd-bckind0+i-fvind) < mindim) minnvbkrd = mindim;
 
 		if (maxnvbkrd >= mindim && minnvbkrd <= maxdim) 
-
 //			Make a backward pivot
 			if (maxnvbkrd > maxdim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxdim,true);
 			else if (maxnvbkrd > mindim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxnvbkrd,true);
@@ -214,7 +213,7 @@ bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrw
 // criteria with as many parcels as variables in each subset
 	subsetdata* prvdatapt;
 
-	if (p-fvind > 10) {
+	if (lvind-fvind > 10) {
 		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
 	} 
 
@@ -281,7 +280,7 @@ bool Forward_BreadthF_Search(vind frwind0,vind nvfrwd,vind fvind,vind lvind)
 {
 	vind nv,t,minnv,maxnv;  
 
-	if (p-fvind > 10) {
+	if (lvind-fvind > 10) {
 		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
 	} 
 

@@ -1,10 +1,7 @@
-#include <cassert>
 #include <cmath>
 #include "Sscma.h"
 #include "Vsmabo.h"
 #include "RVcrt.h"
-
-using namespace std;
 
 namespace extendedleaps {
 

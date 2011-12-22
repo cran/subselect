@@ -5,6 +5,8 @@
 #include "Qforms.h"
 #include "MStcrt.h"
 
+using namespace std;
+
 namespace extendedleaps {
 
 wilksdata::wilksdata(vind nv,vind tnv,vind nvtopiv,vind hr,real wst)
@@ -22,8 +24,8 @@ wilksdata::~wilksdata(void)
 
 const real wilksdata::indice(void)	const	
 {
-	if (hrank < nvar) return 1. - pow(wilksst,1./hrank); 
-	else return 1. - pow(wilksst,1./nvar); 
+	if (hrank < nvar) return 1. - std::pow(wilksst,1./hrank); 
+	else return 1. - std::pow(wilksst,1./nvar); 
 } 
 
 void  wilksdata::getpdata(partialdata* pd)  
