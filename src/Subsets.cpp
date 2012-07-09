@@ -8,8 +8,19 @@ namespace extendedleaps {
 extern int sbsetind,maxsbst;
 
 extern sbset    **sbsarr;
+sbset::sbset(int p,vind n)
+ :  pos(p), nvar_(n), actvar_(0)
+{
+	actvar_ = new vind[nvar_];
+}
 
-sbset *csbset(vind n,vind* v,real c,real ind)
+
+sbset::~sbset(void)
+{
+	delete[] actvar_;
+}
+
+sbset *csbset(vind n,vector<vind>& v,real c,real ind)
 {
 //	assert(sbsetind < maxsbst);
 	sbset    *s = sbsarr[sbsetind++];
@@ -26,17 +37,6 @@ void dsbset(sbset *s)
 	(sbsarr[s->pos]=sbsarr[--sbsetind])->pos = s->pos;
 	(sbsarr[sbsetind]=s)->pos = sbsetind;
 	return;
-}
-
-sbset::sbset(int p,vind n)
-:  pos(p), nvar_(n)
-{
-	actvar_ = new vind[nvar_];
-}
-
-sbset::~sbset(void)
-{
-	delete[] actvar_;
 }
 
 }

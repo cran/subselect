@@ -40,7 +40,13 @@ fgcddata::fgcddata(vind nv,vind tnv,vind nvtopiv,vind npcs,real crt)
 	: q(npcs)
 {
 	nvar = nv;
-	sqf = new sqfdata(tnv,nvtopiv,npcs,crt);		
+	try {
+		sqf = new sqfdata(tnv,nvtopiv,npcs,crt);
+	}		
+	catch (...)  {
+		sqf = 0;
+		throw;
+	}	
 }
 
 inline const real fgcddata::indice(void) const	
@@ -97,12 +103,24 @@ void fgcddata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* p
 vgcddata::vgcddata(vind nv,vind tnv,vind nvtopiv,real vc0,real crt)
 {
 	nvar = nv;
-	sqf = new vsqfdata(tnv,nvtopiv,tnv,vc0,crt);		
+	try {
+		sqf = new vsqfdata(tnv,nvtopiv,tnv,vc0,crt);
+	}
+	catch (...)  {
+		sqf = 0;
+		throw;
+	}	
 }
 
 vgcddata::vgcddata(vind nv,vind tnv,vind nvtopiv,const vector<real>& ovc,real crt)
 {
-	sqf = new vsqfdata(tnv,nvtopiv,tnv,ovc,crt);		
+	try {
+		sqf = new vsqfdata(tnv,nvtopiv,tnv,ovc,crt);
+	}		
+	catch (...)  {
+		sqf = 0;
+		throw;
+	}	
 }
 
 inline const real vgcddata::indice(void) const	

@@ -15,15 +15,13 @@ tau2.coef<-function(mat,H,r,indices,tolval=10*.Machine$double.eps,tolsym=1000*.M
   if  (sum(!(as.integer(indices) == indices)) > 0) stop("\n The variable indices must be integers")
 
   p <- dim(mat)[2]
-  validmat(mat,p,tolval,tolsym)
-  
+  validmat(mat,p,tolval,tolsym,allowsingular=TRUE,algorithm="none")
 
 #
 # checks on r and H
 #
 
   validnovcrit(mat,criterion="TAU_2",H,r,p,tolval,tolsym)
-    
 
 #
 # Computing the criterion value

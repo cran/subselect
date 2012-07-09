@@ -19,7 +19,7 @@ partialqfdata::partialqfdata(vind nparcels)
 }
 
 qfdata::qfdata(vind tnv,vind nvtopiv,vind nparcels)
-  :  p(tnv), k(nvtopiv), r(nparcels), unreliable(false)	
+  :  p(tnv), k(nvtopiv), r(nparcels), unreliable(false), e(0)	
 {
 	ve.assign(r,vector<real>(k));
 	e = new symtwodarray(k);
@@ -51,7 +51,7 @@ void qfdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,q
 }
 
 sqfdata::sqfdata(vind tnv,vind nvtopiv,vind nparcels,real sum)
-  :  qfdata(tnv,nvtopiv,nparcels), sum_(sum) 
+  :  qfdata(tnv,nvtopiv,nparcels), sum_(sum), rpl(0) 
 {  
 	rpl = new real *[2*r+2];
 }

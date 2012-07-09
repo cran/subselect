@@ -5,8 +5,6 @@
 #include "Sscma.h"
 #include "ErrMReals.h"
 
-// #include <R.h>
-
 using std::vector;
 
 namespace extendedleaps {
@@ -21,7 +19,7 @@ class symtwodarray   {	//  Symmetric two dimensional array class. Stores a symme
 		~symtwodarray(void);	//  Destructor 
 		real&  operator() (const vind i,const vind j)	//  Subscripting: reading and writing.  Uses (,) sintaxe starting at (0,0)
 		{ if (j<=i) return data[i][j];	else return data[j][i]; }
-		const real  operator() (const vind i,const vind j) const	//  Subscripting: read only. Uses (,) sintaxe starting at (0,0)
+		const real  operator() (const vind i,const vind j) const  //  Subscripting: read only. Uses (,) sintaxe starting at (0,0)
 		{ if (j<=i) return data[i][j];	else return data[j][i]; }
 	private:
 		vind	dimension;  
@@ -98,17 +96,14 @@ void symatpivot(I& rowind,const real& pivotvalue,const symtwodarray& im,symtwoda
 	vind pivotind=rowind[vp-1];
 	real t1,*c;
 
-// Rprintf("Symatpivot 1 -- pivotvalue = %f\n",pivotvalue.value());
 	reliable = true;
 	rowind.reset(vp);
 	for (vind i=0;i<t;rowind++,i++)  {
 		t1 = im(rowind(),pivotind) / pivotvalue;
-// Rprintf("Symatpivot 2 - i= %d t1 = %f\n",i,t1.value());
 		colind.reset(vp);
 		for (vind j=0;j<=i;colind++,j++) {
 			c = &(om(i,j) = im(rowind(),colind()) - t1 * im(pivotind,colind()));
 			if (!errcheck(c,tol)) reliable = false;
-// Rprintf("Symatpivot 3 - i= %d j = %d om = %f\n",i,j,c->value());
 		}	
 	}
 
@@ -166,10 +161,8 @@ void vectorpivot(I& colind,const matvectarray& iv,matvectarray& ov,const symtwod
 	reliable = true;
 	colind.reset(vp);
 
-// Rprintf("\nVectorpivot t1 = %f\n",t1.value());
 	for (vind j=0;j<t;colind++,j++)  {
 		c = iv[colind()] - t1 * im(pivotind,colind());
-// Rprintf("j = %d -- iv = %f ; im = %f --> c = %f\n",j,iv[colind()].value(),im(pivotind,colind()).value(),c.value());
 		if (!errcheck(&c,tol)) reliable = false;
 		else ov.setvalue(j,c);
 	}

@@ -1,4 +1,6 @@
-anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,exclude=NULL, include=NULL, improvement=TRUE,setseed = FALSE, cooling=0.05, temp=1,coolfreq=1, criterion="default", pcindices="first_k", initialsol=NULL,force=FALSE,H=NULL,r=0, tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
+anneal <- function(mat, kmin, kmax=kmin, nsol=1, niter=1000,exclude=NULL, include=NULL, improvement=TRUE,setseed = FALSE, cooling=0.05, temp=1,coolfreq=1, criterion="default", pcindices="first_k", initialsol=NULL,force=FALSE,H=NULL,r=0, tolval=1000*.Machine$double.eps, 
+tolsym=1000*.Machine$double.eps)
+{
 
 
 #########################################################################################
@@ -8,7 +10,7 @@ anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,exclude=NULL, include=
 	p <- ncol(mat)    				# Number of original variables
 	nexclude <- length(exclude)     		# Number of excluded variables
 	ninclude <- length(include)     		# Number of included variables				 
-	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	if (pcindices[1]!="first_k") esp <- TRUE	# The user has specified the set of Principal Components to be used with the GCD criterion
 	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
 	if (!is.null(initialsol)) silog <- TRUE		# The user has specified a set of initial solutions
 	else silog <- FALSE				# The user has not specified a set of initial solutions
@@ -22,7 +24,9 @@ anneal<-function(mat, kmin, kmax=kmin, nsol=1, niter=1000,exclude=NULL, include=
 ###############################
 
         initialization(mat, criterion, r)
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
+         if (validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval, tolsym, "anneal") == "singularmat")  
+		singularmat <- TRUE  
+         else singularmat <- FALSE         
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
         
@@ -43,7 +47,6 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
         implog<-FALSE
         validannimp(kmin, kmax, nsol, exclude, nexclude, include, ninclude, initialsol,implog)
 
-
 #############################################################
 # validation specific for the input to the anneal function  #
 #############################################################
@@ -51,12 +54,19 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
         if (!(as.integer(coolfreq) == coolfreq) | (coolfreq < 1)) stop("\n The 'cooling frequency' parameter must be a non-negative integer")
         if (cooling<=0 || cooling >=1) stop("\n values of the 'cooling' parameter must be between 0 and 1")
 
-
-
 ##########################################
 # initializations for Fortran subroutine #
 ##########################################
 
+       # Normalize matrices in order to improve numerical accuracy
+	
+	if (r==0) mat <- mat/max(mat)
+	else {
+		scl <- sqrt(diag(mat)) 
+        	sclotprd <- outer(scl,scl)
+		mat <- mat/sclotprd
+        	H <- H/sclotprd
+	}  
         if (setseed == TRUE) {set.seed(2,kind="default")} 
         valores<-rep(0.0,length(kmin:kmax)*nsol)    
         vars<-rep(0,nsol*length(kmin:kmax)*kmax)
@@ -66,11 +76,11 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
           decespectral<-eigen(mat,symmetric=TRUE)
           valp<-decespectral$values
           vecp<-decespectral$vectors
-               }
-           else {
+        }
+        else {
               valp<-rep(0,p)
               vecp<-matrix(nrow=p,ncol=p,rep(0,p*p))
-                 }
+        }
      
 
 ##################################
@@ -85,9 +95,8 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
             	H <- H / Waldval     
 	    	criterion <- "XI_2"
 		criterio <- 5
-		Walddec <- TRUE
 	}
-        else Walddec <- FALSE
+        else Waldval <- NULL
 
        Fortout<-.Fortran("anneal",as.integer(criterio),as.integer(p),
           as.double(as.vector(mat)),
@@ -100,29 +109,17 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
           as.integer(coolfreq),as.integer(length(pcindices)),
           as.integer(pcindices),as.logical(esp),as.logical(silog),
           as.integer(as.vector(initialsol)), as.double(valp),
-          as.double(as.vector(vecp)), as.double(as.vector(H)),as.integer(r),PACKAGE="subselect")
+          as.double(as.vector(vecp)), as.double(as.vector(H)),as.integer(r),
+	  as.logical(singularmat),as.double(tolval),logical(1),
+	  PACKAGE="subselect")
 
-########################
-# preparing the output #
-########################
+#######################################
+# Preparing and returning the output  #
+#######################################
 
-        valores<-matrix(nrow=nsol,ncol=length(kmin:kmax),Fortout[[6]])
-        dimnames(valores)<-list(paste("Solution",1:nsol,sep=" "),paste("card.",kmin:kmax,sep=""))
-        variaveis<-array(Fortout[[7]],c(nsol,kmax,length(kmin:kmax)))
-        dimnames(variaveis)<-list(paste("Solution",1:nsol,sep=" "),paste("Var",1:kmax,sep="."),paste("Card",kmin:kmax,sep="."))
-        bestval<-Fortout[[8]]
-        names(bestval)<-paste("Card",kmin:kmax,sep=".")
-        bestvar<-t(matrix(nrow=kmax,ncol=length(kmin:kmax),Fortout[[9]]))
-        dimnames(bestvar)<-list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
-        output<-list(variaveis,valores,bestval,bestvar,match.call())
-        names(output)<-c("subsets","values","bestvalues","bestsets","call")
-        if (Walddec)  {
-		criterion <- "WALD"
-		criterio <- 8
-		validvalues <- output$values[output$values > 0.]
-		output$values[output$values > 0.] <- rep(Waldval,length(validvalues)) - validvalues*Waldval 
-		output$bestvalues <- rep(Waldval,kmax-kmin+1) - output$bestvalues*Waldval
-      }	
-        output}
+	output <- prepRetOtp(c(Fortout[6:9],call=match.call()),kmin,kmax,nsol,Waldval,"anneal",Numprb=Fortout[[31]]) 
+	if (is.null(output)) return(invisible(NA))
+	output   # return(output)
+}
 
 

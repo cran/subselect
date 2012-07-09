@@ -1,7 +1,9 @@
-genetic<-function(mat, kmin, kmax=kmin, popsize=100, nger=100,
+genetic<-function(mat, kmin, kmax=kmin, popsize=max(100,2*ncol(mat)), nger=100,
 mutate=FALSE, mutprob=0.01, maxclone=5, exclude=NULL, include=NULL,
 improvement=TRUE, setseed= FALSE,  criterion="default", pcindices="first_k",
-initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps){
+initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,
+tolsym=1000*.Machine$double.eps)
+{
 
 
 #########################################################################################
@@ -11,7 +13,7 @@ initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,tolsym
 	p <- ncol(mat)    				# Number of original variables
 	nexclude <- length(exclude)     		# Number of excluded variables
 	ninclude <- length(include)     		# Number of included variables				 
-	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	if (pcindices[1]!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
 	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
 	if (!is.null(initialpop)) pilog <- TRUE		# The user has specified an initial population
 	else pilog <- FALSE				# The user has not specified an initial population
@@ -25,7 +27,8 @@ initialpop=NULL, force=FALSE, H=NULL, r=0,tolval=1000*.Machine$double.eps,tolsym
 
   
         initialization(mat, criterion, r)
-        validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym)
+        if (validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval, tolsym, "genetic") == "singularmat")  singularmat = TRUE  
+        else singularmat = FALSE         
         maxnovar = 400
         if ((p > maxnovar) & (force==FALSE)) stop("\n For very large data sets, memory problems may crash the R session. \n To proceed anyways, repeat the function call with \n the argument 'force' set to 'TRUE' (after saving anything important \n from the current session)\n")
 
@@ -49,6 +52,16 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 ##############################################
 # initializations for the Fortran subroutine #
 ##############################################
+
+       # Normalize matrices in order to improve numerical accuracy
+	
+	if (r==0) mat <- mat/max(mat)
+	else {
+		scl <- sqrt(diag(mat)) 
+        	sclotprd <- outer(scl,scl)
+		mat <- mat/sclotprd
+        	H <- H/sclotprd
+	}  
 
         if (setseed == TRUE) set.seed(2,kind="default")
         valores<-rep(0.0,length(kmin:kmax)*popsize)
@@ -79,11 +92,10 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
                 H <- H / Waldval 
 		criterion <- "XI_2"
 		criterio <- 5
-		Walddec <- TRUE
 	}
-        else Walddec <- FALSE
+        else Waldval <- NULL
 
-        Fortout<-.Fortran("genetic",as.integer(criterio),as.integer(p),
+        Fortout <- .Fortran("genetic",as.integer(criterio),as.integer(p),
           as.double(as.vector(mat)),
           as.integer(kmin),as.integer(kmax),as.double(valores),
           as.integer(vars),as.double(bestval),as.integer(bestvar),
@@ -94,37 +106,26 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
           as.integer(length(pcindices)),as.integer(pcindices),as.logical(esp),
           as.integer(kabort),as.logical(pilog),
           as.integer(as.vector(initialpop)),as.double(valp),
-          as.double(as.vector(vecp)),as.double(as.vector(H)),as.integer(r),PACKAGE="subselect")
+          as.double(as.vector(vecp)),as.double(as.vector(H)),as.integer(r),
+	  as.logical(singularmat),as.double(tolval),logical(1),
+	  PACKAGE="subselect")
 
-########################
-# preparing the output #
-########################
+#######################################
+# Preparing and returning the output  #
+#######################################
 
-        kabort<-Fortout[[23]]
-        valores<-matrix(nrow=popsize,ncol=length(kmin:kmax),Fortout[[6]])
-        dimnames(valores)<-list(paste("Solution",1:popsize,sep=" "),paste("card.",kmin:kmax,sep=""))
-        variaveis<-array(Fortout[[7]],c(popsize,kmax,length(kmin:kmax)))
-        dimnames(variaveis)<-list(paste("Solution",1:popsize,sep=" "),paste("Var",1:kmax,sep="."),paste("Card",kmin:kmax,sep="."))
-        bestval<-Fortout[[8]]
-        names(bestval)<-paste("Card",kmin:kmax,sep=".")
-        bestvar<-t(matrix(nrow=kmax,ncol=length(kmin:kmax),Fortout[[9]]))
-        dimnames(bestvar)<-list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
-        output<-list(variaveis[,1:(kabort-1),1:(kabort-kmin),drop=FALSE],valores[,1:(kabort-kmin),drop=FALSE],bestval[1:(kabort-kmin)],bestvar[1:(kabort-kmin),1:(kabort-1),drop=FALSE],match.call())
-        names(output)<-c("subsets","values","bestvalues","bestsets","call")
-        if (Walddec)  {
-		criterion <- "WALD"
-		criterio <- 8
-		validvalues <- output$values[output$values > 0.]
-		output$values[output$values > 0.] <- rep(Waldval,length(validvalues)) - validvalues * Waldval
-		output$bestvalues <- rep(Waldval,kmax-kmin+1) - output$bestvalues * Waldval
-        }
-    if (kabort > kmin){
-        output
-       } else
-       {
-        output  <- NA
-        return(invisible(output))
-       }
-      }
+	output <- prepRetOtp(c(Fortout[6:9],call=match.call()),kmin,kmax,popsize,Waldval,"genetic",Numprb=Fortout[[32]]) 
+        kabort <- Fortout[[23]]
+#	if (kabort <= kmin || is.null(output)) return(invisible(NA))
+#	maxk <- min(kabort-1,kmin+nrow(output$bestsets)-1)
+	if (is.null(output)) return(invisible(NA))
+	maxk <- min(kabort,kmin+nrow(output$bestsets)-1)
+
+        list(subsets=output$subsets[,1:maxk,1:(maxk-kmin+1),drop=FALSE],
+		     values=output$values[,1:(maxk-kmin+1),drop=FALSE],
+		     bestvalues=output$bestvalues[1:(maxk-kmin+1)],
+		     bestsets=output$bestsets[1:(maxk-kmin+1),1:maxk,drop=FALSE],
+		     call=output$call)
+}
 
 

@@ -14,11 +14,11 @@
 #include "MStcrt.h"
 #include "CCRcrt.h"
 #include "Rnk3CCRcrt.h"
-
+ 
 namespace extendedleaps {
 
 extern double *Fl;
-extern double	btime,maxtime;
+extern clock_t ctime; 
 
 extern const int  GCD      = 1;
 extern const int  RV       = 2;
@@ -28,6 +28,8 @@ extern const int  XI       = 5;
 extern const int  ZETA     = 6;	
 extern const int  CCR1     = 7;	
 extern const int  NOTFOUND = 99;
+
+enum trnsfres {sucess,nomem};
 
 extern int pcrt;    
 
@@ -45,22 +47,22 @@ extern vind ndim,maxdim;
 extern double  c0,v0,*vc0;                    
 extern bool onlyf;		
 
-bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt);
-bool sscma(subsetdata *nullsetdt);		  									
-void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward);		  	
-void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward);	
-void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
+sscmares sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt);
+sscmares sscma(subsetdata *nullsetdt);		  									
+trnsfres trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward);		  	
+trnsfres trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward);	
+trnsfres trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 			double *Hegvct,double *HegvctTinv,double *HegvctEinv,
 			double ccr12,double wstval,double bartpival,double lawhotval,int hrank,const bool onlyforward);		
-void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward);		  	
-void trnsfdrm(double *S,double *Sinv,const bool onlyforward);		  							
-void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward);		  					
+trnsfres trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward);		  	
+trnsfres trnsfdrm(double *S,double *Sinv,const bool onlyforward);		  							
+trnsfres trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward);		  					
 
 void resetvar(void);
 int getpcrt(const char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
 void fillres(vind fk,vind nk,int ns,int* bst,int* st,double* bvl,double* vl);	
-void asgmemory(void);								
+bool asgmemory(void);								
 void cleanup(void);
 
 int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,		
@@ -68,15 +70,17 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	  double wilksval,double bartpival,double lawhotval,double ccr12val,int r,	
 	  int kmin,int kmax,int nsol,int* out,int* in,int nout,int nin,			
 	  const char* cmpcr,int fixed,int* pcind,int nind,int nvar,double timelimit,			
-	  double ntol,int* found,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests,
+	  double ntol,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests,
 	  bool printmsg=true)		
 {
  	bool heuristic;
+	sscmares srchres;
+	trnsfres tres;
 
  	resetvar();
-	btime = clock();
+	ctime = clock();
+	maxtime = rtime = timelimit*CLOCKS_PER_SEC;
 	onlyf = onlyforward;				
-	maxtime = timelimit*CLOCKS_PER_SEC;
 	numtol = ntol;					
 	p = nvar;
 	ms = nsol;
@@ -90,54 +94,62 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 		errmsg(st1+st2+st3);
 	}
 	initvlist(in,out,pcind,nin,nout,nind);
-	asgmemory();                                                                          					
-	switch (pcrt)  {
+	if (!asgmemory()) return 4;                                                                        				 	 switch (pcrt)  {
 		case TAU:    
-			trnsfdwst(S,Si,E,Ei,wilksval,r,onlyf);									
+			tres = trnsfdwst(S,Si,E,Ei,wilksval,r,onlyf);									
 			break;
 		case XI: 
-			trnsfdtrst(S,Si,Hegvct,HegvctTinv,bartpival,r,onlyf);							
+			tres = trnsfdtrst(S,Si,Hegvct,HegvctTinv,bartpival,r,onlyf);							
 			break;
 		case ZETA: 
-			trnsfdtrst(E,Ei,Hegvct,HegvctEinv,lawhotval,r,onlyf);							
+			tres = trnsfdtrst(E,Ei,Hegvct,HegvctEinv,lawhotval,r,onlyf);							
 			break;
 		case CCR1:    
-			trnsfdccr(S,Si,E,Ei,Hegvct,HegvctTinv,HegvctEinv,ccr12val,wilksval,bartpival,lawhotval,r,onlyf);	
+			tres = trnsfdccr(S,Si,E,Ei,Hegvct,HegvctTinv,HegvctEinv,ccr12val,wilksval,bartpival,lawhotval,r,onlyf);	
 			break;
 		case GCD: 
-			trnsfdgcd(S,Si,Segval,Segvct,q,onlyf);									
+			tres = trnsfdgcd(S,Si,Segval,Segvct,q,onlyf);									
 			break;
 		case MCB2: 
-			trnsfdrm(S,Si,onlyf);											
+			tres = trnsfdrm(S,Si,onlyf);											
 			break;
 		case RV: 
-			trnsfdrv(S,Si,S2,onlyf);										
+			tres = trnsfdrv(S,Si,S2,onlyf);										
 			break;
+	}
+	if (tres==nomem)  {
+		cleanup();
+		msg(memmsg);
+		return 4;
 	}
 	if (fulldata) {													
 		if (log(timelimit) < -100+5*p) heuristic = true;
 		else heuristic = false;
-		*found = sscma(fwrkspace,heuristic,idata,fulldata);								
+		srchres = sscma(fwrkspace,heuristic,idata,fulldata);								
 	}														
-	else  *found = sscma(idata);
+	else srchres = sscma(idata);
+	if (srchres== nomemory)  {
+		cleanup();
+		return 4;
+	}
 	fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);							
-
-	if (!*found &&	printmsg)  {												
+	if (srchres==limsrchbest &&printmsg) {												
 		char timelascstr[10];											
 		sprintf(timelascstr,"%f",timelimit);									
 		std::string st1("\nWarning: An exact search could not be completed in "),st2(timelascstr),st3(" seconds\n");	
 		msg(st1+st2+st3);	
 	}
 	if (numericalprob && printmsg) msg("\nWarning: Because of numerical problems some subsets were excluded from the analysis\n");
-
 	cleanup();
-	if ( !*found && !numericalprob) return 1;
-	if ( *found && numericalprob) return 2;
-	if ( !*found && numericalprob) return 3;
-	if ( *found && !numericalprob) return 0;
+
+	if (srchres==limsrchbest && !numericalprob) return 1;
+	if (srchres==optimal && numericalprob) return 2;
+	if (srchres==limsrchbest && numericalprob) return 3;
+	if (srchres==optimal && !numericalprob) return 0;
 }
 
-void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward)	
+
+trnsfres trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int hrank,const bool onlyforward)	
 {
 	wilksdata  *idataaswilks=0,*fulldataaswilks=0;
 			
@@ -149,9 +161,8 @@ void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int h
 		if (!onlyforward)											
 			fulldataaswilks = static_cast<wilksdata *>(fulldata = new wilksdata(p,p,p,hrank,wstval)); 	
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	{ for (int i=0;i<p;i++)   
 		for (int j=0;j<=i;j++) {
@@ -163,9 +174,10 @@ void trnsfdwst(double *S,double *Sinv,double *E,double *Einv,double wstval,int h
 			}									
 		}
 	}
+	return sucess;
 }
 
-void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward)	
+trnsfres trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double trval,int hrank,const bool onlyforward)	
 {
 	tracedata  *idataastrst=0,*fulldataastrst=0;
 			
@@ -184,9 +196,8 @@ void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double 
 				fulldataastrst= static_cast<tracedata *>(fulldata = new lawlhotstdata(p,p,p,hrank,v0=trval));	
 		}
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	{ for (int i=0;i<p;i++)   
 		for (int j=0;j<=i;j++) {
@@ -202,11 +213,11 @@ void trnsfdtrst(double *M,double *Minv,double *Hegvct,double *HegvctMinv,double 
 				fulldataastrst->getqfdata()->setvectel(i,j,-HegvctMinv[i*p+j]);			
 		}
 	} }
-	return;
+	return sucess;
 }
 
 
-void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
+trnsfres trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 			   double *Hegvct,double *HegvctTinv,double *HegvctEinv,
 			   double ccr12,double wstval,double bartpival,double lawhotval,int hrank,const bool onlyforward)
 {
@@ -239,9 +250,8 @@ void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 				static_cast<ccrdata *>(fulldata = new rnk3ccrdata(p,p,p,wstval,bartpival,lawhotval,ccr12)) );
 		}
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	if (hrank == 1) {
 		for (int i=0;i<p;i++)  { 
@@ -281,10 +291,10 @@ void trnsfdccr(double *S,double *Sinv,double *E,double *Einv,
 			}
 		}
 	}
-	return;
+	return sucess;
 }
 
-void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward)			
+trnsfres trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,const bool onlyforward)			
 {
 	real srtegval;
 	gcddata  *idataasgcd=0,*fulldataasgcd=0;
@@ -310,9 +320,8 @@ void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,con
 				break;
 		}
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	{ for (int i=0;i<p;i++)   
 		for (int j=0;j<=i;j++) {
@@ -327,9 +336,10 @@ void trnsfdgcd(double *S,double *Sinv,double *Segval,double *Segvct,int npcs,con
 			if (!onlyforward) fulldataasgcd->getqfdata()->setvectel(i,j,-Segvct[i*p+j]/srtegval);		
 		}
 	} } 
+	return sucess;
 }
 
-void trnsfdrm(double *S,double *Sinv,const bool onlyforward)	
+trnsfres trnsfdrm(double *S,double *Sinv,const bool onlyforward)	
 {
 	deque<bool>	avars(p,false); 
 	rmdata *idataasrmdt=0,*fulldataasrmdt=0;
@@ -346,18 +356,18 @@ void trnsfdrm(double *S,double *Sinv,const bool onlyforward)
 		avars.assign(p,true);
 		if (!onlyforward) fulldataasrmdt = static_cast<rmdata *>(fulldata = new rmdata(p,p,p,gdataasrmdt,avars,c0=0.));	
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	for (int i=0;i<p;i++)
 		for (int j=0;j<=i;j++) {
 			idataasrmdt->setcoefmatel(i,j,S[j*p+i]); 
 			if (!onlyforward) fulldataasrmdt->setcoefmatel(i,j,-Sinv[j*p+i]);	
 		}
+	return sucess;
 }
 
-void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)			
+trnsfres trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)			
 {
 	deque<bool>	avars(p,false); 
 	rvdata *idataasrvdt=0,*fulldataasrvdt=0;
@@ -376,9 +386,8 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)
 		if (!onlyforward) fulldataasrvdt = static_cast<rvdata *>(fulldata = new rvdata(p,p,p,gdataasrvdt,avars,0,c0=trs2));
 		gdataasrvdt->settrs2(trs2);		
 	}
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
+	catch (...)   {
+		return nomem;
 	}
 	{ for (int i=0;i<p;i++)
 		for (int j=0;j<=i;j++) {
@@ -392,7 +401,7 @@ void trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)
 			}
 		}
 	} 
-//	fwrkspace = true; 
+	return sucess;
 }
 
 }

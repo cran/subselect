@@ -14,6 +14,7 @@ lmHmat.default <- function(x,y,...)
      stop("Argument dimensions do not match")
 
    Sx <- var(x)
+   if (n <= p) attr(Sx,"KnownSing") <- TRUE
    dx <- x - matrix(rep(apply(x,2,mean),n),n,p,byrow=T)
    if (q==1) {
 	dy <- y - rep(mean(y),n)
@@ -75,8 +76,9 @@ ldaHmat.default <- function(x,grouping,...)
   grp <- factor(grouping,levels=unique(grouping)) 
   nk <- table(grp)
   k <- nrow(nk)
-  T <- (n-1)*var(x)
-  Si <- by(x,grp,var)
+  T <- (n-1)*cov(x)
+  if (n <= ncol(x)) attr(T,"KnownSing") <- TRUE
+  Si <- by(x,grp,cov)
   H <- T
   for (i in 1:k) H <- H - (nk[[i]]-1)*Si[[i]]
   res <- list(mat=T,H=H,r=min(ncol(x),k-1),call=match.call())
@@ -106,25 +108,6 @@ ldaHmat.formula <- function(formula,data=NULL,...)
    res
 }
 
-ldaHmat.lda <- function(fitdldamodel,...)
-{
-    scndcallarg <- eval(fitdldamodel$call[[2]])
-    if (is.matrix(scndcallarg) || is.data.frame(scndcallarg))  { 
-    	x <- data.matrix(scndcallarg)
-    	# assumes argument 2 of lda$call remains the data matrix - if that is ever changed, will need a fix
-    	grouping <- eval(fitdldamodel$call[[3]])
-    	# assumes argument 3 of lda$call remains the grouping factor - if that is ever changed, will need a fix
-    	res <- ldaHmat.default(x, grouping)
-    }
-    else  {
-    	formula <- fitdldamodel$call$formula
-   	# assumes that if argument 2 of lda$call is not a matrix or data frame, it should be a formula - if that is ever changed, will need a fix
-    	data <- fitdldamodel$model
-    	res <- ldaHmat.formula(formula=formula,data=data)
-    }	
-    res
-}
-
 #### glhHmat methods ##################
 
 glhHmat <- function(...)  UseMethod("glhHmat")
@@ -133,7 +116,7 @@ glhHmat.default <- function(x,A,C,...)
 {
    if  ( !is.matrix(x) || !is.matrix(A) || ( !is.matrix(C) && !is.vector(C) ) )   stop("Arguments of wrong type")
    if (is.vector(C))  C <- matrix(C,1,length(C))
-   if (  nrow(A) != nrow(x) || ncol(C) != ncol(A) )  stop("Argument dimensions do not match")
+   if ( nrow(A) != nrow(x) || ncol(C) != ncol(A) )  stop("Argument dimensions do not match")
 
    r <- qr(C)$rank
    rA <- qr(A)$rank
@@ -144,8 +127,10 @@ glhHmat.default <- function(x,A,C,...)
    M <- svdA$u[,1:rA] %*% diag(svdA$d[1:rA]^-1) %*% t(svdA$v[,1:rA]) %*% t(C)
    h <- t(svd(M,nv=0)$u) %*% x
    H <- t(h) %*% h
+   T <- H+E	
+   if (nrow(x) <= ncol(x)) attr(T,"KnownSing") <- TRUE
 
-   res <- list(mat=H+E,H=H,r=r,call=match.call())
+   res <- list(mat=T,H=H,r=r,call=match.call())
    res
 }
 

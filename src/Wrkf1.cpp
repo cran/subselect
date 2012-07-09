@@ -13,11 +13,13 @@ extern int *sbsetcnt;
 const int SRC  = 1;
 const int INV  = 0;
 const double   NOBND = 1E99;
+clock_t ctime,newtime; 
+double rtime;
 
-sbset *csbset(vind n,vind* v,real c,real ind);
+sbset *csbset(vind n,vector<vind>& v,real c,real ind);
 void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minvi,vind maxvi,bool revord);	 
 void getactv(wrkspace *,vind,vind,vind);
-void actvcnv(vind,vind,vind *,vind *);
+void actvcnv(vind p,vind p1,vector<vind>& v0,vector<vind>& v1);
 bool leap(vind,real,const real *,vind,vind);
 real getbounds(vind dir,vind minv,vind maxv);
 int cmp(const void *a,const void *b);
@@ -53,9 +55,8 @@ int revcmp(const void *a,const void *b)
 	return -cmp(a,b);
 }
 
-void actvcnv(vind p,vind p1,vind *v0,vind *v1)
+void actvcnv(vind p,vind p1,vector<vind>& v0,vector<vind>& v1)
 {
-
 	vind i,j,k;
 
 	for (i=0,j=0,k=1;i<p1;i++,k++)  while (k<v0[i])  v1[j++] = k++;
@@ -100,6 +101,7 @@ void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minv
 
 	if (k1 == 0)  success = w->pivot(vi,0,k0,0,acptbound);
 	else success = w->pivot(vi,t,k0,k1,acptbound);
+	if (success) curdata->allowpivot();		
 	if (nv < mindim || nv > maxdim || !success) return;
 	#ifdef COUNTING
 	++cntg;
@@ -107,14 +109,12 @@ void pivot(wrkspace *w,vind tree,vind k0,vind k1,vind nv,vind u,vind t,vind minv
 	
 	crt = curdata->criterion();
 	ind = curdata->indice();
-	curdata->allowpivot();		
+
 	if (pcrttp == MAXIMZ && crt < lbnd[nv-mindim]) return;	// Check if new subset is better than any of the
 	if (pcrttp == MINIMZ && crt > ubnd[nv-mindim]) return;	// sets in current best set list for this dimension
-
 	getactv(w,tree,k1,nv);
 	st = csbset(nv,actv,crt,ind);	
 	psbstlist curlist = bsts[nv-mindim];
-
 	if (sbsetcnt[nv-mindim] == ms)  {	// Remove and discard worst subset saved
 		prevsbset = *(ptprevsbset=curlist->begin());
 		curlist->erase(ptprevsbset);
@@ -140,7 +140,14 @@ bool Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vi
 	subsetdata* prvdatapt;
 
 	if (lvind-fvind > 10) {
-		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
+		newtime = clock();
+		if (newtime==clock_t(-1))  {
+			msg("Eleaps error: time overflow\n");
+			return false;
+		}
+		rtime -= static_cast<double>(newtime-ctime);
+		if (rtime < 0.) return false;  // Exit if time limit was exceded
+		ctime = newtime; 
 	} 
 
 //  Find maximal subset dimensionalities of current tree branches
@@ -214,7 +221,14 @@ bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrw
 	subsetdata* prvdatapt;
 
 	if (lvind-fvind > 10) {
-		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
+		newtime = clock();
+		if (newtime==clock_t(-1))  {
+			msg("Eleaps error: time overflow\n");
+			return false;
+		}
+		rtime -= static_cast<double>(newtime-ctime);
+		if (rtime < 0.) return false;  // Exit if time limit was exceded
+		ctime = newtime; 
 	} 
 
 //  Find minimal subset dimensionalities of current tree branches
@@ -276,42 +290,104 @@ bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrw
 	return true;
 }
 
-bool Forward_BreadthF_Search(vind frwind0,vind nvfrwd,vind fvind,vind lvind)
+extern int cnt;
+
+bool Forward_BreadthF_Search(vind frwind0,vind fvind,vind lvind,vind nvfrwd)
 {
-	vind nv,t,minnv,maxnv;  
+	vind nv,t,maxnv;  
 
 	if (lvind-fvind > 10) {
-		if (clock()-btime > maxtime) return false;  // Exit if time limit was exceded
+		newtime = clock();
+		if (newtime==clock_t(-1))  {
+			msg("Eleaps error: time overflow\n");
+			return false;
+		}
+		rtime -= static_cast<double>(newtime-ctime);
+		if (rtime < 0.) return false;  // Exit if time limit was exceded
+		ctime = newtime; 
 	} 
 
 //  Find maximal subset dimensionaly of current tree branch
 	
 	if ( (maxnv=nvfrwd+lvind-fvind+1) > maxdim) maxnv = maxdim;
 
+//  Get number of variables in the susbset where the current pivot will be performed
+	nv = nvfrwd + 1;
+
+	if (maxnv < mindim || nv > maxdim)  return true; 
+
 //  Start pivoting variables
+
+	{ for (vind u=fvind;u<=lvind;u++)  {
+		t = lvind-u; 
+		if (nv < mindim) pivot(SW,SRC,frwind0,t,nv,u,t,mindim,lvind,false);
+		else pivot(SW,SRC,frwind0,t,nv,u,t,nv,lvind,false);
+	} }
+
+//  Process recursevly the subtrees created by the previous cycle
+
+	for (vind i=1;i<=lvind-fvind;i++)   if  ( !(SW->subsetat(i).getdata().nopivot()) )  
+		if (!Forward_BreadthF_Search(i,lvind-i+1,lvind,nvfrwd+1)) return false;
+	return true;
+}
+
+bool  Forward_DepthF_Search(vind frwind0,vind fvind,vind lvind,vind nvfrwd)  
+{
+	vind nv,minnv,maxnv,minnvfrd,maxnvfrd;
+	vind t,frwind(frwind0);
+	real maxstcrt(NOBND);
+	subsetdata* prvdatapt;
+
+	if (lvind-fvind > 10) {
+		newtime = clock();
+		if (newtime==clock_t(-1))  {
+			msg("Eleaps error: time overflow\n");
+			return false;
+		}
+		rtime -= static_cast<double>(newtime-ctime);
+		if (rtime < 0.) return false;  // Exit if time limit was exceded
+		ctime = newtime; 
+	} 
+
+//  Find maximal subset dimensionalities of current tree branches
+	
+	if ( (maxnvfrd=nvfrwd+lvind-fvind+1) > maxdim) maxnvfrd = maxdim;
+
+//  Start pivoting variables 
 
 	{ for (vind u=fvind;u<=lvind;u++)  {
 
 		t = lvind-u; 
 
-//		Get number of variables in the susbset where the current pivot will be performed
-		nv = minnv = nvfrwd + 1;
+//		Set number of variables in the susbset where the current pivot will be performed
+		nv = minnvfrd = nvfrwd+u-fvind+1;
 
-		if (maxnv >= mindim && minnv <= maxdim)  {  //	Make a  pivot  
-			if (minnv < mindim) pivot(SW,SRC,frwind0,t,nv,u,t,mindim,lvind,false);
-			else pivot(SW,SRC,frwind0,t,nv,u,t,minnv,lvind,false);
+		if (maxnvfrd >= mindim && minnvfrd <= maxdim)  {
+
+//			Make a pivot	
+			if (minnvfrd < mindim) pivot(SW,SRC,frwind,t,nv,u,t,mindim,maxnvfrd,false);
+			else if (minnvfrd < maxdim) pivot(SW,SRC,frwind,t,nv,u,t,minnvfrd,maxnvfrd,false);
+				 else pivot(SW,SRC,frwind,0,nv,u,t,minnvfrd,maxnvfrd,false);
 		}
-
+		if (t > 0) {	//	Keep track of source memory for current forward search results
+			prvks[t-1] = frwind; 
+			frwind = t;	// Update memory index 
+		}
 	} }
 
 //  Process recursevly the subtrees created by the previous cycle
 
-	{ for (vind i=1;i<=lvind-fvind;i++)   if  ( !(SW->subsetat(i).getdata().nopivot()) )  
-		if (!Forward_BreadthF_Search(i,nvfrwd+1,lvind-i+1,lvind)) return false;
-	}
+	{ for (vind i=0;i<lvind-fvind;i++)   {
+		minnv = nvfrwd+lvind-fvind-i;
+		maxnv = nvfrwd+lvind-fvind;
+
+		if (minnv <= maxdim && maxnv >= mindim) 
+	 		if (!Forward_DepthF_Search(prvks[i],lvind-i,lvind,minnv-1)) return false;
+	} }
 
 	return true;
 }
+
 
 bool leap(vind dir,real crt,const real *crtcrr,vind minv,vind maxv)
 {

@@ -3,7 +3,6 @@
 \alias{ldaHmat.default}
 \alias{ldaHmat.formula}
 \alias{ldaHmat.data.frame}
-\alias{ldaHmat.lda}
 \title{Total and Between-Group Deviation Matrices in Linear Discriminant Analysis}
 \description{Computes total and between-group matrices of Sums of Squares and Cross-Product (SSCP) deviations in linear discriminant analysis. These matrices may be used as input to the variable selection search routines \code{\link{anneal}}, \code{\link{genetic}} \code{\link{improve}} or \code{\link{eleaps}}.}  
 
@@ -15,8 +14,6 @@
 
 \method{ldaHmat}{formula}(formula,data=NULL,...)
 
-\method{ldaHmat}{lda}(fitdldamodel,...)
-
 }
 \arguments{
   \item{x}{A matrix or data frame containing the discriminators for
@@ -27,8 +24,6 @@ That is, the response is the grouping factor and the right hand side
 specifies the (non-factor) discriminators.} 
   \item{data}{Data frame from which variables specified in 'formula'
 are preferentially to be taken.}  
-  \item{fitdldamodel}{An object of class \code{lda}, as produced by the
-    \code{lda} function of R package \code{MASS}.}  
   \item{...}{further arguments for the method.}
 }
   

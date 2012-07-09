@@ -44,10 +44,9 @@ available.
 The function checks for ill-conditioning of the input matrix
 (specifically, it checks whether the ratio of the input matrix's
 smallest and largest eigenvalues is less than \code{tolval}). For an
-ill-conditioned input matrix, execution is aborted. The function
-\code{\link{trim.matrix}} may be used to obtain a well-conditioned input
-matrix.
-
+ill-conditioned input matrix, the search is restricted to its 
+well-conditioned subsets. The function \code{\link{trim.matrix}} may 
+be used to obtain a well-conditioned input matrix.
 
 In a general descriptive (Principal Components Analysis) setting, the
 three criteria Rm, Rv and Gcd can be used to select good k-variable
@@ -88,7 +87,7 @@ create the matrices \code{mat} and \code{H} in all the cases considered.
 \usage{improve( mat, kmin, kmax = kmin, nsol = 1, exclude = NULL,
 include = NULL, setseed = FALSE, criterion = "default", pcindices="first_k",
 initialsol = NULL, force = FALSE, H=NULL, r=0,
-tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps) 
+tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 }
 
 \arguments{
@@ -180,10 +179,10 @@ tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 
   \item{tolval}{the tolerance level for the reciprocal of the 2-norm
     condition number of the correlation/covariance matrix, i.e., for the
-    ratio of the smallest to the largest eigenvalue of the input
-    matrix. Matrices with a reciprocal of the condition number smaller
-    than \code{tolval} will abort the search algorithm.}
-
+    ratio of the smallest to the largest eigenvalue of the input matrix. 
+    Matrices with a reciprocal of the condition number smaller than 
+    \code{tolval} will activate a restricted-search for well conditioned 
+    subsets.} 
   
  \item{tolsym}{the tolerance level for symmetry of the
    covariance/correlation/total matrix and for the effects (\code{H})

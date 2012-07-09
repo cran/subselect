@@ -3,7 +3,7 @@
        SUBROUTINE improve(criterio,p,svector,kmin,
      +   kmax,valores,vars,bestval,bestvar,nfora,fora,ndentro,
      +   dentro,nsol,nqsi,qsi,esp,silog,solinit, valp,
-     +   vecvecp,hvector,rh)
+     +   vecvecp,hvector,rh,checksg,numtol,numprb)
 *#######################################################################
 
 * Restricted improvement algorithm to search for a k-variable subset
@@ -59,8 +59,9 @@
 *            matrix (H) of the p variables (given as a vector for
 *            convenience in passing from R to Fortran). 
 *   rh     - integer variable giving the expected rank of H matrix.
-* 
-*
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (E being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements of E Choleski decomposition
 
 * OUTPUT: 
 
@@ -78,6 +79,9 @@
 *           obtained by running the routine, for each cardinality (R/S output).
 * bestvar - integer vector with the variable numbers of the best subset 
 *           obtained, for each cardinality (ouput for R/S).
+* numprb -  logical flag set to true if numerical problems precluded some
+*           (ill-conditioned) subsets to be evaluated, and to false otherwise.   
+*
 *
 
 * general declarations
@@ -87,11 +91,11 @@
        INTEGER bestvar((kmax-kmin+1)*kmax)
        LOGICAL setk(p),setkmax(p)
        DOUBLE PRECISION s(p,p),sq(p,p),svector(p*p),hvector(p*p),h(p,p)
-       DOUBLE PRECISION vmax,vactual
+       DOUBLE PRECISION vmax,vactual,numtol
        DOUBLE PRECISION valores((kmax-kmin+1)*nsol)
        DOUBLE PRECISION critvalue,bestval(kmax-kmin+1)
        DOUBLE PRECISION vecvecp(p*p)
-       LOGICAL silog
+       LOGICAL silog,checksg,numprb
        INTEGER solinit(kmax*nsol*(kmax-kmin+1))
 * FIM NOVO TESTE
 * declarations only for the RM criterion
@@ -99,25 +103,28 @@
 * declarations only for the RV criterion
        DOUBLE PRECISION tracosq,dobjrv
 * declarations only for the GCD criterion
-       DOUBLE PRECISION valp(p), vecp(p,p),dobjgcd
+       DOUBLE PRECISION valp(p),vecp(p,p),dobjgcd
        INTEGER nqsi,qsi(p)
        LOGICAL esp
 * declarations for tau2,xi2,zeta2 e ccr12
-       Double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+       DOUBLE PRECISION dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+* declarations of local arrays and matrices
+       INTEGER randsk1pp(p),setint(p)
+       DOUBLE PRECISION skinput(kmax,kmax),hkinput(kmax,kmax)
+       DOUBLE PRECISION ekinput(kmax,kmax),workmat(kmax,kmax)
+       DOUBLE PRECISION work(6*kmax),egval(kmax)
 
-       external randsk1,dobjrm,dobjrv,dobjgcd
-       external dobjtau2
-       external dcorrigesk
-       external dmelhoramentogen,newinicializar
-
+       external dmelhoramentogen,newinicializar,randsk1,dcorrigesk
+       external dobjrm,dobjrv,dobjgcd
+       external dobjtau2,dobjxi2,dobjzeta2,dobjccr12
 
 * initializations 
-       critvalue = 0.0D0
+       critvalue = -1.0D0
+       numprb=.false.
 
        call newinicializar(criterio,p,s,svector,sq,nfora,fora,
      +  ndentro, dentro,fica,tracos,tracosq,vecp,poriginal,vecvecp,
      +  h,hvector,rh)
-
 
 **********************************
 * The loop which is to be repeated for each cardinality of subsets, 
@@ -136,7 +143,7 @@
                end do
              end if
          end if
-         vmax=0
+         vmax=-1
          do ksol=1,nsol
 
 * setting up the inital solutions
@@ -154,43 +161,51 @@
                end do
              end if  
            else
-               call randsk1(p-ndentro,k-ndentro,setk)           
+               call randsk1(p-ndentro,k-ndentro,setk,randsk1pp)           
                if(ndentro .GT. 0) then 
                   call dcorrigesk(ndentro,dentro,p,setk,poriginal)
                endif
            endif
 
-
            if (criterio.eq.1) then
-               vactual=dobjrm(k,setk,p,s,sq,poriginal)
+		vactual=dobjrm(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
            end if
            if (criterio.eq.2) then
-               vactual=dobjrv(k,setk,p,s,sq,poriginal)
+               vactual=dobjrv(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
            end if
            if (criterio.eq.3) then
-               vactual=dobjgcd(nqsi,qsi,valp,vecp,k,setk,p,s,
-     +               fica,poriginal)
+		vactual=dobjgcd(k,setk,p,poriginal,kmax,s,workmat,
+     +   nqsi,qsi,valp,setint,vecp,fica,skinput)
            end if
-
-            if (criterio.eq.4) then
-               vactual=dobjtau2(k,setk,p,s,poriginal,h,rh)
+           if (criterio.eq.4) then
+               vactual=dobjtau2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
            end if
-		 
-		 if (criterio.eq.5) then
-               vactual=dobjxi2(k,setk,p,s,poriginal,h,rh)
+	   if (criterio.eq.5) then
+               vactual=dobjxi2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
            end if
-		 
-		 if (criterio.eq.6) then
-               vactual=dobjzeta2(k,setk,p,s,poriginal,h,rh)
-           end if
-		 
-		 if (criterio.eq.7) then
+	   if (criterio.eq.6) then
+               vactual=dobjzeta2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
+           end if		 
+	  if (criterio.eq.7) then
 * tirei rh
-               vactual=dobjccr12(k,setk,p,s,poriginal,h)
+               vactual=dobjccr12(k,setk,p,poriginal,kmax,s,h,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
            end if
 
-		 call dmelhoramentogen(criterio,p,setk,vactual,ndentro,
-     +        dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
+           if (checksg.and.criterio.GT.3.and.vactual.eq.-0.9999D0) then
+	       numprb=.true.        
+           end if
+	   if (vactual.GE.0) then
+		call dmelhoramentogen(criterio,p,kmax,setk,vactual,
+     +         ndentro,dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,
+     +         poriginal,h,rh,skinput,hkinput,ekinput,egval,
+     +         work,workmat,randsk1pp,setint,checksg,numtol,numprb)
+	   end if
 
            if (criterio.eq.1) then
               critvalue = dsqrt(vactual/tracos)
@@ -223,10 +238,14 @@
            do i=1,p
              if (setk(i)) then
                jjaux=jjaux+1
-               vars(nsol*kmax*(k-kmin)+nsol*(jjaux-1)+ksol) = fica(i)
+		if (critvalue.LT.0.0D0) then 
+                   vars(nsol*kmax*(k-kmin)+nsol*(jjaux-1)+ksol) = 0
+		else
+                   vars(nsol*kmax*(k-kmin)+nsol*(jjaux-1)+ksol) = 
+     +           fica(i)
+                endif
              end if
            end do  
-
 
            if(vactual .GT. vmax) then
               vmax=vactual

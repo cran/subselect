@@ -72,8 +72,8 @@ The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}}
 create the matrices \code{mat} and \code{H} in all the cases considered.
 }
 
-\usage{eleaps(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,
-include=NULL,criterion="default",pcindices="first_k",timelimit=15,
+\usage{eleaps(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nsol=1,
+exclude=NULL,include=NULL,criterion="default",pcindices="first_k",timelimit=15,
 H=NULL,r=0, tolval=1000*.Machine$double.eps,
 tolsym=1000*.Machine$double.eps,maxaperr=1E-4)} 
 
@@ -130,9 +130,10 @@ tolsym=1000*.Machine$double.eps,maxaperr=1E-4)}
 
  \item{tolval}{the tolerance level for the reciprocal of the 2-norm
 condition number of the correlation/covariance or sums of squares
-matrix, i.e., for the ratio of the smallest to the largest eigenvalue of
-the input matrix. Matrices with a reciprocal of the condition number
-smaller than \code{tolval} will abort the search algorithm.} 
+matrix, i.e., for the ratio of the smallest to the largest eigenvalue of the input matrix. 
+Matrices with a reciprocal of the condition number smaller than \code{tolval} will activate 
+a restricted-search (for well conditioned sets as defined by the value of the \code{maxaperr} 
+argument) algorithm.} 
 
  \item{tolsym}{the tolerance level for symmetry of the
    covariance/correlation/total matrix and for the effects (\code{H})
@@ -143,8 +144,9 @@ smaller than \code{tolval} will abort the search algorithm.}
    part, i.e., input matrix A becomes (A+t(A))/2.}
 
   \item{maxaperr}{the tolerance level for the relative rounding error of the 
-   criterion. Subsets where a first order estimate of this error is higher that 
-   "maxaperr" will be excluded from the analysis.}
+   criterion. When a restricted search in employed subsets where a first order 
+   estimate of this error is higher than \code{maxaperr} will be excluded from 
+   the analysis.}
 
  }
 

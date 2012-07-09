@@ -7,23 +7,29 @@
 #include "Sscma.h"
 #include "Subsets.h"
 #include "Vsmabo.h"
+#include <stdexcept>
+
+#include <ctime>
+#include <R.h>
 
 using std::vector;
 
 namespace extendedleaps {
 
-vind		p,q,fp,lp,mindim,flst,lastvar,*actv;  
+int  cnt = 0;
+
+
+
+vind		p,q,fp,lp,mindim,flst,lastvar;  
 real		trs,trs2;
-double		*lbnd,*ubnd;
-double 		btime,maxtime; 
-int		pcrt; 
+double 		maxtime; 
+int		pcrt,sbsetind,maxsbst; 
 unsigned long	ms;                      
-int		*sbsetcnt;                      
 pcskept		pcsets;
-std::string 	memmsg("Unable to find enough memory to run leaps with this data\n");
-
-int 		sbsetind,maxsbst;
-
+vector<vind> 	actv ;   
+vector<double>	lbnd,ubnd;
+vector<int>	sbsetcnt;                      
+std::string 	memmsg("\nEleaps error: Unable to find enough memory to run eleaps with so many original variables.\n\n");
 #ifdef COUNTING 
 int cntg,fpcnt,fpcnt1;	/*  Floating point operations counters    */
 #endif    
@@ -38,37 +44,40 @@ const int  XI       = 5;
 const int  ZETA     = 6;	
 const int  CCR1     = 7;	
 const int  NOTFOUND = 99;
-            
+
+           
 subsetdata *idata,*fulldata;
 globaldata *gidata,*gfulldata;
 vector<partialdata *> pdata;
-vind ndim,maxdim,*prvks,*cmpl,*ivlst,*ovlst;      
+vind ndim,maxdim;
+vector<vind> prvks,cmpl,ivlst,ovlst;      
 vind flsts,flsti;
 short int	pcrttp;                                         
 SRCwrkspace*   SW;   
 INVwrkspace*   IW;   
-double  c0,v0,*vc0;                    				                   
+double  c0,v0; 
+vector<double> 	vc0;                  				                   
 int maxsbqe,maxcmp;
-extern vind *dmyv,*Flp;   
-extern double *Fl;	 
+extern vind* dmyv;   
+extern vector<vind> Flp;  
+extern vector<double> Fl;	
 extern bool numericalprob;	
 
 #ifdef COUNTING
 int  cntp,fpcnt0;   
 #endif
 
-psbst*		sbsarr;
-psbstlist*	bsts;
+vector<psbst>	sbsarr;                  				                   
+vector<psbstlist> bsts;                  				                   
 
 void resetvar(void);
 int getpcrt(const char* st,bool fixed);
 void initvlist(int *,int *,int *,int,int,int);
-void cleanlists(void);
 void fillres(vind fk,vind nk,int ns,int* bst,int* st,double* bvl,double* vl);	
 void saveset(psbstlist,int *,double *l,int,vind);						
 extern "C" int trivialcmp(const void *,const void *);
 void matasvcttranspose(int m,int n,int* data);
-void asgmemory(void);
+bool asgmemory(void);
 void cleanup(void);
 void isort(bool reverse);	
 void fsort(bool reverse);	
@@ -77,15 +86,26 @@ void resetvar()
 {
 	SW = 0;
 	IW = 0;
-	actv = prvks = dmyv = cmpl = Flp = ivlst = ovlst= 0;
+	dmyv = 0;
 	idata = fulldata = 0;
 	gidata = gfulldata = 0;
-	lbnd = ubnd = vc0 = Fl = 0;
 	c0 = v0 = 0.;                   
-	sbsarr = 0;
-	bsts = 0;
 	sbsetind = 0;
 	numericalprob = false;	
+	sbsarr.resize(0);
+	bsts.resize(0);
+	actv.resize(0);
+	prvks.resize(0);
+	actv.resize(0);
+	cmpl.resize(0);
+	Flp.resize(0);
+	ivlst.resize(0);
+	ovlst.resize(0);
+	pdata.resize(0);
+	lbnd.resize(0);
+	ubnd.resize(0);
+	vc0.resize(0);
+	Fl.resize(0);
 	#ifdef COUNTING
 	cntp = 0;   
 	#endif
@@ -111,23 +131,13 @@ int getpcrt(const char* st,bool fixed)
 
 void initvlist(int *ilist,int *olist,int *pcind,int ni,int no,int nind)
 {
-	try {
-		if ( ni > 0) ivlst = new vind[ni];
-		if ( no > 0) ovlst = new vind[no];
-		if (pcrt != GCD) q = 0;
-		else {
-			if (pcsets == firstk) q = maxcmp = maxdim;
-			else if ( (q=nind) == 0) {
-				cleanlists();
-				errmsg("Criterion GCD requires a non-empty list of S eigenvectors\n");
-			}
-			cmpl =  new vind[q];
-		}
-	}
-
-	catch (std::bad_alloc)   {
-		cleanlists();
-		errmsg(memmsg);
+	if ( ni > 0) ivlst.resize(ni);
+	if ( no > 0) ovlst.resize(no);
+	if (pcrt != GCD) q = 0;
+	else {
+		if (pcsets == firstk) q = maxcmp = maxdim;
+		else if ( (q=nind) == 0) errmsg("Criterion GCD requires a non-empty list of S eigenvectors\n");
+		cmpl.resize(q);
 	}
 
 	fp = ni;
@@ -145,18 +155,19 @@ void initvlist(int *ilist,int *olist,int *pcind,int ni,int no,int nind)
 	}
 }
 
-void cleanlists() {
-	delete[] ivlst;
-	delete[] ovlst;
-	delete[] cmpl;
-}
-
-bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt)
+sscmares sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt)
 {
 	bool searchcompleted;
 
-	SW = new SRCwrkspace(fullwrksp,p,nullsetdt,ivlst,ovlst);
-	IW = new INVwrkspace(fullwrksp,p,fullsetdt,ivlst,ovlst);
+	try {
+		SW = new SRCwrkspace(fullwrksp,p,p,nullsetdt,ivlst,ovlst);
+		IW = new INVwrkspace(fullwrksp,p,1,fullsetdt,ivlst,ovlst);
+	}
+	catch (...)   {
+		msg(memmsg);
+		return nomemory;
+	}
+
 	flst = flsts;
 	#ifdef COUNTING  
 	fpcnt1 = 0;
@@ -172,41 +183,60 @@ bool sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fulls
 	if (p > fp+lp+1) {
 		if (!heuristic) searchcompleted = Leaps_Search(flst,flst,fp+lp+1,p,fp,p-lp);
 		else searchcompleted = Rev_Leaps_Search(flst,flst,fp+lp+1,p,fp,p-lp);
-		return searchcompleted;
+		if (searchcompleted) return optimal;
+		else return limsrchbest;
 	}
-	else return true;
+	else return optimal;
 }
 
-bool sscma(subsetdata *nullsetdt)	// Version of sscma to be employed when only a forward search is performed    
+sscmares sscma(subsetdata *nullsetdt)	// Version of sscma to be employed when only a forward search is performed    
 {
-	SW = new SRCwrkspace(true,p,nullsetdt,ivlst,ovlst);
+	bool searchcompleted,psearch(false);
+
+	try {
+		SW = new SRCwrkspace(true,p,p,nullsetdt,ivlst,ovlst);
+	}
+	catch (...)   {
+		msg(memmsg);
+		return nomemory;
+	}
 	flst = flsts;
 	#ifdef COUNTING  
 	fpcnt1 = 0;
 	#endif
-	if (p > fp+lp+1) isort(true);
+
+	if (mindim*log(p/mindim) > 40)  psearch = true; 
+// Things to improve: Make this condition dependent on time limit (study best tradeoff!!)
+
+	if (p > fp+lp+1) isort(psearch);
 	if ( fp > 0 && fp == mindim && !SW->subsetat(flst+1).nopivot() ) savfrst();
+
 	#ifdef COUNTING  
 	fpcnt = 0;
 	#endif
-	if (p <= fp+lp || Forward_BreadthF_Search(flst,fp,fp+lp+1,p) )  return  true;
-	else return false;
+	if (p > fp+lp) {
+		if (psearch) searchcompleted = Forward_DepthF_Search(flst,fp+lp+1,p,fp); 
+	 	else searchcompleted = Forward_BreadthF_Search(flst,fp+lp+1,p,fp);
+		if (searchcompleted) return optimal;
+		else return limsrchbest;
+	}
+	else return optimal;
 }
 
 void isort(bool reverse)   
 {
-	vind var,*sind;                  
+	vind var;                  
+	vector<vind> sind(p-fp-lp); 
 	vind sskipvar=0;
 	subset *sl,*slt;
 
 	sl = &SW->subsetat(flsts+1);
-	sl->sort(forward,reverse,fp+lp+1,p);     	
+	sl->sort(forward,fp+lp+1,p,reverse,false);     	
 
 	for (vind i=1;i<=flsts;i++)  {
 		slt = &SW->subsetat(i);
 		for (vind j=fp+lp;j<p;j++)  slt->setithvar(j,sl->getithvar(j));
 	}
-	sind = new vind[p-fp-lp];
 
 	for (vind i=0;i<p-fp-lp;i++)  {
 		var = sl->getithvar(fp+lp+i);
@@ -217,7 +247,6 @@ void isort(bool reverse)
 		else sind[i] = sl->getvarp(var)-fp-lp+1;
 	}
 	sl->asgvar(sskipvar,p-fp-lp,sind);
-	delete[] sind;
 
 	{  for (int i=1;i<=flsts+1;i++)  {
 		slt = &SW->subsetat(i);
@@ -227,14 +256,14 @@ void isort(bool reverse)
 
 void fsort(bool reverse)   
 {
-	vind var,*iind,*sind;                  
+	vector<vind> iind(p-fp-lp),sind(p-fp-lp); 
 	vind sskipvar=0,iskipvar=0;
 	subset *il,*sl,*ilt,*slt;
 
 	il = &IW->subsetat(flsti+1);
 	sl = &SW->subsetat(flsts+1);
 
-	il->sort(backward,reverse,fp+lp+1,p);     	
+	il->sort(backward,fp+lp+1,p,reverse,!reverse);     	
 	lastvar = il->getithvar(p-1)+1;
 
 	{ if (SW != NULL) for (vind i=1;i<=flsts+1;i++)  {
@@ -246,11 +275,8 @@ void fsort(bool reverse)
 		for (vind j=fp+lp;j<p;j++)  ilt->setithvar(j,il->getithvar(j));
 	} }
 
-	iind = new vind[p-fp-lp];
-	sind = new vind[p-fp-lp];
-
 	for (vind i=0;i<p-fp-lp;i++)  {
-		var = il->getithvar(fp+lp+i);
+		vind var = il->getithvar(fp+lp+i);
 		if (lp == 0 && fp > 0) {
 			iskipvar = fp;
 			iind[i] = var+1;
@@ -265,9 +291,6 @@ void fsort(bool reverse)
 
 	il->asgvar(iskipvar,p-fp-lp,iind);
 	sl->asgvar(sskipvar,p-fp-lp,sind);
-
-	delete[] iind;
-	delete[] sind;
 
 	if (SW != NULL) 
 		{	for (int i=1;i<=flsts+1;i++)  {
@@ -314,8 +337,7 @@ void saveset(psbstlist pset,int *bvar,double *bcrtval,int nel,vind dim)
 	} 
 }
 
-
-extern "C" int trivialcmp(const void *a,const void *b)
+int trivialcmp(const void *a,const void *b)
 {
 	int ai,bi;
 
@@ -329,36 +351,29 @@ extern "C" int trivialcmp(const void *a,const void *b)
 void matasvcttranspose(int m,int n,int* data)
 {
 	int mn=m*n;
-	int* tmp=0;
-	
-	try { tmp = new int[mn]; }
-	catch (std::bad_alloc)   {
-		cleanup();
-		errmsg(memmsg);
-	}
-	tmp = new int[mn];
+	vector<int> tmp(mn); 
+
 	{ for (int i=0;i<m;i++)
-		for (int j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j]; }
+		for (int j=0;j<n;j++)  tmp[i+j*m] = data[i*n+j];
+	}
 	{ for (int i=0;i<mn;i++) data[i] = tmp[i]; }
-	delete[] tmp;
 }
 
-void asgmemory()
+bool asgmemory()
 {
-	try  {
-		actv = new vind[p];
+ 	try  {
+		actv.resize(p);	
+		Fl.resize(p);
+		Flp.resize(p);
 		dmyv = new vind[p];
-		Fl = new double[p];
-		Flp = new vind[p];
-
 		if (ms > 0) {
-			bsts = new psbstlist[ndim];
-			sbsetcnt = new int[ndim];
+			bsts.resize(ndim);
+			sbsetcnt.resize(ndim);
 			{for (vind i=0;i<ndim;i++) sbsetcnt[i] = 0; }
 		}
 		if (ndim == p-fp-lp+1) maxsbst = maxsbqe = ms*(ndim-1)+2;
 		else maxsbst = maxsbqe = ms*ndim+3;
-		sbsarr = new psbst[maxsbst];
+		sbsarr.resize(maxsbst);
 		{ for (int i=0;i<maxsbst;i++) sbsarr[i]=new sbset(i,p);  }
 
 		if ( pcrt == MCB2 || pcrt == TAU) {
@@ -366,69 +381,54 @@ void asgmemory()
 			if (ms > 0) 
 				{ for (vind i=0;i<ndim;i++) bsts[i] = new sbstlist(sbstsort::descending);  }
 				if (ndim == p-fp-lp+1) { 
-					ubnd = new double[ndim-1];
+					ubnd.resize(ndim-1);
 					{ for (vind i=0;i<ndim-1;i++) 
 						ubnd[i] = std::numeric_limits<float>::infinity();  } 	   
 				}
 				else {
-					ubnd = new double[ndim];
+					ubnd.resize(ndim);
 					{ for (vind i=0;i<ndim;i++) 
 						ubnd[i] = std::numeric_limits<float>::infinity();  } 	
 				}
-			lbnd = 0;
 		}
 		else  {
 			pcrttp = MAXIMZ;
 			if (ms > 0) {
 				{  for (vind i=0;i<ndim;i++) bsts[i] = new sbstlist(sbstsort::ascending);  }
 				if (ndim == p-fp-lp+1) { 
-					lbnd = new double[ndim-1];
+					lbnd.resize(ndim-1);
 					{ for (vind i=0;i<ndim-1;i++) lbnd[i] = 0.;  }
 				}
 				else {
-					lbnd = new double[ndim];
+					lbnd.resize(ndim);
 					{ for (vind i=0;i<ndim;i++) lbnd[i] = 0.;  }
 				}
 			}
-			ubnd = 0;
 		}
-		if ( pcrt == GCD && pcsets == firstk)  vc0 = new double[q];  
-		else vc0 = 0;
-		prvks = new vind[p-1];
+		if ( pcrt == GCD && pcsets == firstk)  vc0.resize(q);  
+		prvks.resize(p-1);
+		vector<double> tmp1,tmp2;
 	}
-	catch (std::bad_alloc)   {
+	catch (...)   {
 		cleanup();
-		errmsg(memmsg);
+		msg(memmsg);
+		return false;
 	}
+	return true;
 }
 
 void cleanup(void)
 {
-	delete   SW;
-	delete   IW;
-	delete[] actv;
-	delete[] dmyv;
-	delete[] Fl;
-	delete[] Flp;
-	if (bsts != 0) {
-		for (int i=0;i<ndim;i++) delete bsts[i];
-		delete[] bsts;
-	}
-	delete[] sbsetcnt; 
-	delete[] lbnd;
-	delete[] ubnd;
-	delete[] prvks;
-	if ( sbsarr != 0) {
-		for (int i=0;i<maxsbst;i++) delete sbsarr[i];
-		delete[] sbsarr;
-	}
-	delete[] vc0;
+	delete SW;
+	delete IW;
 	delete idata;
 	delete fulldata;
 	delete gidata;
 	delete gfulldata;
-	for (vind j=0;j<=p;j++) delete pdata[j];
-	cleanlists();
+	delete[] dmyv;
+	{ for (int j=0;j<bsts.size();j++)  delete bsts[j]; }
+	{ for (int j=0;j<sbsarr.size();j++)  delete sbsarr[j]; }
+	{ for (vind j=0;j<pdata.size();j++)  delete pdata[j]; } 
 }
 
 }

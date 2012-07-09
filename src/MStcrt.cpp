@@ -10,10 +10,17 @@ using namespace std;
 namespace extendedleaps {
 
 wilksdata::wilksdata(vind nv,vind tnv,vind nvtopiv,vind hr,real wst)
- :  p(tnv), k(nvtopiv), hrank(hr), nvar(nv), wilksst(wst), unreliable(false)
+ :  p(tnv), k(nvtopiv), hrank(hr), nvar(nv), wilksst(wst), unreliable(false), emat(0), tmat(0)
 {
-	emat = new symtwodarray(k);
-	tmat = new symtwodarray(k);
+	try {
+		emat = new symtwodarray(k);
+		tmat = new symtwodarray(k);
+	}
+	catch (...)  {
+		delete emat;
+		delete tmat;
+		throw;
+	}
 }
 
 wilksdata::~wilksdata(void)
@@ -57,9 +64,8 @@ void wilksdata::pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,
 real  wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
 {  
 	real *rpl[3];
-
 	partialwilksdata *newdata = static_cast<partialwilksdata *>(newdtpnt);    
-	
+
 	/* Attention: newdtpnt MUST point to partialwilksdata object !!!
 	   For safety, in debug mode use the alternative code with dynamic_cast and assert    */
 	
@@ -92,6 +98,7 @@ void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt
 {	
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    
+
 	
 	/*  Attention: newpdtpnt and newfdtpnt MUST point to partialwilksdata and wilksdata objects !!!
 	    For safety, in debug mode use the alternative code with dynamic_cast and assert             */
@@ -121,6 +128,7 @@ void wilksdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt
 } 
 
 partialtracedata::partialtracedata(vind nvars,vind hrank)		
+	: pqf(0)
 {
 	nvar = nvars;
 	pqf = new partialsqfdata(hrank); 
@@ -137,7 +145,7 @@ partialtracedata::~partialtracedata(void)
 }
 
 tracedata::tracedata(vind nv,vind tnv,vind nvtopiv,vind hr,real crt)
-	: hrank(hr)
+	: hrank(hr), sqf(0)
 {
 	nvar = nv;
 	sqf = new sqfdata(tnv,nvtopiv,hr,crt);		

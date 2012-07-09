@@ -1,5 +1,6 @@
-eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,criterion="default",pcindices="first_k",
-                 timelimit=15,H=NULL,r=0,tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps,maxaperr=1E-4) 
+eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nsol=1,exclude=NULL,include=NULL,
+		  criterion="default",pcindices="first_k",timelimit=15,H=NULL,r=0,
+		  tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps,maxaperr=1E-4) 
 {
 
 ###############################
@@ -9,7 +10,7 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
 	p <- ncol(mat)    				# Number of original variables
 	nexclude <- length(exclude)     		# Number of excluded variables
 	ninclude <- length(include)     		# Number of included variables
-	if (pcindices!="first_k") esp <- TRUE		# The user has specified the set of Principal Components to be used with the GCD criterion
+	if (pcindices[1]!="first_k") esp <- TRUE	# The user has specified the set of Principal Components to be used with the GCD criterion
 	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
 
         
@@ -17,10 +18,9 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
 # general validation of input #
 ###############################
 
-
-         initialization(mat, criterion, r)
-         if (validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym) == "singularmat")  singularmat = TRUE  
-         else singularmat = FALSE         
+         initialization(mat,criterion,r)
+         if (validation(mat,kmin,kmax,exclude,include,criterion,pcindices,tolval,tolsym,"eleaps") == "singularmat")  singularmat <- TRUE  
+         else singularmat <- FALSE         
 
 
 #############################################################
@@ -29,27 +29,32 @@ eleaps<-function(mat,kmin=1,kmax=ncol(mat)-1,nsol=1,exclude=NULL,include=NULL,cr
 
 	if (timelimit <= 0) stop("\n The time limit argument must be a positive real number\n")
         if ((criterion =="CCR1_2") && (r > 3)) stop("\n The 'eleaps' function does not accept, for the CCR1_2 criterion, \n an effects matrix (H) with  rank greater than 3\n")
-
         
 ######################################################################
 # Parameter validation if the criterion is one of "TAU_2", "XI_2",   #
 # "ZETA_2", "CCR1_2" or "WALD"                                       #
 ######################################################################
 
-if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
-"ZETA_2" || criterion == "CCR1_2" || criterion == "WALD" ) validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
-
-
+	if (criterion =="TAU_2" || criterion =="XI_2" || criterion =="ZETA_2" || criterion =="CCR1_2" || criterion == "WALD" )
+	{
+	   validnovcrit(mat,criterion,H,r,p,tolval,tolsym)
+	   if (r==1 && criterion!="WALD")  criterion <- "XI_2"	# In multivariate linear problems with r=1 all four criteria are equivalent
+	}	    						# but searches based on XI_2 or ZETA_2 are computationally more efficient 
+        
 ##########################################
 # Initializations for the C++ subroutine #
 ##########################################
 
        # Normalize matrices in order to improve numerical accuracy
-
-        nfactor <- 1./max(mat)
-	mat <- nfactor * mat
-        if (r > 0) H <- nfactor * H  
 	
+	if (r==0) mat <- mat/max(mat)
+	else {
+		scl <- sqrt(diag(mat)) 
+        	sclotprd <- outer(scl,scl)
+		mat <- mat/sclotprd
+        	H <- H/sclotprd
+	}  
+
 	# Matrix initializations
 	
 	if (singularmat==FALSE) Si <- solve(mat)
@@ -90,20 +95,20 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 
 	if ( ( criterion == "TAU_2" || (criterion == "CCR1_2" && r > 1) ) && singularmat==FALSE)
 		Wilksval <- det(E) / det(mat)
-	else Wilksval <- 0.
+	else Wilksval <- NULL
 	if ( ( criterion == "XI_2" || criterion == "WALD" || criterion == "CCR1_2" ) && singularmat==FALSE)
 		HSi <- t(solve(mat,H))
 	if ( ( criterion == "XI_2" || (criterion == "CCR1_2" && r > 1) ) && singularmat==FALSE)
 		BartPival <- sum(diag(HSi))
-	else BartPival <- 0.
+	else BartPival <- NULL
         if ( criterion == "WALD") Waldval <- sum(diag(HSi))
-        else Waldval <- 0.
+        else Waldval <- NULL
 	if ( ( criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3) ) && singularmat==FALSE) 
 		LawHotval <- sum(diag(solve(E,H)))	
-	else LawHotval <- 0.
+	else LawHotval <- NULL
 	if ( ( criterion == "CCR1_2") && singularmat==FALSE) 
 		CCR12val <- as.numeric(eigen(HSi,symmetric=FALSE,only.values=TRUE)$values[1])	
-	else CCR12val <- 0.
+	else CCR12val <- NULL
         
 	if (criterion == "WALD")   {
 
@@ -114,9 +119,7 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 		criterion <- "XI_2"
 		criterio <- 5
 		BartPival <- 1.
-		Walddec <- TRUE
 	}
-        else Walddec <- FALSE
 
 ############################
 # Call to the C subroutine #
@@ -155,26 +158,14 @@ if (criterion == "TAU_2" || criterion == "XI_2" || criterion ==
 	   as.logical(singularmat), 	    
            PACKAGE="subselect"   
         ) 
+	if (Cout$nomemory == TRUE) return(NULL)
 
 #######################################
 # Preparing and returning the output  #
 #######################################
- 
-	 if (Cout$found == FALSE) {
-	    warning("Eleaps was not able to complete an exact search within the specified time limit of ",timelimit," seconds, \n and the optimality of the returned solutions cannot be guaranteed.\n To search for better solutions either increase the value of the function argument 'timelimit',\n or try one of the available meta-heuristics (anneal, genetic or improve).\n") 
-         }
-	 output <- c(Cout[-5],call=match.call()) 
-         dimnames(output$subsets)<-list(paste("Solution",1:nsol,sep=" "),paste("Var",1:kmax,sep="."),paste("Card",kmin:kmax,sep="."))
-         dimnames(output$values)<-list(paste("Solution",1:nsol,sep=" "),paste("card.",kmin:kmax,sep=""))
-         names(output$bestvalues)<-paste("Card",kmin:kmax,sep=".")
-         dimnames(output$bestsets)<-list(paste("Card",kmin:kmax,sep="."),paste("Var",1:kmax,sep="."))
-         if (Walddec)  {
-		criterion <- "WALD"
-		criterio <- 8
-		validvalues <- output$values[output$values > 0.]
-		output$values[output$values > 0.] <- rep(Waldval,length(validvalues)) - validvalues * Waldval
-		output$bestvalues <- rep(Waldval,kmax-kmin+1) - output$bestvalues * Waldval  
-	 }	
-         return(output)
+
+	 output <- prepRetOtp(c(Cout[1:4],call=match.call()),kmin,kmax,nsol,Waldval,"eleaps",Optimal=Cout$found,tl=timelimit) 
+	 if (is.null(output)) return(invisible(NA))
+	 output   # return(output)
 }
 

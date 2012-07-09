@@ -38,7 +38,7 @@
 
 
 \begin{center}
-\textbf{Version 0.11}
+\textbf{Version 0.12}
 \end{center}
 
 
@@ -835,16 +835,13 @@ observation belongs.
 There are S3 \emph{methods} for 
 \begin{itemize}
 \item class \texttt{data.frame} input argument \texttt{x};
-\item input object of class \texttt{formula};
-  \item input object of class \texttt{lda}.
+\item input object of class \texttt{formula}.
 \end{itemize}
 With these methods, the input arguments for \texttt{ldaHmat} can be given as:
 \begin{description}
   \item[formula] a formula of the form $grouping \sim x1 + x2 + ...$
 where the $x$ variables denote the discriminating variables. 
   \item[data] a data frame from which variables specified in formula are preferentially to be taken. 
-%  \item[lda\_object] produced as output by the \texttt{lda} command in \texttt{R}'s MASS package
-  \item[fitdldamodel] an object of class \texttt{lda}, as produced by the \texttt{lda} command in \texttt{R}'s MASS package.
 \end{description}
 
 In this context, the output objects \texttt{mat} and \texttt{H} are
@@ -875,15 +872,6 @@ ldaHmat(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width)
 detach(iris)
 @
 %$
-
-Finally, an example invoking \texttt{ldaHmat} with an \texttt{lda} object as input:
-
-<<>>=
-library(MASS)
-iris.lda <- lda(x = iris[, -5], group = iris[, 5])
-ldaHmat(iris.lda)
-@ 
-%{\color{red}FALTA um exemplo com input lda}.
 
 
 \paragraph{The \textbf{glhHmat} function for a general linear
@@ -1389,7 +1377,8 @@ adaptation for various multivariate analysis contexts (references
 Wilson's Leaps and Bounds Algorithm (reference \cite{Furnival:74}) for 
 variable selection in Regression Analysis. If the search is not completed within 
 a user defined time limit (input argument \texttt{timelimit}), \texttt{eleaps} 
-exits with a warning message.
+exits with a warning message, returning the best (but not necessarly optimal)
+solutions found in the partial search performed.
 
 In order to improve computation times, the bulk of computations are
 carried out by C++ routines. Further details about the Algorithm can 

@@ -56,10 +56,9 @@ available.
 The function checks for ill-conditioning of the input matrix
 (specifically, it checks whether the ratio of the input matrix's
 smallest and largest eigenvalues is less than \code{tolval}). For an
-ill-conditioned input matrix, execution is aborted. The function
-\code{\link{trim.matrix}} may be used to obtain a well-conditioned input
-matrix.
-
+ill-conditioned input matrix, the search is restricted to its 
+well-conditioned subsets. The function \code{\link{trim.matrix}} may 
+be used to obtain a well-conditioned input matrix.
 
 In a general descriptive (Principal Components Analysis) setting, the
 three criteria Rm, Rv and Gcd can be used to select good k-variable
@@ -96,7 +95,7 @@ The auxiliary functions \code{\link{lmHmat}}, \code{\link{ldaHmat}}
 \code{\link{glhHmat}} and \code{\link{glmHmat}} are provided to automatically 
 create the matrices \code{mat} and \code{H} in all the cases considered.}
 
-\usage{genetic( mat, kmin, kmax = kmin, popsize = 100, nger = 100,
+\usage{genetic( mat, kmin, kmax = kmin, popsize = max(100,2*ncol(mat)), nger = 100,
 mutate = FALSE, mutprob = 0.01, maxclone = 5, exclude = NULL,
 include = NULL, improvement = TRUE, setseed= FALSE, criterion = "default",
 pcindices = "first_k", initialpop = NULL, force = FALSE, H=NULL, r=0,
@@ -198,10 +197,10 @@ tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 
   \item{tolval}{the tolerance level for the reciprocal of the 2-norm
     condition number of the correlation/covariance matrix, i.e., for the
-    ratio of the smallest to the largest eigenvalue of the input
-    matrix. Matrices with a reciprocal of the condition number smaller
-    than \code{tolval} will abort the search algorithm.}
-
+    ratio of the smallest to the largest eigenvalue of the input matrix. 
+    Matrices with a reciprocal of the condition number smaller than 
+    \code{tolval} will activate a restricted-search for well conditioned 
+    subsets.} 
 
  \item{tolsym}{the tolerance level for symmetry of the
    covariance/correlation/total matrix and for the effects (\code{H})
@@ -283,44 +282,67 @@ genetic(cor(swiss),3,4,popsize=10,nger=5,criterion="Rv")
 ## For cardinality k=
 ##[1] 4
 ## there is not enough genetic diversity in generation number 
-##[1] 5
-## for acceptable levels of consanguinity (couples differing by at
-## least 2 genes). 
-## [1]
-## Try reducing the maximum acceptable number  of clones (maxclone) or
-## increasing the population size (popsize) 
-## [1]
+##[1] 3
+## for acceptable levels of consanguinity (couples differing by at least 2 genes).
+## Try reducing the maximum acceptable number  of clones (maxclone) or increasing the population size (popsize)
 ## Best criterion value found so far:
-##[1] 0.9590526
+##[1] 0.9557145
 ##$subsets
-##            Var.1 Var.2 Var.3
-##Solution 1      1     2     3
-##Solution 2      1     2     3
-##Solution 3      1     2     5
-##Solution 4      1     2     6
-##Solution 5      3     4     6
-##Solution 6      3     4     5
-##Solution 7      3     4     5
-##Solution 8      1     3     6
-##Solution 9      2     4     5
-##Solution 10     1     3     4
+##, , Card.3
+##
+##            Var.1 Var.2 Var.3 Var.4
+##Solution 1      1     2     3     0
+##Solution 2      1     2     3     0
+##Solution 3      1     2     3     0
+##Solution 4      3     4     6     0
+##Solution 5      3     4     6     0
+##Solution 6      3     4     5     0
+##Solution 7      3     4     5     0
+##Solution 8      1     3     6     0
+##Solution 9      1     3     6     0
+##Solution 10     1     3     6     0
+##
+##, , Card.4
+##
+##            Var.1 Var.2 Var.3 Var.4
+##Solution 1      2     4     5     6
+##Solution 2      1     2     5     6
+##Solution 3      1     2     3     5
+##Solution 4      1     2     4     5
+##Solution 5      1     2     4     5
+##Solution 6      1     4     5     6
+##Solution 7      1     4     5     6
+##Solution 8      1     4     5     6
+##Solution 9      1     3     4     5
+##Solution 10     1     3     4     5
+##
 ##
 ##$values
-## Solution 1  Solution 2  Solution 3  Solution 4  Solution 5  Solution 6 
-##  0.9141995   0.9141995   0.9098502   0.9074543   0.9034868   0.9020271 
-## Solution 7  Solution 8  Solution 9 Solution 10 
-##  0.9020271   0.8988192   0.8982510   0.8940945 
+##               card.3    card.4
+##Solution 1  0.9141995 0.9557145
+##Solution 2  0.9141995 0.9485699
+##Solution 3  0.9141995 0.9455508
+##Solution 4  0.9034868 0.9433203
+##Solution 5  0.9034868 0.9433203
+##Solution 6  0.9020271 0.9428967
+##Solution 7  0.9020271 0.9428967
+##Solution 8  0.8988192 0.9428967
+##Solution 9  0.8988192 0.9357982
+##Solution 10 0.8988192 0.9357982
 ##
 ##$bestvalues
-##   Card.3 
-##0.9141995 
+##   Card.3    Card.4 
+##0.9141995 0.9557145 
 ##
 ##$bestsets
-##Var.1 Var.2 Var.3 
-##    1     2     3 
+##       Var.1 Var.2 Var.3 Var.4
+##Card.3     1     2     3     0
+##Card.4     2     4     5     6
 ##
 ##$call
-##genetic(cor(swiss), 3, 4, popsize = 10, nger = 5, criterion = "Rv")
+##genetic(mat = cor(swiss), kmin = 3, kmax = 4, popsize = 10, nger = 5, 
+##    criterion = "Rv")
+
 
 
 ## --------------------------------------------------------------------

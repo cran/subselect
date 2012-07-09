@@ -35,7 +35,7 @@ class partialsqfdata : public partialqfdata    {
 
 class partialsingleqfdata :  public partialdata {       /* Class for data used in single quadratic form criteria updates */
 	public:
-		partialsingleqfdata(void)			{  pqf = new partialsqfdata(1); }
+		partialsingleqfdata(void)			{  pqf=0; pqf = new partialsqfdata(1); }
 		virtual ~partialsingleqfdata(void)		{ delete pqf; }
 		virtual const real	getcrt(void) const	{ return pqf->getsum(); }
 	protected:
@@ -47,7 +47,8 @@ class qfdata   {
 	public:
 		qfdata(vind tnv,vind nvtopiv,vind nparcels);
 		virtual ~qfdata(void);
-		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,bool last,bool& reliable,const double tol);
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* pdt,qfdata* fdt,
+					bool last,bool& reliable,const double tol);
 		void setvectel(vind i,vind j,real val)		{ ve[i][j] = val; }
 		void setcoefmatel(vind i,vind j,real val)	{ (*e)(i,j) = val;  }
 		virtual bool nopivot(void) const    { return unreliable; }
@@ -60,8 +61,10 @@ class qfdata   {
 		vector< vector<real> >	ve;
 		symtwodarray*		e;
 	private:
-		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol); 
-		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol); 
+		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
+				bool last,bool& reliable,const double tol); 
+		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
+				bool last,bool& reliable,const double tol); 
 		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
 		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
 		bool	unreliable;
@@ -83,15 +86,17 @@ class sqfdata   : public qfdata  {     /* Sum of quadratic forms     */
 class singleqfdata :  public subsetdata {
 	public:
 		singleqfdata(vind tnv,vind nvtopiv,real qfval)
-			{  qf = new sqfdata(tnv,nvtopiv,1,qfval); }
+			{  qf=0; qf = new sqfdata(tnv,nvtopiv,1,qfval); }
 		virtual ~singleqfdata(void)			{ delete qf; }
 		sqfdata*  getqfdata(void) const			{ return qf; };
 		virtual bool max(void)  { return true; }
 		virtual const real criterion(void) const	{ return qf->qfsum(); }
 		virtual void setcriterion(real c)		{ qf->setqfsum(c); }
 		virtual void setorgvarl(vind *)			{  }
-		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double) const;
-		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,
+					bool& reliable,const double tol,const double) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,
+					bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialsingleqfdata and singleqfdata classes
 		  or unpredictable behaviour will result  

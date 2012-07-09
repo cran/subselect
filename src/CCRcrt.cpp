@@ -18,13 +18,21 @@ partialccrdata::partialccrdata(vind nvars,vind hrank,real r2,real w,real bp)
 	bptmpv.resize(hrank);
 }
 
-ccrdata::ccrdata(vind nv,vind tnv,vind nvtopiv,vind hr,real w,real bp,real r2)
-  :  p(tnv), k(nvtopiv), hrank(hr), nvar(nv), ccr12(r2), wilksst(w), bartpist(bp), unreliable(false)
+ccrdata::ccrdata(vind nv,vind tnv,vind pnv,vind hr,real w,real bp,real r2)
+  :  p(tnv), k(pnv), hrank(hr), nvar(nv), ccr12(r2), wilksst(w), bartpist(bp), unreliable(false), emat(0), tmat(0)
 {
-	htinv.assign(hrank,vector<real>(k));
-	emat = new symtwodarray(k);
-	tmat = new symtwodarray(k);
-	rpl = new real *[2*hrank+4];  
+	try  {
+		htinv.assign(hrank,vector<real>(k));
+		emat = new symtwodarray(k);
+		tmat = new symtwodarray(k);
+		rpl = new real *[2*hrank+4];  
+	}
+	catch (...)  {
+		delete emat; 
+		delete tmat; 
+		delete[] rpl;
+		throw;
+	}	  
 }
 
 ccrdata::~ccrdata(void)

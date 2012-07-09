@@ -2,6 +2,7 @@
 #define SETS
 
 #include <set>
+#include <vector> 
 
 namespace extendedleaps {
 
@@ -21,7 +22,7 @@ class sbset  {
 		real	ind_;
 		sbset(const sbset&);			/* Disallow copy constructur by clients  */
 		sbset& operator=(const sbset&);	    	/* Disallow assignment by clients   */
-	friend sbset *csbset(vind,vind *,real,real);
+	friend sbset *csbset(vind,vector<vind>&,real,real);
 	friend void dsbset(sbset *);
 };
 

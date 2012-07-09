@@ -1,5 +1,5 @@
-validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval,tolsym){
-
+validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval, tolsym, algorithm)
+{
 
 ##########################################################
 #  general validation of input for all search functions  #
@@ -50,11 +50,11 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
 
         if (criterion=="TAU_2" || criterion=="XI_2" || criterion=="ZETA_2" || criterion=="CCR1_2")
         {   		
-         	if (validmat(mat,p,tolval,tolsym,allowsingular=TRUE) == "singularmat")  singularmat <- TRUE  	
+         	if (validmat(mat,p,tolval,tolsym,allowsingular=TRUE,algorithm) == "singularmat")  singularmat <- TRUE  	
          	else singularmat <- FALSE						 			
 	}                                                				 			
         else {						 							
-		validmat(mat,p,tolval,tolsym,allowsingular=FALSE)   						
+		validmat(mat,p,tolval,tolsym,allowsingular=FALSE,algorithm)   						
          	singularmat <- FALSE						 				
 	}					 								
         
@@ -113,6 +113,7 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
          inc<-c(0,include)
          if (kmax<kmin) stop("\n After trying to adapt to the requests for exclusion and inclusion of \n variables, kmax is now smaller than kmin. There must be a mistake.\n")
 
+
 ######################
 # Checking pcindices #
 ######################
@@ -128,9 +129,9 @@ validation<-function(mat, kmin, kmax, exclude, include, criterion, pcindices, to
                                     if  (sum(!(as.integer(pcindices) == pcindices)) > 0) stop("\n The PC indices must be integers.\n")
                                     if (max(pcindices)  >  p) stop("\n PCs of rank larger than the data set were requested. \n")
                                                         }
-                            else {if (pcindices != "first_k")
+                            else {if (pcindices[1] != "first_k")
                                     {stop("\n unrecognized value for 'pcindices' argument \n")}}}
-         if ((pcindices == "first_k") || is.null(pcindices)) {pcindices<-1:kmax}
+         if ((pcindices[1] == "first_k") || is.null(pcindices)) {pcindices<-1:kmax}
 
 #################################
 # assigning any changed values  #

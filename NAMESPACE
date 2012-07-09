@@ -3,4 +3,4 @@ exportPattern(".*.coef")
 exportPattern(".*Hmat")
 export(anneal,genetic,improve,eleaps,leaps,trim.matrix) 
 S3method(lmHmat,lm)
-S3method(ldaHmat,lda)
+

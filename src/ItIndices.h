@@ -34,6 +34,7 @@ template<> class itindex<d> :  public indexbase {           /* Trivial d index t
 template<> class itindex<i> :  public indexbase {           /* Indirect index type    */
 	public:
 		itindex<i>(vind n,vind* il) : indexbase(n), indlist(il) { }
+		itindex<i>(vind n,vector<vind>& il) : indexbase(n), indlist(&il[0]) { }
 		virtual const vind	operator()(void) const		{ return indlist[cur()]; }
 		virtual const vind	operator[](vind i) const	{ return indlist[i]; }
 		virtual void		asglst(vind *lst)		{ indlist = lst; }
@@ -54,7 +55,8 @@ template<> class lagindex<d> : public itindex<d>  {  /* Lagged d index - impleme
 
 template<> class lagindex<i> : public itindex<i>  {  /* Lagged i index - implements an index offset   */
 	public:
-		lagindex<i>(vind n,vind lag,vind* il) : itindex<i>(n,il)	
+		lagindex<i>(vind n,vind lag,vind* il) : itindex<i>(n,il)  { lag_ = lag; }	
+		lagindex<i>(const vind n,const vind lag,vector<vind>& il) : itindex<i>(n,il)	
 			{ lag_ = lag; }
 		void setlag(vind lag)					{ lag_ = lag; }
 		virtual void	reset(void)				{ cur_ = 0; }

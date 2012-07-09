@@ -1,4 +1,4 @@
-* SUBPROGRAMS:
+* SUBPROGRApsMS:
 * Included in the R/S package "subselect", available on CRAN.
 ********************************************************************
        subroutine newinicializar(criterio,p,s,svector,sq,nfora,
@@ -57,17 +57,20 @@
 *
 
 * general declarations
-      integer criterio,i,iaux,j,ndentro,nfica,nfora
-      integer p,poriginal,rh
+      integer criterio,i,iaux,j,nfora,ndentro,nfica
+      integer p,poriginal
       integer fora(0:nfora),fica(0:p),dentro(0:ndentro)
-      double precision s(p,p),sq(p,p),svector(p*p),h(p,p)
-      double precision vecvecp(p*p),hvector(p*p)
+      double precision s(p,*),sq(p,*),svector(*)
+      double precision vecvecp(*)
 * declaration only for the RM criterion
       double precision tracos
 * declarations only for the RV criterion
       double precision tracosq
 * declarations only for the GCD criterion
-      double precision vecp(p,p)
+      double precision vecp(p,*)
+* declarations only for the tau2,xi2,zeta2 and ccr12 criteria
+      integer rh
+      double precision hvector(*),h(p,*)
 
       external dprodmat
 
@@ -147,18 +150,18 @@
               sq(j,i)=sq(i,j)
               if(rh .GT. 0) then
 		    h(i,j)=h(fica(i),fica(j))
-              h(j,i)=h(i,j)
-		    end if
-		  end do
+                    h(j,i)=h(i,j)
+	      end if
+            end do
             s(i,i)=s(fica(i),fica(i))
             sq(i,i)=sq(fica(i),fica(i))
 		    if(rh .GT. 0) then
-		    h(i,i)=h(fica(i),fica(i))
-              end if
+		       h(i,i)=h(fica(i),fica(i))
+                    end if
          end do
          s(p,p)=s(fica(p),fica(p))
          sq(p,p)=sq(fica(p),fica(p))
-          if(rh .GT. 0) then
+         if(rh .GT. 0) then
 		    h(p,p)=h(fica(p),fica(p))
           end if 
       end if
@@ -183,7 +186,7 @@
 **********************************************************************
 
 *********************************************************************
-      subroutine randsk1(n,k,sk)
+      subroutine randsk1(n,k,sk,pp)
 **********************************************************************
 * generates a subset of k random integers from the set {1,2,...,n}. 
 * Warning: uses function randint.
@@ -193,14 +196,15 @@
 *    n   - integer variable, largest integer in the set.
 *    k   - integer variable, giving the number of random integers that
 *                are to be generated
+*    pp  - integer vector of n elements, used to store temporary results
 * 
 *  OUTPUT: 
 *   sk   - logical vector defining the generated subset 
 *               (sk(i)=.true. iff i belongs to sk, i=1,...,n)
 
        integer i,k,n,nalt,randint
-       integer pp(n)
-       logical sk(n)
+       integer pp(*)
+       logical sk(*)
 
        do i=1,n
         sk(i)=.false.
@@ -242,8 +246,6 @@
       end
 *********************************************************************
 
-
-
 *********************************************************************
       subroutine dprodmat(n,m,a,r,b,prod)
 **********************************************************************
@@ -254,13 +256,13 @@
 *                matrix b)
 * 
 *         a - double precision array (nxm)
-*         r - integer, number of rows of matrix b
+*         r - integer, number of columns of matrix b
 *         b - double precision array (mxr)
 * OUTPUT: 
 *   prod - double precision array (nxr), the product a x b.
 
        INTEGER i,j,l,m,r
-       DOUBLE PRECISION a(n,m),b(m,r),prod(n,r),soma
+       DOUBLE PRECISION a(n,*),b(m,*),prod(n,*),soma
 
        DO i=1,n
          DO j=1,r
@@ -306,7 +308,7 @@
 
        integer i,j,naux,ndentro,p,poriginal
        integer dentro(0:ndentro)
-       logical setk(poriginal)
+       logical setk(*)
 
        dentro(0)=0
        naux=ndentro
@@ -327,10 +329,13 @@
 **********************************************************************
 
 ************************************************************************
-      subroutine dannealing(criterio,p,k,s,sq,setk,vactual,ndentro,
-     +  dentro,niter,beta,temp,coolfreq,tracos,tracosq,nqsi,qsi,
-     +  valp,vecp,fica,poriginal,h,rh)
+	subroutine dannealing(criterio,p,kmax,setk,vactual,ndentro,
+     +                dentro,niter,beta,temp,coolfreq,k,s,tracos,sq,
+     +                tracosq,nqsi,qsi,valp,vecp,fica,poriginal,
+     +                h,rh,skinput,hkinput,ekinput,egval,work,workmat,
+     +                randsk1pp,setint,checksg,numtol,numprb)
 **********************************************************************
+
 * 
 * Applies simulated annealing to a subset setk of the original variables. 
 *
@@ -341,6 +346,7 @@
 *            requested.
 *   p     - integer variable giving the number of original variables (minus
 *               ndentro).
+* kmax    - integer variable, giving the largest cardinality
 *   k     - integer variable, cardinality of subset.
 *   s     - double precision matrix of covariances of all p variables.
 *   sq    - double precision matrix, the square of s. 
@@ -382,7 +388,10 @@
 *            matrix (H)  
 *
 *   rh     - integer variable giving the expected rank of H matrix.
-
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (E being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal 
+*           elements of E Choleski decomposition
 
 *
 * OUTPUT: 
@@ -392,39 +401,52 @@
 *           j belongs to the subset. 
 *vactual  - double precision variable giving the best value of the criterion 
 *           produced throughout the niter iterations.
+* numprb -  logical flag set to true if numerical problems precluded some
+*           (ill-conditioned) subsets to be evaluated, and to false otherwise.   
 
-
-        external unifrnd, rndstart, rndend
+*  WORKING ARRAYS:
+*
+*  skinput   - double precision matrix (kmax*kmax) used to store the submatrices S_k. 
+*  hkinput   - double precision matrix (kmax*kmax) used to store the submatrices H_k. 
+*  ekinput   - double precision matrix (kmax*kmax) used to store the submatrices E_k. 
+*  egval     - double precision array (kmax), used to store eigenvalues.
+*  work      - double precision array (6*kmax), to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix (kmax*kmax) used to store temporary results.
+*  randsk1pp - integer array(p) to be used internaly by the randsk1 routine.
+*  setint    - integer array(p) used to store the indices of the variables kept in each subset.
         
 * general declarations
-
-        double precision unifrnd,r
-        integer coolfreq, criterio,i,inaoconv,iter,j,jentra,jsai,k,kcons
-        integer kque,ncons,ndentro,nigual,niter,nque,p, poriginal
+        integer coolfreq,criterio,i,inaoconv,iter,j,jentra,jsai,k,kcons
+        integer kque,ncons,ndentro,nigual,niter,nque,p,poriginal,kmax
         integer dentro(0:ndentro),que(p),cons(p),randint
-        logical setk(poriginal),setkmax(poriginal),auxlog(p)
-        double precision s(poriginal,poriginal),h(poriginal,poriginal)
-        double precision sq(poriginal,poriginal),beta,citer,temp
-        double precision vactual,vmax,vtroca,dir
-
-* declarations specific to the RM criterion
-        double precision tracos,dobjrm
-* declarations specific to the RV criterion
-        double precision tracosq,dobjrv
-* declarartions specific to the GCD criterion
-        integer qsi(p),fica(0:p),nqsi
-        double precision valp(poriginal)
-        double precision vecp(poriginal,poriginal),dobjgcd
-* declarations for the tau_2, xi_2 criteria
-        double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+	logical checksg,numprb
+        logical setk(*),setkmax(poriginal),auxlog(p)
+        double precision vactual,vmax,vtroca,dir,numtol,beta,citer,temp
+        double precision unifrnd,r
+        double precision s(poriginal,*)
+* declarations specific to the RM and RV criteria
+        double precision sq(poriginal,*),tracos,tracosq,dobjrm,dobjrv
+* declarations specific to the GCD criterion
+        integer qsi(*),fica(0:p),nqsi
+        double precision valp(*)
+        double precision vecp(poriginal,*),dobjgcd
+* declarations specific to the tau2,xi2,zeta2 and ccr12 criteria
         integer rh
+        double precision h(poriginal,*)
+        double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+* declarations of local arrays and matrices
+       INTEGER randsk1pp(*),setint(*)
+       DOUBLE PRECISION skinput(kmax,*),hkinput(kmax,*)
+       DOUBLE PRECISION ekinput(kmax,*),workmat(kmax,*)
+       DOUBLE PRECISION work(*),egval(*)
 
-   
+        external unifrnd, rndstart, rndend
 
 * initializing 
         citer = temp
-        vtroca = 0.0D0
+        vtroca = -1.0D0
         dir = 0.0D0
+        numprb=.false.
 
         do j=1,p
          auxlog(j)=.true.
@@ -479,27 +501,39 @@
          setk(jsai)=.false.
          setk(jentra)=.true.
          if (criterio.eq.1) then
-           vtroca=dobjrm(k,setk,p,s,sq,poriginal)
+	    vtroca=dobjrm(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
          end if
          if (criterio.eq.2) then
-           vtroca=dobjrv(k,setk,p,s,sq,poriginal)
+           vtroca=dobjrv(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
          end if
          if (criterio.eq.3) then
-           vtroca=dobjgcd(nqsi,qsi,valp,vecp,k,setk,p,s,fica,poriginal)
-         end if
+            vtroca=dobjgcd(k,setk,p,poriginal,kmax,s,workmat,
+     +   nqsi,qsi,valp,setint,vecp,fica,skinput)
+        end if
          if (criterio.eq.4) then
-           vtroca=dobjtau2(k,setk,p,s,poriginal,h,rh)
-         end if
-	 if (criterio.eq.5) then
-           vtroca=dobjxi2(k,setk,p,s,poriginal,h,rh)
-         end if
-	 if (criterio.eq.6) then
-           vtroca=dobjzeta2(k,setk,p,s,poriginal,h,rh)
-         end if
-	 if (criterio.eq.7) then
+               vtroca=dobjtau2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
+            end if
+	   if (criterio.eq.5) then
+               vtroca=dobjxi2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
+           end if
+	   if (criterio.eq.6) then
+               vtroca=dobjzeta2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
+           end if		 
+	  if (criterio.eq.7) then
 * tirei rh
-           vtroca=dobjccr12(k,setk,p,s,poriginal,h)
+               vtroca=dobjccr12(k,setk,p,poriginal,kmax,s,h,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
+           end if
+
+         if (checksg.and.criterio.GT.3.and.vtroca.eq.-0.9999D0) then
+	   numprb=.true.        
          end if
+
 * if vtroca>vmax, updates vmax and setkmax, which hold the best value and 
 * subset found so far.
 
@@ -513,7 +547,6 @@
 * The replacement is carried out if vtroca>=vactual or, if not, with 
 * probability given by the simulated annealing algorithm, and computed
 * by R's Random Number Generator
-
 
          call rndstart()
          r = unifrnd()
@@ -614,14 +647,14 @@
 
        return
       end
-
-
-
 **********************************************************************
 
 **********************************************************************
-       subroutine dmelhoramentogen(criterio,p,setk,vactual,ndentro,
-     +  dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,h,rh)
+	subroutine dmelhoramentogen(criterio,p,kmax,setk,vactual,ndentro,
+     +                dentro,k,s,sq,nqsi,qsi,valp,vecp,fica,poriginal,
+     +                h,rh,skinput,hkinput,ekinput,egval,work,workmat,
+     +                randsk1pp,setint,checksg,numtol,numprb)
+
 **********************************************************************
 * This subroutine (which is only called by the "improve" subroutine, 
 * but also by the other two main routines - "genetic" and "anneal" -  if 
@@ -643,6 +676,8 @@
 *criterio - integer variable indicating the criterion of subset quality
 *            requested.
 *   p     - integer variable, number of original variables. 
+*  kmax   - integer variable, giving the largest cardinality
+*           of the subsets of variables that are wanted.
 * setk    - logical vector, indicating a given subset of variables. 
 *           setk(j)=.true. iff variable j belongs to the subset. Changed
 *           on exit. 
@@ -673,6 +708,9 @@
 *            matrix (H)  
 *
 *   rh     - integer variable giving the expected rank of H matrix.
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (E being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements of E Choleski decomposition.
 *
 *
 * OUTPUT: 
@@ -681,28 +719,47 @@
 *           search, with setk(j)=.true. iff variable j belongs to the subset. 
 *vactual  - double precision variable giving the best value of the criterion 
 *           after the modified local search.
+* numprb -  logical flag set to true if numerical problems precluded some
+*           (ill-conditioned) subsets to be evaluated, and to false otherwise.   
+
+*  WORKING ARRAYS:
+*
+*  skinput   - double precision matrix (kmax*kmax) used to store the submatrices S_k. 
+*  hkinput   - double precision matrix (kmax*kmax) used to store the submatrices H_k. 
+*  ekinput   - double precision matrix (kmax*kmax) used to store the submatrices E_k. 
+*  egval     - double precision array (kmax), used to store eigenvalues.
+*  work      - double precision array (6*kmax), to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix (kmax*kmax) used to store temporary results.
+*  randsk1pp - integer array(p) to be used internaly by the randsk1 routine.
+*  setint    - integer array(p) used to store the indices of the variables kept in each subset.
+
 
 * general declarations
-      integer criterio,k,j,jconsmax,jentra,jmax,jsai
+      integer criterio,k,kmax,j,jconsmax,jentra,jmax,jsai
       integer ncons,ndentro,nque,p,poriginal
       integer dentro(0:ndentro),que(p),cons(p)
-      logical setk(poriginal),auxlog(p),esteveque(p)
-      double precision s(poriginal,poriginal),h(poriginal,poriginal)
-      double precision vactual,vtroca,vtrocamax
-
-* declarations for the RM and RV criteria
-      double precision sq(poriginal,poriginal),dobjrm,dobjrv
-* declarations for the gcd criteria
-        integer qsi(p),fica(0:p),nqsi
-        double precision valp(poriginal)
-        double precision vecp(poriginal,poriginal),dobjgcd
-* declarations for the tau_2, xi_2 criteria
-        double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+      logical setk(*),auxlog(p),esteveque(p)
+      logical checksg,numprb
+      double precision s(poriginal,*)
+      double precision vactual,vtroca,vtrocamax,numtol
+* declarations specific to the RM and RV criteria
+      double precision sq(poriginal,*),dobjrm,dobjrv
+* declarations specific to the gcd criteria
+        integer qsi(*),fica(0:p),nqsi
+        double precision valp(*),vecp(poriginal,*),dobjgcd
+* declarations specific to the tau2,xi2,zeta2 and ccr12 criteria
         integer rh
-
+        double precision h(poriginal,*)
+        double precision dobjtau2,dobjxi2,dobjzeta2,dobjccr12
+* declarations of local arrays and matrices
+       INTEGER randsk1pp(*),setint(*)
+       DOUBLE PRECISION skinput(kmax,*),hkinput(kmax,*)
+       DOUBLE PRECISION ekinput(kmax,*),workmat(kmax,*)
+       DOUBLE PRECISION work(*),egval(*)
 
 * initializations
-      vtroca = 0.0D0
+
+      vtroca = -1.0D0
       jmax = 0 
       jconsmax = 0
 
@@ -739,27 +796,37 @@
 	setk(jsai)=.false.
 	setk(jentra)=.true.
         if (criterio.eq.1) then
-        	vtroca=dobjrm(k,setk,p,s,sq,poriginal)
+		vtroca=dobjrm(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
         end if
         if (criterio.eq.2) then
-        	vtroca=dobjrv(k,setk,p,s,sq,poriginal)
+           	vtroca=dobjrv(k,setk,p,poriginal,kmax,s,sq,workmat,
+     +   setint,skinput)
         end if
         if (criterio.eq.3) then
-                vtroca=dobjgcd(nqsi,qsi,valp,vecp,k,setk,p,s,
-     +              fica,poriginal)
+		 vtroca=dobjgcd(k,setk,p,poriginal,kmax,s,workmat,
+     +   nqsi,qsi,valp,setint,vecp,fica,skinput)
         end if
-	  if (criterio.eq.4) then
-                vtroca=dobjtau2(k,setk,p,s,poriginal,h,rh)
-        end if
-	  if (criterio.eq.5) then
-                vtroca=dobjxi2(k,setk,p,s,poriginal,h,rh)
-        end if
-	    if (criterio.eq.6) then
-                vtroca=dobjzeta2(k,setk,p,s,poriginal,h,rh)
-        end if
+        if (criterio.eq.4) then
+               vtroca=dobjtau2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
+           end if
+	   if (criterio.eq.5) then
+               vtroca=dobjxi2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
+           end if
+	   if (criterio.eq.6) then
+               vtroca=dobjzeta2(k,setk,p,poriginal,kmax,s,h,rh,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,ekinput,workmat)
+           end if		 
 	  if (criterio.eq.7) then
 * tirei rh
-                vtroca=dobjccr12(k,setk,p,s,poriginal,h)
+               vtroca=dobjccr12(k,setk,p,poriginal,kmax,s,h,checksg,
+     +   numtol,setint,work,egval,skinput,hkinput,workmat)
+           end if		 
+
+        if (checksg.and.criterio.GT.3.and.vtroca.eq.-0.9999D0) then
+	   	numprb=.true.        
         end if
 	
 	IF (vtroca.GT.vtrocamax) THEN
@@ -787,9 +854,8 @@
        END
 **********************************************************************
 
-
 **********************************************************************
-      function dobjrm(k,setk,p,s,sq,poriginal)
+      function dobjrm(k,setk,p,poriginal,kmax,s,sq,ski,setint,skinput)
 **********************************************************************
 * This function computes the "variable part" of the RM criterion. By "variable
 * part" is meant that which changes from one given k-subset to the other 
@@ -816,27 +882,33 @@
 *   s     - double precision matrix of covariances of all p variables.
 *   sq    - double precision matrix, the square of s.
 * poriginal - 
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices ski and skinput
+              
+*  WORKING ARRAYS:
+*
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix S_k. 
+*  ski       - double precision matrix used to store inverse of the submatrix S_k. 
 
+       integer i,info,j,k,kmax,p,poriginal
+       integer setint(*)
+       logical setk(*)
+       character*1 laux
+       double precision s(poriginal,*),sq(poriginal,*)
+       double precision ski(kmax,*),skinput(kmax,*),dobjrm
 
        external dposv
-
-       integer i,info,j,k,p,poriginal
-       integer setint(p)
-       logical setk(poriginal)
-       character*1 laux
-       double precision s(poriginal,poriginal),sq(poriginal,poriginal)
-       double precision sk(k,k),skinput(k,k),dobjrm
 
 * initializations and call to LAPACK routine DPOSV
 * matrix skinput will store the submatrix S_k. Matrix s will initially
 * be identity, fed to the LAPACK routine DPOSV, from which it will emerge
 * as the inverse of S_k. 
 
-
        do i=1,p
           setint(i)=i
        end do
-
 
        i=0
        do j=1,p
@@ -850,26 +922,26 @@
            do j=i+1,k
               skinput(i,j)=s(setint(i),setint(j))
               skinput(j,i)=skinput(i,j)
-              sk(i,j)=0.0D0
-              sk(j,i)=0.0D0
+              ski(i,j)=0.0D0
+              ski(j,i)=0.0D0
            end do
            skinput(i,i)=s(setint(i),setint(i))
-           sk(i,i)=1.0D0
+           ski(i,i)=1.0D0
          end do
 
           skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1.0D0
+          ski(k,k)=1.0D0
 
           laux='L'
           info=0
-          call dposv(laux,k,k,skinput,k,sk,k,info)
+          call dposv(laux,k,k,skinput,kmax,ski,kmax,info)
 
 * computes the trace of inv(S_k) x (S**2)_k
 
           dobjrm=0.0D0
 	  do i=1,k
 	    do l=1,k
-		  dobjrm=dobjrm+sk(i,l)*sq(setint(l),setint(i))
+		  dobjrm=dobjrm+ski(i,l)*sq(setint(l),setint(i))
             end do
 	  end do
 	  return
@@ -877,7 +949,7 @@
 **********************************************************************
 
 **********************************************************************
-      function dobjrv(k,setk,p,s,sq,poriginal)
+      function dobjrv(k,setk,p,poriginal,kmax,s,sq,ski,setint,skinput)
 **********************************************************************
 * This function computes the "variable part" of the RV criterion. By "variable
 * part" is meant that which changes from one given k-subset to the other 
@@ -903,15 +975,25 @@
 *   s     - double precision matrix of covariances of all p variables.
 *   sq    - double precision matrix, the square of s.
 * poriginal -
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices ski and skinput
+              
+*  WORKING ARRAYS:
+*
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix S_k. 
+*  ski       - double precision matrix used to store inverse of the submatrix S_k. 
+
+       integer i,info,j,k,kmax,p,poriginal
+       integer setint(*)
+       logical setk(*)
+       character*1 laux
+       double precision s(poriginal,*),sq(poriginal,*)
+       double precision ski(kmax,*),skinput(kmax,*)
+       double precision soma1,soma2,soma,dobjrv
 
       external dposv
-
-      integer i,info,j,k,p,poriginal
-      integer setint(p)
-      logical setk(poriginal)
-      character*1 laux
-      double precision s(poriginal,poriginal),sq(poriginal,poriginal)
-      double precision sk(k,k),skinput(k,k),soma1,soma2,soma,dobjrv
 
 * initializations and call to LAPACK routine DPOSV
 * matrix skinput will store the submatrix S_k. Matrix s will initially
@@ -935,18 +1017,18 @@
 	    do j=i+1,k
                   skinput(i,j)=s(setint(i),setint(j))
 		  skinput(j,i)=skinput(i,j)
-	          sk(i,j)=0.0D0
-                  sk(j,i)=0.0D0
+	          ski(i,j)=0.0D0
+                  ski(j,i)=0.0D0
             end do
             skinput(i,i)=s(setint(i),setint(i))
-            sk(i,i)=1.0D0
+            ski(i,i)=1.0D0
 	  end do
 	  skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1.0D0
+          ski(k,k)=1.0D0
 
            laux='L'
            info=0
-           call dposv(laux,k,k,skinput,k,sk,k,info)
+          call dposv(laux,k,k,skinput,kmax,ski,kmax,info)
 
 * computes the trace of (inv(S_k) x (S**2)_k)**2
 
@@ -956,8 +1038,8 @@
               soma1=0.0D0
               soma2=0.0D0
 	      do l=1,k
-	        soma1=soma1+sk(i,l)*sq(setint(l),setint(j))
-	        soma2=soma2+sk(j,l)*sq(setint(l),setint(i))
+	        soma1=soma1+ski(i,l)*sq(setint(l),setint(j))
+	        soma2=soma2+ski(j,l)*sq(setint(l),setint(i))
 	      end do
 	      dobjrv=dobjrv+soma1*soma2
             end do
@@ -967,7 +1049,7 @@
           do i=1,k
               soma=0.0D0
               do l=1,k
-	 soma=soma+sk(i,l)*sq(setint(l),setint(i))
+	 soma=soma+ski(i,l)*sq(setint(l),setint(i))
               end do
               dobjrv=dobjrv+soma**2.0D0
            end do
@@ -977,7 +1059,8 @@
 
 
 ********************************************************************
-      function dobjgcd(nqsi,qsi,valp,vecp,k,setk,p,s,fica,poriginal)
+      function dobjgcd(k,setk,p,poriginal,kmax,s,ski,nqsi,qsi,valp,
+     +   setint,vecp,fica,skinput)
 **********************************************************************
 * This function computes the "variable part" of the GCD criterion. By "variable
 * part" is meant that which changes from one given k-subset to the other 
@@ -1022,25 +1105,33 @@
 *            admissible variables (those that are not forcefully excluded
 *            from the subset by the user).
 * poriginal -
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices ski and skinput
+              
+*  WORKING ARRAYS:
+*
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix S_k. 
+*  ski       - double precision matrix used to store inverse of the submatrix S_k. 
 
-      external dposv
 
-      integer i,info,j,k,l,m,nqsi,p,poriginal
-      integer setint(p),qsi(p)
-      logical setk(poriginal)
-      character*1 laux
+      integer i,info,j,k,kmax,l,m,nqsi,p,poriginal
+      integer setint(*),qsi(*)
       integer fica(0:p)
-      double precision s(poriginal,poriginal),skinput(k,k),sk(k,k)
-      double precision valp(poriginal),vecp(poriginal,poriginal)
+      logical setk(*)
+      character*1 laux
+      double precision s(poriginal,*),skinput(kmax,*),ski(kmax,*)
+      double precision valp(*),vecp(poriginal,*)
       double precision dobjgcd,aux0,aux
 
+      external dposv
 
 * initilizations and call to LAPACK routine DPSOV
 * matrix skinput will store the submatrix S_k. Matrix s will initially
 * be identity, fed to the LAPACK routine DPOSV, from which it will emerge
 * as the inverse of S_k.
- 	  
-
+  
        do i=1,p
           setint(i)=i
        end do
@@ -1057,18 +1148,18 @@
 	    do j=i+1,k
                   skinput(i,j)=s(setint(i),setint(j))
 		  skinput(j,i)=skinput(i,j)
-	          sk(i,j)=0.0D0
-                  sk(j,i)=0.0D0
+	          ski(i,j)=0.0D0
+                  ski(j,i)=0.0D0
             end do
             skinput(i,i)=s(setint(i),setint(i))
-            sk(i,i)=1.0D0
+            ski(i,i)=1.0D0
 	  end do
 	  skinput(k,k)=s(setint(k),setint(k))
-          sk(k,k)=1.0D0
+          ski(k,k)=1.0D0
 
            laux='L'
            info=0
-           call dposv(laux,k,k,skinput,k,sk,k,info)
+           call dposv(laux,k,k,skinput,kmax,ski,kmax,info)
 
 * calculates sum_{m in qsi} (valp_m vecp_m^t inv(S_k) vecp_m)
 
@@ -1078,7 +1169,7 @@
 	    do i=1,k
 		  aux0=0.0D0
 		  do l=1,k
-		    aux0=aux0+sk(i,l)*vecp(fica(setint(l)),qsi(m))
+		    aux0=aux0+ski(i,l)*vecp(fica(setint(l)),qsi(m))
 		  end do
                   aux0=aux0*vecp(fica(setint(i)),qsi(m))
     	          aux=aux+aux0	  
@@ -1089,8 +1180,88 @@
 	  end   
 ************************************************************************
 
+
 ************************************************************************
-       function dobjtau2(k,setk,p,s,poriginal,h,rh)
+       subroutine checksingl2nrm(k,origmat,ldmat,workmat,egval,work,
+     +  numtol,numsing)
+************************************************************************
+* This function computes checks the singularity of the symmetric square 
+* positive-definite (or positive-semidefinite) matrix origmat based on 
+* its l2-norm condition number (ratio of largest to smallest eigenvalues).
+* WARNING : This function calls the LAPACK routine DSYEV.
+
+*  OUTPUT:
+*
+*   numsing - integer flag, set to 1 is origmat is numerically singular and 
+*              to 0 otherwise
+
+*  INPUT: 
+*
+*   k       - integer, conceptual dimension of matrix origmat. 
+*  origmat  - double precision low-triangle of the positive definite matrix 
+*             (or positive-semidefinite) whose singularity is being tested.
+*  ldmat    - integer, leading (physical) dimension of the matrix origmat. 
+*  numtol   - double precision tolerance level for the ratio of the
+*             origmat eigenvalues.
+
+*  WORKING ARRAYS:
+*
+*  workmat  - double precision matrix with the same dimensions as origmat. 
+*  egval    - double precision array, used to store the eigenvalues of origmat.
+*  work     - double precision array, to be used internaly by the DSYEV routine.
+   
+       integer k,info,lwork,numsing,ldmat
+       character*1 jobz,laux
+       double precision work(*),egval(*)
+       double precision origmat(ldmat,*),workmat(ldmat,*)
+       double precision numtol
+
+       external dsyev
+
+	numsing = 1 
+
+* Create a copy of matrix origmat in order to keep the original data	
+
+	do i =1,k
+	  do j=1,i
+		workmat(i,j) = origmat(i,j)
+	   end do
+	end do	
+
+* call to LAPACK routine dsyev
+
+	   jobz='N'
+	   laux='L'
+           info=0
+	   lwork=6*k
+  
+           call dsyev(jobz,laux,k,workmat,ldmat,egval,work,lwork,info)
+
+* check the singularity of matrix workmat and return 1 if numerically 
+* singular, and 0 otherwise 
+
+	if (info .NE. 0) then 
+	  return	
+	else
+	  if (egval(k) .lt. numtol) then 
+		return
+	  else
+		if (egval(1)/egval(k) .lt. numtol) then 
+			return
+	  	else
+			numsing = 0
+		end if
+	  end if
+	end if
+
+	return
+	end
+
+************************************************************************
+
+************************************************************************
+       function dobjtau2(k,setk,p,poriginal,kmax,s,h,rh,checksg,numtol,
+     +   setint,work,egval,skinput,hkinput,ekinput,workmat)
 ************************************************************************
 * This function computes the tau_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
@@ -1103,6 +1274,7 @@
 *   lambda = det(E)/det(T) Where E=T-H.
 *   We can also obtain lambda = d1*d2*...*dl, where d1, d2, ... dl are the 
 *   eigen values of ET^-1
+*
 *  INPUT: 
 *
 *   k     - integer, cardinality of subset setk. 
@@ -1110,23 +1282,40 @@
 *           setk(j)=.true. iff variable j belongs to the subset. Changed
 *           on output.
 *   p     - integer variable, number of original variables.
-*   s     - double precision matrix of covariances of all p variables.
+*   s     - double precision low-triangle of the matrix of covariances of all p variables.
 * poriginal - 
-*   h     - double precision matrix, 
+*   h     - double precision low-triangle of a symmetric positive semi-definite 
+*           (or positive definite) matrix 
 *   rh    - integer, h matrix rank
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (T being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements
+*           of T Choleski decomposition
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices skinput, hkinput, ekinput and workmat
+              
+*  WORKING ARRAYS:
 *
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix T_k. 
+*  hkinput   - double precision matrix used to store the submatrix H_k. 
+*  ekinput   - double precision matrix used to store the submatrix E_k. 
+*  egval     - double precision array used to store the eigenvalues of E_k (T_k)^(-1).
+*  work      - double precision array to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix to be used internaly by the checksingl2nrm routine.
     
-       integer i,info,itype,j,k,lwork,p,poriginal
+       integer i,info,itype,j,k,lwork,p,poriginal,kmax,numsingular
        integer rh,rhaux
-       integer setint(p)
-       logical setk(poriginal)
+       integer setint(*)
+       logical checksg
+       logical setk(*)
        character*1 laux,jobz
-       double precision work(6*k),valp(k)
-       double precision s(poriginal,poriginal),h(poriginal,poriginal)
-       double precision skinput(k,k),dobjtau2,lambda
-       double precision hkinput(k,k),ekinput(k,k)
+       double precision numtol,lambda,dobjtau2
+       double precision s(poriginal,*),h(poriginal,*)
+       double precision skinput(kmax,*),hkinput(kmax,*),ekinput(kmax,*)
+       double precision work(*),egval(*),workmat(kmax,*)
 
-	
        external dsygv
 
 * initializations and call to LAPACK routine dsygv
@@ -1143,53 +1332,66 @@
            setint(i)=j
          end if
        end do
-
-       do i=1,k-1
-           do j=i+1,k
+       do i=1,k
+           do j=1,i
               skinput(i,j)=s(setint(i),setint(j))
+           end do
+        end do
+
+	if (checksg) then
+	   call checksingl2nrm(k,skinput,kmax,workmat,egval,work,
+     +  numtol,numsingular)
+
+	if (numsingular.eq.1) then
+		dobjtau2 = -0.9999D0
+		return
+	   end if
+        end if
+
+       do i=1,k
+           do j=1,i
               hkinput(i,j)=h(setint(i),setint(j))
-              skinput(j,i)=skinput(i,j)
-              hkinput(j,i)=hkinput(i,j)
-           end do
-           skinput(i,i)=s(setint(i),setint(i))
-	   hkinput(i,i)=h(setint(i),setint(i))
-        end do
-        skinput(k,k)=s(setint(k),setint(k))
-        hkinput(k,k)=h(setint(k),setint(k))
-        do i=1,k-1
-           do j=i+1,k
               ekinput(i,j)=skinput(i,j)-hkinput(i,j)
-	      ekinput(j,i)=ekinput(i,j)
            end do
-           ekinput(i,i)=skinput(i,i)-hkinput(i,i)
         end do
-	ekinput(k,k)=skinput(k,k)-hkinput(k,k)
+
+	if (checksg) then
+	   call checksingl2nrm(k,ekinput,kmax,workmat,egval,work,
+     +  numtol,numsingular)
+
+	if (numsingular.eq.1) then
+		dobjtau2 = -0.9999D0
+		return
+	   end if
+        end if
 
         itype=1
 	jobz='N'
 	laux='L'
         info=0
 	lwork=6*k
-        call dsygv(itype,jobz,laux,k,ekinput,k,skinput,k,valp,work,
-     +	lwork,info)
+  
+        call dsygv(itype,jobz,laux,k,ekinput,kmax,skinput,kmax,
+     +    egval,work,lwork,info)
 	  
 	lambda=1.0D0
 	do i=1,k
-	     lambda=lambda*valp(i)
+	     lambda=lambda*egval(i)
         end do
 	rhaux=rh
 	if (rh.GT.k) then 
-	    rhaux=k
+	      rhaux=k
 	end if 
-        dobjtau2= 1 - lambda ** (1.0D0/DBLE(rhaux))
-      
+        dobjtau2= 1.0D0 - lambda ** (1.0D0/DBLE(rhaux))
         return
-	end
+     
+        end
 ************************************************************************
 
    
 ************************************************************************
-       function dobjxi2(k,setk,p,s,poriginal,h,rh)
+       function dobjxi2(k,setk,p,poriginal,kmax,s,h,rh,checksg,numtol,
+     +   setint,work,egval,skinput,hkinput,workmat)
 ************************************************************************
 * This function computes the xi_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
@@ -1208,23 +1410,40 @@
 *           setk(j)=.true. iff variable j belongs to the subset. Changed
 *           on output.
 *   p     - integer variable, number of original variables.
-*   s     - double precision matrix of covariances of all p variables.
+*   s     - double precision low-triangle of the matrix of covariances of all p variables.
 * poriginal - 
-*   h     - double precision matrix
+*   h     - double precision low-triangle of a positive semi-definite 
+*           (or positive definite) matrix
 *   rh    - integer, h matrix rank
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (T being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements
+*           of T Choleski decomposition
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices skinput, hkinput and workmat
+              
+*  WORKING ARRAYS:
 *
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix T_k. 
+*  hkinput   - double precision matrix used to store the submatrix H_k. 
+*  egval     - double precision array used to store the eigenvalues of H_k (T_k)^(-1).
+*  work      - double precision array to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix to be used internaly by the checksingl2nrm routine.
 
-       
-
-       integer i,info,itype,j,k,lwork,p,poriginal
+   
+       integer i,info,itype,j,k,lwork,p,poriginal,kmax,numsingular
        integer rh,rhaux
-       integer setint(p)
-       logical setk(poriginal)
+       integer setint(*)
+       logical checksg
+       logical setk(*)
        character*1 laux,jobz
-       double precision work(6*k),valp(k)
-       double precision s(poriginal,poriginal),h(poriginal,poriginal)
-       double precision skinput(k,k),dobjxi2,hkinput(k,k)
-        
+       double precision numtol,dobjxi2
+       double precision s(poriginal,*),h(poriginal,*)
+       double precision skinput(kmax,*),hkinput(kmax,*)
+       double precision work(*),egval(*),workmat(kmax,*)
+
        external dsygv
 
 * initializations and call to LAPACK routine dsygv
@@ -1242,30 +1461,39 @@
            setint(i)=j
          end if
        end do
-
-       do i=1,k-1
-           do j=i+1,k
+       do i=1,k
+           do j=1,i
               skinput(i,j)=s(setint(i),setint(j))
-              hkinput(i,j)=h(setint(i),setint(j))
-              skinput(j,i)=skinput(i,j)
-              hkinput(j,i)=hkinput(i,j)
            end do
-           skinput(i,i)=s(setint(i),setint(i))
-           hkinput(i,i)=h(setint(i),setint(i))
         end do
-        skinput(k,k)=s(setint(k),setint(k))
-        hkinput(k,k)=h(setint(k),setint(k))
+
+	if (checksg) then
+	   call checksingl2nrm(k,skinput,kmax,workmat,egval,work,
+     +  numtol,numsingular)
+	   if (numsingular .eq. 1) then
+		dobjxi2 = -0.9999D0
+		return
+	   end if
+        end if
+
+       do i=1,k
+           do j=1,i
+              hkinput(i,j)=h(setint(i),setint(j))
+           end do
+        end do
 
         itype=1
 	jobz='N'
 	laux='L'
         info=0
         lwork=6*k
-        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
-     +	lwork,info)
+
+        call dsygv(itype,jobz,laux,k,hkinput,kmax,skinput,kmax,
+     +  egval,work,lwork,info)
+
         dobjxi2=0.0D0
 	do i=1,k
-	    dobjxi2=dobjxi2+valp(i)
+	    dobjxi2=dobjxi2+egval(i)
         end do
 	rhaux=rh
 	if (rh.GT.k) then 
@@ -1278,7 +1506,8 @@
 ************************************************************************
 
 ************************************************************************
-       function dobjzeta2(k,setk,p,s,poriginal,h,rh)
+       function dobjzeta2(k,setk,p,poriginal,kmax,s,h,rh,checksg,numtol,
+     +   setint,work,egval,skinput,hkinput,ekinput,workmat)
 ************************************************************************
 * This function computes the zeta_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
@@ -1296,31 +1525,50 @@
 *           setk(j)=.true. iff variable j belongs to the subset. Changed
 *           on output.
 *   p     - integer variable, number of original variables.
-*   s     - double precision matrix of covariances of all p variables.
+*   s     - double precision low-triangle of the matrix of covariances of all p variables.
 * poriginal - 
-*   h     - double precision matrix.
+*   h     - double precision low-triangle of a positive semi-definite 
+*          (or positive definite) matrix.
 *   rh    - integer, h matrix rank
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (E being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements
+*           of E Choleski decomposition
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices skinput, hkinput, ekinput and workmat
+              
+*  WORKING ARRAYS:
 *
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix S_k. 
+*  hkinput   - double precision matrix used to store the submatrix H_k. 
+*  ekinput   - double precision matrix used to store the submatrix E_k. 
+*  egval     - double precision array used to store the eigenvalues of H_k (E_k)^(-1).
+*  work      - double precision array to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix to be used internaly by the checksingl2nrm routine.
 
-       integer i,info,itype,j,k,lwork,p,poriginal
+    
+       integer i,info,itype,j,k,lwork,p,poriginal,kmax,numsingular
        integer rh,rhaux
-       integer setint(p)
-       logical setk(poriginal)
+       integer setint(*)
+       logical checksg
+       logical setk(*)
        character*1 laux,jobz
-       double precision work(6*k),valp(k)
-       double precision s(poriginal,poriginal),h(poriginal,poriginal)
-       double precision skinput(k,k),dobjzeta2,hkinput(k,k)
-        
+       double precision numtol,lambda,dobjzeta2
+       double precision s(poriginal,*),h(poriginal,*)
+       double precision skinput(kmax,*),hkinput(kmax,*),ekinput(kmax,*)
+       double precision work(*),egval(*),workmat(kmax,*)
+
        external dsygv
 
 * initializations and call to LAPACK routine dsygv
 * matrix skinput will store the submatrix S_k. 
-* matrix hkinput will store the submatrix H_k.
+* matrix ekinput will store the submatrix E_K = S_k - H_k. 
 
        do i=1,p
           setint(i)=i
        end do
-
        i=0
        do j=1,p
          if(setk(j)) then
@@ -1328,30 +1576,36 @@
            setint(i)=j
          end if
        end do
-
-       do i=1,k-1
-           do j=i+1,k
-              skinput(i,j)=s(setint(i),setint(j))-h(setint(i),setint(j))
-	      hkinput(i,j)=h(setint(i),setint(j))
-              skinput(j,i)=skinput(i,j)
-              hkinput(j,i)=hkinput(i,j)
-            end do
-            skinput(i,i)=s(setint(i),setint(i))-h(setint(i),setint(i))
-	    hkinput(i,i)=h(setint(i),setint(i))
+       do i=1,k
+           do j=1,i
+              skinput(i,j)=s(setint(i),setint(j))
+              hkinput(i,j)=h(setint(i),setint(j))
+              ekinput(i,j)=skinput(i,j)-hkinput(i,j)
+           end do
         end do
-        skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
-        hkinput(k,k)=h(setint(k),setint(k))
-         
+
+	if (checksg) then
+	   call checksingl2nrm(k,ekinput,kmax,workmat,egval,work,
+     +  numtol,numsingular)
+
+	if (numsingular.eq.1) then
+		dobjzeta2 = -0.9999D0
+		return
+	   end if
+        end if
+
         itype=1
 	jobz='N'
 	laux='L'
         info=0
 	lwork=6*k
-        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
-     +	lwork,info)
+  
+        call dsygv(itype,jobz,laux,k,hkinput,kmax,ekinput,kmax,
+     +    egval,work,lwork,info)
+
         dobjzeta2=0.0D0
         do i=1,k
-	    dobjzeta2=dobjzeta2+valp(i)
+	    dobjzeta2 = dobjzeta2 + egval(i)
         end do
 	   
 	rhaux=rh
@@ -1366,7 +1620,8 @@
 
 
 ************************************************************************
-       function dobjccr12(k,setk,p,s,poriginal,h)
+       function dobjccr12(k,setk,p,poriginal,kmax,s,h,checksg,numtol,
+     +   setint,work,egval,skinput,hkinput,workmat)
 ************************************************************************
 * This function computes the ccr1_2 criterion.
 * WARNING : This function calls the LAPACK routine DSYGV.
@@ -1384,17 +1639,37 @@
 *           setk(j)=.true. iff variable j belongs to the subset. Changed
 *           on output.
 *   p     - integer variable, number of original variables.
-*   s     - double precision matrix of covariances of all p variables.
-*   h     - double precision matrix, 
+*   s     - double precision low-triangle of the matrix of covariances 
+*           of all p variables.
+*   h     - double precision low-triangle of a symmetric positive semi-definite 
+*           (or positive definite) matrix. 
 * poriginal - 
+* checksg - logical, flag indicating if a test for ill-conditioned 
+*	    (E being numerically singular) problems should be implemented
+*  numtol - double precision tolerance level for the ratio of the diagonal elements
+*           of E Choleski decomposition
+*  kmax   - integer variable, giving the physical dimensionality of the 
+*           square matrices skinput, hkinput, ekinput and workmat
+              
+*  WORKING ARRAYS:
+*
+*  setint    - integer array used to store the indices of the variables 
+*              kept in subset setk.
+*  skinput   - double precision matrix used to store the submatrix T_k = H_k + E_k. 
+*  hkinput   - double precision matrix used to store the submatrix H_k. 
+*  egval     - double precision array used to store the eigenvalues of H_k (E_k)^(-1).
+*  work      - double precision array to be used internaly by LAPACK routines.
+*  workmat   - double precision matrix to be used internaly by the checksingl2nrm routine.
 
-       integer i,info,itype,j,k,lwork,p,poriginal
-       integer setint(p)
-       logical setk(poriginal)
+       integer i,info,itype,j,k,lwork,p,poriginal,kmax,numsingular
+       integer setint(*)
+       logical checksg
+       logical setk(*)
        character*1 laux,jobz
-       double precision work(6*k),valp(k)
-       double precision s(poriginal,poriginal),h(poriginal,poriginal)
-       double precision skinput(k,k),dobjccr12,hkinput(k,k)
+       double precision numtol,dobjccr12
+       double precision s(poriginal,*),h(poriginal,*)
+       double precision skinput(kmax,*),hkinput(kmax,*)
+       double precision work(*),egval(*),workmat(kmax,*)
         
       external dsygv
 
@@ -1412,30 +1687,37 @@
            setint(i)=j
          end if
        end do
-
-       do i=1,k-1
-           do j=i+1,k
-              skinput(i,j)=s(setint(i),setint(j))-h(setint(i),setint(j))
-              hkinput(i,j)=h(setint(i),setint(j))
-              skinput(j,i)=skinput(i,j)
-              hkinput(j,i)=hkinput(i,j)
+       do i=1,k
+           do j=1,i
+              skinput(i,j)=s(setint(i),setint(j))
            end do
-           skinput(i,i)=s(setint(i),setint(i))-h(setint(i),setint(i))
-           hkinput(i,i)=h(setint(i),setint(i))
         end do
-        skinput(k,k)=s(setint(k),setint(k))-h(setint(k),setint(k))
-        hkinput(k,k)=h(setint(k),setint(k))
-         
+
+	if (checksg) then
+	   call checksingl2nrm(k,skinput,kmax,workmat,egval,work,
+     +  numtol,numsingular)
+	   if (numsingular .eq. 1) then
+		dobjccr12 = -0.9999D0
+		return
+	   end if
+        end if
+
+       do i=1,k
+           do j=1,i
+              hkinput(i,j)=h(setint(i),setint(j))
+           end do
+        end do
+          
         itype=1
 	jobz='N'
 	laux='L'
         info=0
 	lwork=6*k
-        call dsygv(itype,jobz,laux,k,hkinput,k,skinput,k,valp,work,
-     +	lwork,info)
+
+        call dsygv(itype,jobz,laux,k,hkinput,kmax,skinput,kmax,
+     +    egval,work,lwork,info)
       
-	dobjccr12=valp(k)
-        dobjccr12=dobjccr12/(1+dobjccr12)  
+	dobjccr12=egval(k)
 
         return
-	 end   
+	end   

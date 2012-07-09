@@ -1,4 +1,60 @@
 
+########## Version 0.12-0 (July 2012) #######################
+
+
+* Changes were made to the code, so as to allow also the anneal, improve and 
+genetic algorithms to keep running, when called with criteria "tau2", "xi2", 
+"zeta2" or "ccr12", if a subset associated with a singular "mat" matrix is 
+selected. Whereas until now this would break the execution of the search 
+algorithms, as of now an artificially poor criterion value is associated with 
+such subsets (to ensure that they are nor selected), but the algorithm proceeds. 
+At the end, a warning is passed on to the user if some subsets associated with
+ill-conditioned submatrices were indeed found and dropped in the course of the
+searches. 
+
+* The memory management of the Fortran and C++ code was improved, making 
+the anneal, improve, genetic and eleaps funtions more robust when handling 
+larger (up to a few hundred original variables) problems.
+
+* An additional search sequence was made available to the eleaps function, making
+it more adaptable to characteristics of the data. In particular, when the original 
+"mat" matrix is numerically singular and optimality is not likely to be proved within 
+the specified timelimit, eleaps now uses a diferent sequencing that tries to ensure 
+that the potentially more interesting subsets are evaluated first.
+
+* The numerical procedures for detecting and handling ill-conditioned matrices were 
+improved.
+
+* Two bugs were corrected in eleaps function: (i) The argument "timelimit" was not working
+correctly with large (several thousand seconds) values. (ii) When called with non-NULL 
+include and exclude arguments, searches according to the RV criterion were not working
+correctly. 
+
+* The default value for the "popsize" argument in the genetic function was changed from
+100 to max(100,2*ncol(mat)), trying to ensure that for larger problems reasonable genetic
+diversity is available by default.
+
+* The output returned by genetic function, when stopped because the initial population 
+did not guarantee enough genetic diversity, was changed. Previously, in this case  
+genetic returned NA, and now it returns the best solutions found in the search before 
+it was aborted.
+
+* The output given by searches that were not able to find numericaly reliable solutions 
+for all cardinalities sought was simpliflied and restricted to the cardinalities where 
+reliable subsets were found.
+
+* Some warning messages are now displayed more selectively and only in the presence of 
+non-expected problems. The warning message about ill-conditioned matrices is only shown 
+when it is not known in advance that the input matrix "mat" was singular (in particular, 
+this message is not displayed when it is known that "mat" was originated from a problem 
+with more original variables than observations). Likewise, the warning regarding restricted 
+searchs is now displayed only if ill-conditioned subsets were indeed dropped in the course 
+of the search.
+
+* The lda method for the pre-processing function ldaHmat was dropped. This method worked 
+incorrectly if between creating an MASS lda object and calling the ldaHmat function, the
+x or grouping objects were changed. 
+ 
 
 ########## Version 0.11-3 (December 2011) #######################
 
@@ -6,8 +62,8 @@
 the Solaris compilation and Notes in five other compilations.
 
 * Bug correction in eleaps function: the change made in July 2011 to allow 
-for "partial" searches when the H matrix is singular was also conducting 
-partial searches when the H matrix was OK. 
+for "partial" searches when the mat matrix is singular was also conducting 
+partial searches when the mat matrix was OK. 
 
 
 ########## Version 0.11-2 (October 2011) #######################
@@ -27,12 +83,13 @@ eleaps function was created in order to ensure backward compatibility.
 * A Sweave vignette was created in the new inst/doc subdirectory.
 
 * Changes were made to the code, so as to allow the eleaps search algorithm
-to keep running if a subset associated with a singular H matrix is 
-selected. Whereas until now this would break the execution of the search 
+to keep running when called with criteria tau2, xi2, zeta2 or ccr12,
+if a subset associated with a singular mat matrix is selected. 
+Whereas until now this would break the execution of the search 
 algorithms, as of now an artificially poor criterion value is associated 
 with such subsets (to ensure that they are nor selected), but the algorithm 
 proceeds. At the end, a warning is passed on to the user. This change has 
-not yet been introduxed in the anneal, improve and genetic algorithms.
+not yet been introduced in the anneal, improve and genetic algorithms.
 
 * A "data" directory was created. A "farm" data set and its help file were
 created.

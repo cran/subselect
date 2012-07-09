@@ -8,7 +8,7 @@ namespace extendedleaps {
 extern vind flsts,lastvar,mindim,*inactv;  
 extern psbstlist* bsts;
 
-sbset *csbset(vind n,vind* v,real c,real ind);
+sbset *csbset(vind n,vector<vind>& v,real c,real ind);
 
 void savfrst()
 {

@@ -17,13 +17,12 @@ partialrmdata::partialrmdata(vind nvariables)
 }
 
 rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<bool>& active,real criterion)
-  :  lastv(lastvariab), p(tnv), k(nvtopiv),  crt(criterion), varin(active), e(0), gdt(data), unreliable(false)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv),  crt(criterion), varin(active), e(0), gdt(data), rpl(0), unreliable(false)
 {
-//	if (k > 0) try {
 	try {
 		if (k > 0) {
-			e = new symtwodarray(k);
 			ovct.assign(p,0);
+			e = new symtwodarray(k);
 			{ for (vind i=0;i<p;i++) {
 				if (i+k >= lastv) ovct[i] = new matvectarray(k,e,i-(lastv-k));
 				else ovct[i] = new matvectarray(k,0,0);
@@ -31,7 +30,7 @@ rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<b
 		}
 		rpl = new real *[2];
 	}
-	catch (std::bad_alloc)   {
+	catch (...)   {
 		delete e;
 		{ for (unsigned i=0;i<ovct.size();i++) delete ovct[i]; }
 		delete[] rpl;	

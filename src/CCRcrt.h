@@ -38,7 +38,7 @@ class partialccrdata :  public partialdata {    /* Data used in canonical correl
 
 class ccrdata :  public subsetdata {
 	public:
-		ccrdata(vind nv,vind tnv,vind nvtopiv,vind hr,real w,real bp,real r2);
+		ccrdata(vind nv,vind tnv,vind pnv,vind hr,real w,real bp,real r2);
 		virtual ~ccrdata(void);
 		virtual bool max(void)  { return true; }
 		virtual const real criterion(void) const	{ return ccr12; }
@@ -48,8 +48,10 @@ class ccrdata :  public subsetdata {
 		void settmatcoef(vind i,vind j,real val)	{ (*tmat)(i,j) = val;  }
 		void sethtinvel(vind i,vind j,real val)		{ htinv[i][j] = val; }
 		virtual void  getpdata(partialdata *pd);  
-		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,bool& reliable,const double tol,const double rqbound) const;
-		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol);
+		virtual real updatecrt(direction dir,mindices& mmind,vind var,partialdata* pdt,
+					bool& reliable,const double tol,const double rqbound) const;
+		virtual void pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,
+					bool last,bool& reliable,const double tol);
 /* 
 	Note: partialdata and subsetdata pointer must point to partialccrdata and ccrdata classes or unpredictable behaviour will result  
 	(general partialdata and subsetdata classes were used in order to garantee upward compability)
@@ -60,10 +62,13 @@ class ccrdata :  public subsetdata {
 		virtual void forbidpivot(void)	{ unreliable = true; }
 		virtual void allowpivot(void)   { unreliable = false; }
 	protected:
-		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const = 0; 
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,
+					bool& reliable,const double tol,const double rqbound) const = 0; 
 		void updatest(real& newwilksst,real& newbartpist,vind varind,partialccrdata* newdtpnt,bool& reliable,const double tol) const;
-		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool las,bool& reliable,const double tol);
-		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
+		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+				bool last,bool& reliable,const double tol);
+		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+				bool last,bool& reliable,const double tol);
 		vind			p;
 		vind			k;
 		vind			hrank;
@@ -81,13 +86,14 @@ class ccrdata :  public subsetdata {
 
 class rnk2ccrdata : public ccrdata {
 	public:
-		rnk2ccrdata(vind nv,vind tnv,vind nvtopiv,real w,real bp,real r2) 
-			:  ccrdata(nv,tnv,nvtopiv,2,w,bp,r2) {  }
+		rnk2ccrdata(vind nv,vind tnv,vind pnv,real w,real bp,real r2) 
+			:  ccrdata(nv,tnv,pnv,2,w,bp,r2) {  }
 		virtual ~rnk2ccrdata(void) { }
 		virtual subsetdata *crcopy(vind totalnv,vind partialnv)  const
 			{  return new rnk2ccrdata(nvar,totalnv,partialnv,wilksst,bartpist,ccr12);  }
 	protected:
-		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol,const double rqbound) const; 
+		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,
+					bool& reliable,const double tol,const double rqbound) const; 
 };
 
 }

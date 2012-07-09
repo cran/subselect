@@ -10,7 +10,7 @@ extern int fpcnt1;
 #endif
 
 rvgdata::rvgdata(vind nvariables)
-  :   p(nvariables)
+  :   p(nvariables), s2(0)
 {
 	s2 = new symtwodarray(p);
 }
@@ -34,12 +34,12 @@ partialrvdata::partialrvdata(vind nvariables)
 }
 
 rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<bool>& active,vind *origvarlist,real criterion)
-  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), orgvar(origvarlist),  e(0), gdt(data), unreliable(false)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), orgvar(origvarlist), e(0), gdt(data), rpl(0), unreliable(false)
 {
 	try {
 		if (k > 0)  {
-			e = new symtwodarray(k);
 			ivct.assign(p,0);
+			e = new symtwodarray(k);
 			for (vind i=0;i<p;i++) {
 				if (i+k >= lastv) ivct[i] = new matvectarray(k,e,i-(lastv-k));
 				else ivct[i] = new matvectarray(k,0,0);
@@ -48,7 +48,7 @@ rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<b
 		s2m1.assign(p,vector<real>(p));
 		rpl = new real *[2*p+2];
 	}
-	catch (std::bad_alloc)   {
+	catch (...)   {
 		delete e;
 		{ for (unsigned i=0;i<ivct.size();i++) delete ivct[i]; }
 		delete[] rpl;
@@ -112,7 +112,7 @@ real rvdata::updatecrt(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vin
 	deque<bool>	mpvin(p);	// mapped vin - a version of vin with indices sorted according to the current variable ordering 
 
 	{ for (vind i=0;i<p;i++) mpvin[i] = newdata->vin[orgvar[i]]; }
-	
+
 	reliable = true;
 	rpl[0] = &e1;	vin = varin;
 	if (dir == forward) vin[orgvar[var-1]] = true;
@@ -350,7 +350,6 @@ void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& 
 				else { ri=orgvlst[i]; ci=orgvlst[j]; }
 				outmat[ri][ci] = s2m1[i][j] +
 					  (*ivct[i])[pivotind] * gdt->gets2(orgvlst[j],orgvlst[vp-1]) - fl[orgvlst[i]]*tv[j];
-
 				#ifdef COUNTING  
 				fpcnt += 2;
 				#endif
@@ -364,8 +363,8 @@ void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pd
 	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
 	vind inrowi,ri,ci;
 	vind pivotind=prtmmit[vp-1];
-	itindex<i>& rowind = fmmind;
-	itindex<i>& colind(fmmind);	
+	itindex<i> rowind(fmmind);	
+	itindex<i> colind(fmmind);	
 
 	for (vind j=0;j<p;j++) if (collst[j] ) {
 		tv[j] = 0.;
@@ -383,6 +382,8 @@ void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pd
 		rowind.reset();
 		for (vind i=0;i<p;rowind++,i++)  {  
 			if ( !rowlst[i] || i+1 == vp ) continue;
+			inrowi = rowind();
+			colind.reset();
 			for (vind j=0;j<p;colind++,j++)  if (collst[j] ) {
 				if (reorder) { ri=i; ci=j; }
 				else { ri=orgvlst[i]; ci=orgvlst[j]; }
@@ -407,6 +408,8 @@ void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pd
 		rowind.reset();	
 		for (vind i=0;i<p;rowind++,i++)  {  
 			if (!rowlst[i] ) continue;
+			inrowi = rowind();
+			colind.reset();
 			for (vind j=0;j<p;colind++,j++)  if (collst[j] ) {
 				if (reorder) { ri=i; ci=j; }
 				else { ri=orgvlst[i]; ci=orgvlst[j]; }

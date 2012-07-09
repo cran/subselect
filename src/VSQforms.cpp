@@ -18,7 +18,7 @@ partialvsqfdata::partialvsqfdata(vind nparcels,real vc0)
 }
 
 vsqfdata::vsqfdata(vind tnv,vind nvtopiv,vind nparcels,real vc0,real sum)
-  :  sqfdata(tnv,nvtopiv,nparcels,sum)
+  :  sqfdata(tnv,nvtopiv,nparcels,sum), rpl(0)
 {
 	vc.resize(nparcels);
 	vc.assign(nparcels,vc0);
@@ -89,6 +89,7 @@ real vsqfdata::updatesum(direction dir,vind varind,vind dim,partialvsqfdata* new
 	#ifdef COUNTING  
 	fpcnt1 += 2*maxk;
 	#endif
+
 	return newsum;
 }
 
