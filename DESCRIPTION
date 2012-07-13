@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.12-0
-Date: 2012-07-09
+Version: 0.12-1
+Date: 2012-07-13
 Title: Selecting variable subsets
 Author@R: c(person("Jorge Orestes Cerdeira,", "Developer - Fortran
         code,", email="orestes@isa.utl.pt"), person("Pedro Duarte
@@ -21,5 +21,5 @@ Description: A collection of functions which (i) assess the quality of
 Suggests: MASS, ISwR, corpcor
 License: GPL (>= 2)
 Repository: CRAN
-Packaged: 2012-07-11 09:46:49 UTC; root
-Date/Publication: 2012-07-11 10:18:05
+Packaged: 2012-07-13 16:41:58 UTC; root
+Date/Publication: 2012-07-13 17:41:08

@@ -1,4 +1,4 @@
-ef14f3e13f49d48d27b83b1637550607 *DESCRIPTION
+ecb6393fe5457d3e6b4c21d9befbe47c *DESCRIPTION
 51246bf141de07c776353b291d3ff40f *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
@@ -23,10 +23,10 @@ c382d70886aa8c32c0f42db694165eb1 *R/validnovcrit.R
 fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
 e54d81bc30af494e6cf112a6fdb58667 *data/farm.rda
-c79cc77721b3e1d212e3013a5cec455b *inst/CHANGELOG
+f0469fad0ac9045c2b6f88687e6a7af3 *inst/CHANGELOG
 d9f0552aca92fc275e6e8f0480a1b6e6 *inst/doc/subbib.bib
 762198f51a2a49bda3fa7610674e78e6 *inst/doc/subselect.Rnw
-aa4161cc1a96b9ec3a1c2985316161ec *inst/doc/subselect.pdf
+4ec41ee4c9247b0bb5f426001544c236 *inst/doc/subselect.pdf
 a15a0f6818f70fd1e388bb7706069c91 *inst/readme
 b2de760880ba590b5ee841b2e1617564 *man/anneal.Rd
 4a6be6b1a2578ccec4ea8f94f0fb33db *man/ccr12.Rd
@@ -74,7 +74,7 @@ b385709e5884f4746add6161b235b96a *src/SR_datatrnsf.cpp
 70b1f25256407899f0613cd68aa32064 *src/SR_intf.cpp
 4f47ed2eb677e4e16429be6b7cb23ca8 *src/SpecialArrays.cpp
 7f48ca5f1f090b1bf2baf0b575ae9a27 *src/SpecialArrays.h
-96b16841a894e4f3fbaf86cd61c2169f *src/Sscma.cpp
+5c1b6a8aa2c05ed16c7a8727f1fae658 *src/Sscma.cpp
 985fab0fcdd1da5d46935108040ef368 *src/Sscma.h
 b45f49b7c5d122489d5281e8d1051919 *src/Subsets.cpp
 778a804297bf267e8a9024426884587c *src/Subsets.h

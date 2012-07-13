@@ -1,4 +1,9 @@
 
+########## Version 0.12-1 (July 2012) #######################
+
+* patch for non-standard C++ code which gave an error mesage when compiled on Solaris platforms.
+
+
 ########## Version 0.12-0 (July 2012) #######################
 
 

@@ -7,10 +7,6 @@
 #include "Sscma.h"
 #include "Subsets.h"
 #include "Vsmabo.h"
-#include <stdexcept>
-
-#include <ctime>
-#include <R.h>
 
 using std::vector;
 
@@ -205,7 +201,7 @@ sscmares sscma(subsetdata *nullsetdt)	// Version of sscma to be employed when on
 	fpcnt1 = 0;
 	#endif
 
-	if (mindim*log(p/mindim) > 40)  psearch = true; 
+	if (mindim*log(static_cast<double>(p/mindim)) > 40)  psearch = true; 
 // Things to improve: Make this condition dependent on time limit (study best tradeoff!!)
 
 	if (p > fp+lp+1) isort(psearch);
