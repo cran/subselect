@@ -148,7 +148,7 @@ void wrkspace::pivotinit(subset*& isi,subset*& iso,vind vp,vind li,vind lo)
 }
 
 subset::subset(vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
-   :  p(tnv), t(pnv), k(0), var(0), frstvarpm(nvp-pnv),  pmemorypos(0), memii(0), data(id), privatedata(pdt) // , nxtres(0) 
+   :  p(tnv), t(pnv), k(0), var(0), frstvarpm(nvp-pnv),  pmemorypos(0), memii(0), data(id), privatedata(pdt)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  
@@ -157,7 +157,7 @@ subset::subset(vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
 }
 
 subset::subset(const vector<vind>& ivar,vind nvp,vind pnv,subsetdata *id,bool pdt,vind tnv)
-  :  p(tnv), t(pnv), k(0), frstvarpm(nvp-pnv), memii(0), data(id), privatedata(pdt) // , nxtres(0) 
+  :  p(tnv), t(pnv), k(0), frstvarpm(nvp-pnv), memii(0), data(id), privatedata(pdt)
 {
 	assgnmem();
 	for (vind i=0;i<p;i++)  {
@@ -193,14 +193,17 @@ void subset::sort(direction dir,vind fv,vind lv,bool reverse,bool smallestatend)
 {
 	bool reliable(true);
 	double trivbnd(-INF);
+	vind ovi;
 
 	if (!data->max())  trivbnd *= -1;
-	if (nxtres.empty()) nxtres.resize(t);
-	for (vind i=0,ovi=fv-1-p+t;i<=lv-fv;i++,ovi++)  {
+	if (nxtres.empty()) nxtres.resize(p);
+	for (vind i=0,oovi=fv-1-p+t;i<=lv-fv;i++,oovi++)  {
 		Fl[i] = data->updatecrt(dir,*memii,fv+i,pdata[i+1],reliable,numtol,trivbnd);
 		if (!reliable)	Fl[i] = trivbnd; 
  		Flp[orgvarind[fv+i-1]] = i+1;
 		dmyv[i] = i+1;
+		if (memii->direct()) ovi = (*(memii->idfm()))[oovi];  
+		else ovi = (*(memii->iifm()))[oovi];  
 		nxtres[ovi].criterion = Fl[i];
 		nxtres[ovi].pres = pdata[i+1];
 		nxtres[ovi].reliable = reliable;

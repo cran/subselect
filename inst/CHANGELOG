@@ -1,4 +1,12 @@
 
+########## Version 0.12-2 (August 2012) #######################
+
+* Bug correction in the eleaps function. In versions 0.11-1 through
+0.12-1, for a few data conditions the processing of the variables 
+provided in include argument was interfering with the checks of 
+singularity. Version 0.12-2 fixes this problem.
+
+
 ########## Version 0.12-1 (July 2012) #######################
 
 * patch for non-standard C++ code which gave an error mesage when compiled on Solaris platforms.

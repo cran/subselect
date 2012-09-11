@@ -47,7 +47,7 @@ SEXP eleaps(SEXP S,SEXP S2,SEXP Si,SEXP Segval,SEXP Segvct,
 	if (retcode==0 || retcode==2)  optimal = true;
 	else optimal = false;
 	if (retcode==2 || retcode==3)  {
-		Rprintf("\nWarning: Because of numerical problems caused by strong multicolnearity\n");
+		Rprintf("\nWarning: Because of numerical problems caused by strong multicolinearity\n");
 		Rprintf("some subsets were excluded from the analysis.\n");
 		Rprintf("You can try to increase the number of subsets to be compared by reducing the value\n");
 		Rprintf("of the function argument maxaperr but the numerical accuracy of results may be compromised\n\n");
