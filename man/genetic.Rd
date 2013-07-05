@@ -284,7 +284,8 @@ genetic(cor(swiss),3,4,popsize=10,nger=5,criterion="Rv")
 ## there is not enough genetic diversity in generation number 
 ##[1] 3
 ## for acceptable levels of consanguinity (couples differing by at least 2 genes).
-## Try reducing the maximum acceptable number  of clones (maxclone) or increasing the population size (popsize)
+## Try reducing the maximum acceptable number  of clones (maxclone) or 
+## increasing the population size (popsize)
 ## Best criterion value found so far:
 ##[1] 0.9557145
 ##$subsets

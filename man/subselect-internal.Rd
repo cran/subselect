@@ -10,7 +10,8 @@
 \alias{prepRetOtp}
 
 \description{
-  Internal subselect functions that validate input to the search functions (if their names start with valid). 
+  Internal subselect functions that validate input to the search functions 
+(if their names start with valid). 
 }
 \usage{
 
@@ -18,9 +19,11 @@ initialization(mat, criterion, r)
 
 validannimp(kmin, kmax, nsol, exclude, nexclude, include, ninclude, initialsol, implog)
 
-validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval, tolsym, algorithm)
+validation(mat, kmin, kmax, exclude, include, criterion, pcindices, tolval, tolsym, 
+algorithm)
 
-validgenetic(kmin, kmax, popsize, mutprob, exclude, nexclude, include, ninclude, initialpop)
+validgenetic(kmin, kmax, popsize, mutprob, exclude, nexclude, include, ninclude, 
+initialpop)
 
 validmat(mat, p, tolval, tolsym, allowsingular, algorithm)
 

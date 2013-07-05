@@ -1,4 +1,4 @@
-ab130e90adab6877087521d2741c2ad9 *DESCRIPTION
+8a622819e1ead1f775ab47933030be5c *DESCRIPTION
 51246bf141de07c776353b291d3ff40f *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
@@ -13,7 +13,7 @@ d4d169dfc296e8e92e245114d08c982b *R/prepRetOtp.R
 685d1b407702bc3d5a1fd4895d35c298 *R/rm.R
 c4d19cb2df9d1117f223ff8105e09898 *R/rv.R
 f821ca8b085674ed31bf4961684a4651 *R/tau2.R
-77bf81b8d2468c7a863650e7e546bea8 *R/trimmatrix.R
+ab5ebe373e47d1291a2a3462290696a9 *R/trimmatrix.R
 f14ac044c78b70285b2877f07b6298a6 *R/validannimp.R
 d71f936ba13b253d1710acb73074b1f6 *R/validation.R
 818ca4730a55d475c0d54fed119ac39e *R/validgenetic.R
@@ -23,17 +23,16 @@ c382d70886aa8c32c0f42db694165eb1 *R/validnovcrit.R
 fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
 e54d81bc30af494e6cf112a6fdb58667 *data/farm.rda
-7fa144efe42cee80d7a650e18a6ea0d9 *inst/CHANGELOG
-d9f0552aca92fc275e6e8f0480a1b6e6 *inst/doc/subbib.bib
+654c661f83a9c2bb7ddb2a3f0543427c *inst/CHANGELOG
 762198f51a2a49bda3fa7610674e78e6 *inst/doc/subselect.Rnw
-0950bda5701cedd308cb57716d515790 *inst/doc/subselect.pdf
+9abec0dc897ab56897324387c2af194a *inst/doc/subselect.pdf
 a15a0f6818f70fd1e388bb7706069c91 *inst/readme
 b2de760880ba590b5ee841b2e1617564 *man/anneal.Rd
 4a6be6b1a2578ccec4ea8f94f0fb33db *man/ccr12.Rd
 9965508db6f6f7f2fa7e7e4a283b3ae7 *man/eleaps.Rd
 a2eb3f76a36edd27016ade68e96e927a *man/farm.Rd
 8dc98cc7929a935ed1328b1fce72ffcf *man/gcd.Rd
-69b31e6787b992eebb2c3a695e31f55f *man/genetic.Rd
+344051051075bca78360ef94ed10d7fc *man/genetic.Rd
 c63ad21fce93591b4e1d1234e3a2a5fd *man/glhHmat.Rd
 0bf3b62e3b3d0aa6be34807578537c3b *man/glmHmat.Rd
 4a1f6584fb729700066f0d338e32edd0 *man/improve.Rd
@@ -41,7 +40,7 @@ b644e09c49d334649bc29209b94defed *man/ldaHmat.Rd
 d6510fc2113bd6fb26b5991d9c2c5072 *man/lmHmat.Rd
 13f65b5bd0eeda3f7e43f4da99ebc3a2 *man/rm.Rd
 fbb55e3af593b64522e160699a9cd748 *man/rv.Rd
-17e89655a89afb4059bcd35926238f46 *man/subselect-internal.Rd
+8ef612a853ff12476a19c9c99699a25b *man/subselect-internal.Rd
 6b8042134c2006f65a29f663bec223f6 *man/tau2.Rd
 67d1df6f3ab5e7edae0fa01c0f3e56fb *man/trimmatrix.Rd
 51462e5c345a3a43eed0e90ea4dd674b *man/wald.Rd
@@ -88,3 +87,5 @@ d06bd67fe618496a8dc4e943f04779fd *src/auxiliar.f
 e8a3230e46e651042167e5ea47b9deb8 *src/genetic.f
 e617695aa9385e5cb660f6f4707879af *src/improve.f
 fdac68d342985ce66ae2c04bc2d48a90 *src/wrap.c
+d9f0552aca92fc275e6e8f0480a1b6e6 *vignettes/subbib.bib
+762198f51a2a49bda3fa7610674e78e6 *vignettes/subselect.Rnw

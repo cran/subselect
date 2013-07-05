@@ -1,4 +1,16 @@
 
+
+########## Version 0.12-3 (July 2013) #######################
+
+* R version 3.0 changed the "eigen" function, so that if the "symmetric=TRUE" 
+option is not given explicitely, *and if rownames and colnames are not the 
+same* it is assumed that the matrix is *not* symmetric. This was causing 
+complex eigenvalues to appear in the submatrices of the "trim.matrix" 
+function (only the main matrix was given the "symmetric=TRUE" option.
+The bug was reported by a user on 13.6.13.
+* Subdirectory "vignettes" was created for vignette sources, as suggest post R 2.14.
+* Lines wider than 90 characters were cut down in *.Rd files.
+
 ########## Version 0.12-2 (August 2012) #######################
 
 * Bug correction in the eleaps function. In versions 0.11-1 through
