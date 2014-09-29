@@ -58,6 +58,7 @@ class qfdata   {
 		vind			p;
 		vind			k;
 		vind			r;
+		bool			unreliable;
 		vector< vector<real> >	ve;
 		symtwodarray*		e;
 	private:
@@ -67,7 +68,6 @@ class qfdata   {
 				bool last,bool& reliable,const double tol); 
 		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
 		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
-		bool	unreliable;
 };
 
 class sqfdata   : public qfdata  {     /* Sum of quadratic forms     */
@@ -115,3 +115,4 @@ class singleqfdata :  public subsetdata {
 }
 
 #endif
+

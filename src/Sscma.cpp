@@ -422,10 +422,11 @@ void cleanup(void)
 	delete gidata;
 	delete gfulldata;
 	delete[] dmyv;
-	{ for (int j=0;j<bsts.size();j++)  delete bsts[j]; }
-	{ for (int j=0;j<sbsarr.size();j++)  delete sbsarr[j]; }
-	{ for (vind j=0;j<pdata.size();j++)  delete pdata[j]; } 
+	{ for (unsigned j=0;j<bsts.size();j++)  delete bsts[j]; }
+	{ for (unsigned j=0;j<sbsarr.size();j++)  delete sbsarr[j]; }
+	{ for (unsigned j=0;j<pdata.size();j++)  delete pdata[j]; } 
 }
 
 }
+
 

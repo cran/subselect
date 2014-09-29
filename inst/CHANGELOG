@@ -1,4 +1,8 @@
 
+########## Version 0.12-4 (September 2014) ##################
+
+* Several small changes to .cpp files as a result of CRAN warnings
+* The old src/Makevars file was deleted
 
 ########## Version 0.12-3 (July 2013) #######################
 

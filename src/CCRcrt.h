@@ -8,7 +8,7 @@ namespace extendedleaps {
 using std::vector;
 
 class partialccrdata :  public partialdata {    /* Data used in canonical correlation updates  */
-												     
+   
 	public:
 		partialccrdata(vind nvars,vind hrank);
 		partialccrdata(vind nvars,vind hrank,real r2,real w,real bp);
@@ -76,11 +76,11 @@ class ccrdata :  public subsetdata {
 		real			ccr12;
 		real			wilksst;
 		real			bartpist;
+		bool			unreliable;
 		symtwodarray*		emat;
 		symtwodarray*		tmat;
 		vector< vector<real> >	htinv;
-		bool	unreliable;
-	private:
+		private:
 		real **rpl;  // Vector of pointers to reals whose accuracy will be monitered 
 };
 
@@ -99,3 +99,4 @@ class rnk2ccrdata : public ccrdata {
 }
 
 #endif
+

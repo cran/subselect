@@ -146,6 +146,8 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	if (srchres==optimal && numericalprob) return 2;
 	if (srchres==limsrchbest && numericalprob) return 3;
 	if (srchres==optimal && !numericalprob) return 0;
+
+	return 0;  // Too avoid warnings (never reached!!!)
 }
 
 
@@ -405,3 +407,4 @@ trnsfres trnsfdrv(double *S,double *Sinv,double *Ssqr,const bool onlyforward)
 }
 
 }
+

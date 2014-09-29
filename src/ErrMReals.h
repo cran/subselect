@@ -56,28 +56,28 @@ template<class T> inline bool errcheck(const errmonitreal<T> *realp,const double
 { 
 	if (!errmonitreal<T>::dropec) return (realp->err() <= tol);
 	else return true;
-};
+}
 
 template<class T> inline bool errcheck(errmonitreal<T> **realpl,const double tol,const int nreals)
 { 
 	if (!errmonitreal<T>::dropec) for (int i=0;i<nreals;i++) if (realpl[i]->err() > tol) return false;
 	return true;
-};
+}
 
 template<class T> inline bool errcheck(vector<errmonitreal<T> *>& realpl,const double tol,const int nreals)
 { 
-	errcheck(&realpl[0],tol,nreals);
-};
+	return errcheck(&realpl[0],tol,nreals);
+}
 
 inline bool errcheck(double *realp,const double tol)
 { 
 	return true;
-};
+}
 
 inline bool errcheck(double **realpl,const double tol,const int nreals)
 { 
 	return true;
-};
+}
 
 template<class T> 
 errmonitreal<T>& errmonitreal<T>::operator=(const errmonitreal<T>& org)
@@ -211,3 +211,4 @@ const errmonitreal<T> operator/(const errmonitreal<T>& lhs,const errmonitreal<T>
 }
 
 #endif
+

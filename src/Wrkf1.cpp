@@ -181,11 +181,14 @@ bool Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrwd,vi
 		nv = nvbckwrd - 1;
 		if ( (minnvbkrd=nvbckwrd-bckind0+i-fvind) < mindim) minnvbkrd = mindim;
 
-		if (maxnvbkrd >= mindim && minnvbkrd <= maxdim) 
+		if (maxnvbkrd >= mindim && minnvbkrd <= maxdim)
+		{	 
 //			Make a backward pivot
 			if (maxnvbkrd > maxdim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxdim,true);
 			else if (maxnvbkrd > mindim) pivot(IW,INV,bckind0,t,nv,u,t,minnvbkrd,maxnvbkrd,true);
-				 else pivot(IW,INV,bckind0,0,nv,u,t,minnvbkrd,maxnvbkrd,true);
+
+				else pivot(IW,INV,bckind0,0,nv,u,t,minnvbkrd,maxnvbkrd,true);
+		}
 	} }
 
 //  Process recursevly the subtrees created by the previous cycle
@@ -417,3 +420,4 @@ real getbounds(vind dir,vind minv,vind maxv)
 }
 
 }
+

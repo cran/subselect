@@ -58,14 +58,14 @@ class wilksdata :  public subsetdata {
 		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
 		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
 		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
-		vind		nvar;
 		vind		p;
 		vind		k;
 		vind		hrank;
+		vind		nvar;
 		real		wilksst;
+		bool		unreliable;
 		symtwodarray*	emat;
 		symtwodarray*	tmat;
-		bool		unreliable;
 };
 
 class partialtracedata :  public partialdata {     /* Data used in trace statistic updates	*/
@@ -130,3 +130,4 @@ class lawlhotstdata : public tracedata {
 }
 
 #endif
+

@@ -119,7 +119,7 @@ void symatpivot(I& rowind,const real& pivotvalue,const symtwodarray& im,symtwoda
 				const vind vp,const vind t,bool& reliable)
 {
 	symatpivot(rowind,pivotvalue,im,om,vp,t,reliable,INF);
-};
+}
 
 
 template <class I>
@@ -148,7 +148,7 @@ void vectorpivot(I& colind,const std::vector<real>& iv,std::vector<real>& ov,con
 				 const real& t1,const vind vp,const vind t,bool& reliable)
 {
 	vectorpivot(colind,iv,ov,im,t1,vp,t,reliable,INF);
-};
+}
 
 
 template <class I>
@@ -178,9 +178,10 @@ void vectorpivot(I& colind,const matvectarray& iv,matvectarray& ov,const symtwod
 				 const real& t1,const vind vp,const vind t,bool& reliable)
 {
 	 vectorpivot(colind,iv,ov,im,t1,vp,t,reliable,INF);
-};
+}
 
 
 }
 
 #endif
+
