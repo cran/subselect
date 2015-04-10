@@ -1,4 +1,9 @@
 
+
+########## Version 0.12-5 (April 2015) ##################
+
+* S3 methods added to the NAMESPACE file
+
 ########## Version 0.12-4 (September 2014) ##################
 
 * Several small changes to .cpp files as a result of CRAN warnings

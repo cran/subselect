@@ -1,5 +1,5 @@
-094b176bb0a2947e5937b3a96b5632b5 *DESCRIPTION
-51246bf141de07c776353b291d3ff40f *NAMESPACE
+ff3c79e56708698679b76899d9d2e938 *DESCRIPTION
+361670277162b13c8ddbdf9070d0641b *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
 2593a0afbadfee6d5e061d493760823b *R/createHmat.R
@@ -13,7 +13,7 @@ d4d169dfc296e8e92e245114d08c982b *R/prepRetOtp.R
 685d1b407702bc3d5a1fd4895d35c298 *R/rm.R
 c4d19cb2df9d1117f223ff8105e09898 *R/rv.R
 f821ca8b085674ed31bf4961684a4651 *R/tau2.R
-ab5ebe373e47d1291a2a3462290696a9 *R/trimmatrix.R
+51f577b15bcb699b4883ee8e395cc16c *R/trimmatrix.R
 f14ac044c78b70285b2877f07b6298a6 *R/validannimp.R
 d71f936ba13b253d1710acb73074b1f6 *R/validation.R
 818ca4730a55d475c0d54fed119ac39e *R/validgenetic.R
@@ -22,9 +22,9 @@ c382d70886aa8c32c0f42db694165eb1 *R/validnovcrit.R
 9aeb9ccce58bf707f7a5828a660d3983 *R/wald.R
 fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
-4f4a5208076bc9910ef19116ba8293f0 *build/vignette.rds
+e186e576ab72833fc65c4763ca8ea17e *build/vignette.rds
 e54d81bc30af494e6cf112a6fdb58667 *data/farm.rda
-25ca50f782e61e70432e5069e54efb8d *inst/CHANGELOG
+ded68dae765377012d4f264f5cc13903 *inst/CHANGELOG
 cf4962ef7413cb7a8e4882aa86e7ed15 *inst/doc/subselect.R
 762198f51a2a49bda3fa7610674e78e6 *inst/doc/subselect.Rnw
 9abec0dc897ab56897324387c2af194a *inst/doc/subselect.pdf
