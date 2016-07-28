@@ -1,4 +1,6 @@
 
+########## Version 0.12-6 (July 2016) ##################
+* added importFROM to NAMESPACE file, to eliminate the CRAN NOTEs
 
 ########## Version 0.12-5 (April 2015) ##################
 

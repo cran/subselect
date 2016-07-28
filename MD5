@@ -1,5 +1,5 @@
-ff3c79e56708698679b76899d9d2e938 *DESCRIPTION
-361670277162b13c8ddbdf9070d0641b *NAMESPACE
+01a5a7d5313ed2d64b8e58418495c439 *DESCRIPTION
+ee26a80be5de13d69071f2abcfc49d56 *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
 2593a0afbadfee6d5e061d493760823b *R/createHmat.R
@@ -22,9 +22,9 @@ c382d70886aa8c32c0f42db694165eb1 *R/validnovcrit.R
 9aeb9ccce58bf707f7a5828a660d3983 *R/wald.R
 fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
-e186e576ab72833fc65c4763ca8ea17e *build/vignette.rds
+8e628ff87e804ba60d2ccfbc3b9d37e9 *build/vignette.rds
 e54d81bc30af494e6cf112a6fdb58667 *data/farm.rda
-ded68dae765377012d4f264f5cc13903 *inst/CHANGELOG
+db59c52f0780974b2f160d6be464f8e7 *inst/CHANGELOG
 cf4962ef7413cb7a8e4882aa86e7ed15 *inst/doc/subselect.R
 762198f51a2a49bda3fa7610674e78e6 *inst/doc/subselect.Rnw
 9abec0dc897ab56897324387c2af194a *inst/doc/subselect.pdf

@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.12-5
-Date: 2015-04-10
+Version: 0.12-6
+Date: 2016-07-27
 Title: Selecting Variable Subsets
 Authors@R: c(person("Jorge" ,"Orestes Cerdeira", role="aut", email="jo.cerdeira@fct.unl.pt"), 
              person("Pedro", "Duarte Silva", role="aut", email="psilva@porto.ucp.pt"), 
@@ -8,10 +8,10 @@ Authors@R: c(person("Jorge" ,"Orestes Cerdeira", role="aut", email="jo.cerdeira@
              person("Manuel",  "Minhoto", role="aut", email="minhoto@uevora.pt"))
 Author: Jorge Orestes Cerdeira [aut], Pedro Duarte Silva [aut], Jorge Cadima [aut, cre], Manuel Minhoto [aut]
 Maintainer: Jorge Cadima <jcadima@isa.utl.pt>
-Description: A collection of functions which (i) assess the quality of variable subsets as surrogates for a full data set, in either an exploratory data analysis or in the context of a multivariate linear model, and (ii) search for subsets which are optimal under various criteria. 
-Suggests: MASS, ISwR, corpcor
+Description: A collection of functions which (i) assess the quality of variable subsets as surrogates for a full data set, in either an exploratory data analysis or in the context of a multivariate linear model, and (ii) search for subsets which are optimal under various criteria.
+Imports: MASS, ISwR, corpcor
 License: GPL (>= 2)
 Repository: CRAN
-Packaged: 2015-04-13 09:36:46 UTC; root
 NeedsCompilation: yes
-Date/Publication: 2015-04-13 12:59:50
+Packaged: 2016-07-28 09:43:34 UTC; root
+Date/Publication: 2016-07-28 17:28:34
