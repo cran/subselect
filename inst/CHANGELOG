@@ -1,4 +1,8 @@
 
+
+########## Version 0.13 (July 2017) ###################
+* added registration of native routines
+
 ########## Version 0.12-6 (July 2016) ##################
 * added importFROM to NAMESPACE file, to eliminate the CRAN NOTEs
 

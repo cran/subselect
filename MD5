@@ -1,5 +1,5 @@
-01a5a7d5313ed2d64b8e58418495c439 *DESCRIPTION
-ee26a80be5de13d69071f2abcfc49d56 *NAMESPACE
+76464ea2ecd60ffda0c774627eeb6420 *DESCRIPTION
+30427d7c330f550b9e017031b0b25e36 *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
 2593a0afbadfee6d5e061d493760823b *R/createHmat.R
@@ -22,12 +22,12 @@ c382d70886aa8c32c0f42db694165eb1 *R/validnovcrit.R
 9aeb9ccce58bf707f7a5828a660d3983 *R/wald.R
 fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
-8e628ff87e804ba60d2ccfbc3b9d37e9 *build/vignette.rds
+b3fb810f578e5bca37e23d9f8b8f4fc1 *build/vignette.rds
 e54d81bc30af494e6cf112a6fdb58667 *data/farm.rda
-db59c52f0780974b2f160d6be464f8e7 *inst/CHANGELOG
+fb4cf6722a63f72b7d3320295d18aa25 *inst/CHANGELOG
 cf4962ef7413cb7a8e4882aa86e7ed15 *inst/doc/subselect.R
 762198f51a2a49bda3fa7610674e78e6 *inst/doc/subselect.Rnw
-9abec0dc897ab56897324387c2af194a *inst/doc/subselect.pdf
+9a34c6cca1a9c553eedb4ccbe423652c *inst/doc/subselect.pdf
 a15a0f6818f70fd1e388bb7706069c91 *inst/readme
 b2de760880ba590b5ee841b2e1617564 *man/anneal.Rd
 4a6be6b1a2578ccec4ea8f94f0fb33db *man/ccr12.Rd
@@ -87,6 +87,7 @@ f7bb43aa86a4a5c1a159f3d2342fd1b7 *src/anneal.f
 d06bd67fe618496a8dc4e943f04779fd *src/auxiliar.f
 e8a3230e46e651042167e5ea47b9deb8 *src/genetic.f
 e617695aa9385e5cb660f6f4707879af *src/improve.f
+026fadca0490d58e84f8b463c36aee1d *src/init.c
 fdac68d342985ce66ae2c04bc2d48a90 *src/wrap.c
 d9f0552aca92fc275e6e8f0480a1b6e6 *vignettes/subbib.bib
 762198f51a2a49bda3fa7610674e78e6 *vignettes/subselect.Rnw

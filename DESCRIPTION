@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.12-6
-Date: 2016-07-27
+Version: 0.13
+Date: 2017-07-27
 Title: Selecting Variable Subsets
 Authors@R: c(person("Jorge" ,"Orestes Cerdeira", role="aut", email="jo.cerdeira@fct.unl.pt"), 
              person("Pedro", "Duarte Silva", role="aut", email="psilva@porto.ucp.pt"), 
@@ -13,5 +13,5 @@ Imports: MASS, ISwR, corpcor
 License: GPL (>= 2)
 Repository: CRAN
 NeedsCompilation: yes
-Packaged: 2016-07-28 09:43:34 UTC; root
-Date/Publication: 2016-07-28 17:28:34
+Packaged: 2017-07-27 14:38:41 UTC; jcadima
+Date/Publication: 2017-07-27 15:00:49 UTC
