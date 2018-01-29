@@ -17,7 +17,7 @@ partialrmdata::partialrmdata(vind nvariables)
 }
 
 rmdata::rmdata(vind lastvariab,vind nvtopiv,vind tnv,rmgdata *data,const deque<bool>& active,real criterion)
-  :  lastv(lastvariab), p(tnv), k(nvtopiv),  crt(criterion), varin(active), e(0), gdt(data), unreliable(false) , rpl(0)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv),  crt(criterion), varin(active), e(0), gdt(data) , rpl(0), unreliable(false)
 {
 	try {
 		if (k > 0) {

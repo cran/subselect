@@ -34,7 +34,7 @@ partialrvdata::partialrvdata(vind nvariables)
 }
 
 rvdata::rvdata(vind lastvariab,vind nvtopiv,vind tnv,rvgdata *data,const deque<bool>& active,vind *origvarlist,real criterion)
-  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), orgvar(origvarlist), e(0), unreliable(false), rpl(0), gdt(data)
+  :  lastv(lastvariab), p(tnv), k(nvtopiv), crt(criterion), varin(active), orgvar(origvarlist), e(0), gdt(data), rpl(0), unreliable(false)
 {
 	try {
 		if (k > 0)  {

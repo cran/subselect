@@ -96,15 +96,14 @@ class rvdata :  public subsetdata {
 		real			crt;
 		deque<bool>		varin; 
 		vind*			orgvar;
-		bool			unreliable;
-		real**		rpl;  // Vector of pointers to reals whose accuracy will be monitered
 		symtwodarray*		e;
 		vector<matvectarray *>	ivct;
-		twodarray			s2m1;
-		rvgdata*			gdt;
+		twodarray		s2m1;
+		rvgdata*		gdt;
+		real**			rpl;  // Vector of pointers to reals whose accuracy will be monitered
+		bool			unreliable;
 };
 
 }
 
 #endif
-
