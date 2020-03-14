@@ -1,6 +1,7 @@
 \documentclass[a4paper]{article}
 \usepackage{amsmath, amssymb}
-\usepackage{color} 
+\usepackage{color}
+\usepackage[latin1]{inputenc}
 
 
 %\VignetteIndexEntry{subselect} 
@@ -172,7 +173,7 @@ be installed like any other CRAN package, namely using R's
 
 
 \begin{verbatim}
-> install.packages(``subselect'')
+> install.packages(''subselect'')
 \end{verbatim}
 
 This vignette assumes that the \texttt{subselect} package has already
@@ -562,7 +563,6 @@ $\{2,12,56,59\}$ and  $\{2,3,11,59\}$, are requested by the command:
 
 <<>>=
 rv.coef(cor(farm), indices=matrix(nrow=2,ncol=4,byrow=TRUE,c(2,12,56,59,2,3,11,59)))
-
 @ 
 
 

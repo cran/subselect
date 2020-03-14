@@ -49,6 +49,14 @@ lmHmat.formula <- function(formula,data=NULL,...)
    x <- model.matrix(Terms,m)
    xint <- match("(Intercept)",dimnames(x)[[2]],nomatch=0)
    if (xint>0) x <- x[,-xint,drop=F]
+   if (is.null(dim(y)) || length(dim(y)==1))
+     yind <- which(apply(x,2,function(v) all(v==y)))
+   else {
+     yind <- NULL
+     for (j in 1:ncol(y))
+       yind <- c(yind,which(apply(x,2,function(v) all(v==y[,j]))))
+   } 
+   if (length(yind)>0) x <- x[,-yind]
    res <- lmHmat.default(x,y)
    res$call <- match.call()
    res 

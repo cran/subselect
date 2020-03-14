@@ -8,9 +8,6 @@ namespace extendedleaps {
 extern int fpcnt1;
 #endif
 
-extern bool printflag;
-
-
 partialqfdata::partialqfdata(vind nparcels)
   :   r(nparcels)
 {

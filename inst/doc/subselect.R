@@ -1,33 +1,34 @@
 ### R code from vignette source 'subselect.Rnw'
+### Encoding: UTF-8
 
 ###################################################
-### code chunk number 1: subselect.Rnw:182-183
+### code chunk number 1: subselect.Rnw:183-184
 ###################################################
 library(subselect) 
 
 
 ###################################################
-### code chunk number 2: subselect.Rnw:348-350
+### code chunk number 2: subselect.Rnw:349-351
 ###################################################
 rm.coef(mat=var(iris[,-5]),indices=c(3,4))
 
 
 
 ###################################################
-### code chunk number 3: subselect.Rnw:353-355
+### code chunk number 3: subselect.Rnw:354-356
 ###################################################
 rm.coef(var(iris[,-5]),c(3,4))^2
 
 
 
 ###################################################
-### code chunk number 4: subselect.Rnw:369-370
+### code chunk number 4: subselect.Rnw:370-371
 ###################################################
 rm.coef(var(iris[,-5]), indices=matrix(nrow=2,ncol=3,byrow=TRUE,c(1,2,3,1,2,4)))
 
 
 ###################################################
-### code chunk number 5: subselect.Rnw:384-390
+### code chunk number 5: subselect.Rnw:385-391
 ###################################################
 subsets  <- array(data=c(3,2,0,0,0,0,1,1,2,2,3,4), dim=c(2,3,2))
 colnames(subsets) <- paste("V",1:3,sep="")
@@ -38,31 +39,30 @@ rm.coef(var(iris[,-5]),indices=subsets)
 
 
 ###################################################
-### code chunk number 6: subselect.Rnw:478-480
+### code chunk number 6: subselect.Rnw:479-481
 ###################################################
 gcd.coef(var(iris[,-5]),ind=c(3,4),pcind=c(1,2))
 
 
 
 ###################################################
-### code chunk number 7: subselect.Rnw:485-487
+### code chunk number 7: subselect.Rnw:486-488
 ###################################################
 gcd.coef(var(iris[,-5]),ind=c(1,2))
 
 
 
 ###################################################
-### code chunk number 8: subselect.Rnw:553-555
+### code chunk number 8: subselect.Rnw:554-556
 ###################################################
 data(farm)
 rv.coef(cor(farm),ind=c(2,37,57,59))
 
 
 ###################################################
-### code chunk number 9: subselect.Rnw:563-565
+### code chunk number 9: subselect.Rnw:564-565
 ###################################################
 rv.coef(cor(farm), indices=matrix(nrow=2,ncol=4,byrow=TRUE,c(2,12,56,59,2,3,11,59)))
-
 
 
 ###################################################

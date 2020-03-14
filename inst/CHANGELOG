@@ -1,4 +1,7 @@
+########## Version 0.14 (February 2020) ##############
 
+* Updates for the C++ One Definition Rules
+* Change to createHmat.R file
 
 ########## Version 0.13 (July 2017) ###################
 * added registration of native routines

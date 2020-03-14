@@ -24,7 +24,7 @@ unsigned long	ms;
 pcskept		pcsets;
 vector<vind> 	actv ;   
 vector<double>	lbnd,ubnd;
-vector<int>	sbsetcnt;                      
+vector<unsigned long>	sbsetcnt;                      
 std::string 	memmsg("\nEleaps error: Unable to find enough memory to run eleaps with so many original variables.\n\n");
 #ifdef COUNTING 
 int cntg,fpcnt,fpcnt1;	/*  Floating point operations counters    */

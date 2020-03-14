@@ -6,9 +6,10 @@
 
 namespace extendedleaps {
 
-extern vind *dmyv,*Flp;   
-extern double *Fl;	  
-extern int *sbsetcnt;                                                 
+extern vind *dmyv;   
+extern vector<vind> Flp;  
+extern vector<double> Fl;	  
+extern vector<unsigned long>	sbsetcnt;                      
 
 const int SRC  = 1;
 const int INV  = 0;
@@ -28,11 +29,12 @@ int cmp(const void *a,const void *b);
 void showcnt(int,int,vind);
 #endif
 
-extern vind maxdim,*prvks;    
+extern vind maxdim;    
+extern vector<vind> prvks;    
 extern short int pcrttp;                                         
 extern pcskept pcsets;
-extern real   crub,*bndl;
-extern psbstlist *bsts;
+// extern real   crub,*bndl;
+extern vector<psbstlist> bsts;
 
 int cmp(const void *a,const void *b)
 {
@@ -293,7 +295,7 @@ bool Rev_Leaps_Search(vind frwind0,vind bckind0,vind fvind,vind lvind,vind nvfrw
 	return true;
 }
 
-extern int cnt;
+// extern int cnt;
 
 bool Forward_BreadthF_Search(vind frwind0,vind fvind,vind lvind,vind nvfrwd)
 {
@@ -339,7 +341,7 @@ bool  Forward_DepthF_Search(vind frwind0,vind fvind,vind lvind,vind nvfrwd)
 	vind nv,minnv,maxnv,minnvfrd,maxnvfrd;
 	vind t,frwind(frwind0);
 	real maxstcrt(NOBND);
-	subsetdata* prvdatapt;
+//	subsetdata* prvdatapt;
 
 	if (lvind-fvind > 10) {
 		newtime = clock();

@@ -17,7 +17,7 @@
  
 namespace extendedleaps {
 
-extern double *Fl;
+extern vector<double> Fl;	
 extern clock_t ctime; 
 
 extern const int  GCD      = 1;
@@ -42,10 +42,11 @@ using std::deque;
 extern subsetdata *idata,*fulldata;
 extern globaldata *gidata,*gfulldata;
 extern vector<partialdata *> pdata;
-extern int *prvks,*cmpl,*ivlst,*ovlst;    
+extern int *cmpl,*ivlst,*ovlst;    
+extern vector<vind> prvks;    
 extern vind ndim,maxdim;      
-extern double  c0,v0,*vc0;                    
-extern bool onlyf;		
+extern double  c0,v0;                    
+extern vector<double> vc0;                    
 
 sscmares sscma(bool fullwrksp,bool heuristic,subsetdata *nullsetdt,subsetdata *fullsetdt);
 sscmares sscma(subsetdata *nullsetdt);		  									
@@ -94,7 +95,8 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 		errmsg(st1+st2+st3);
 	}
 	initvlist(in,out,pcind,nin,nout,nind);
-	if (!asgmemory()) return 4;                                                                        				 	 switch (pcrt)  {
+	if (!asgmemory()) return 4;
+        switch (pcrt)  {
 		case TAU:    
 			tres = trnsfdwst(S,Si,E,Ei,wilksval,r,onlyf);									
 			break;

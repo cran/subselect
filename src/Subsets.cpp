@@ -7,7 +7,8 @@ namespace extendedleaps {
 
 extern int sbsetind,maxsbst;
 
-extern sbset    **sbsarr;
+//extern sbset    **sbsarr;
+extern vector<psbst> sbsarr;
 sbset::sbset(int p,vind n)
  :  pos(p), nvar_(n), actvar_(0)
 {

@@ -5,8 +5,8 @@
 
 namespace extendedleaps {
 
-extern vind flsts,lastvar,mindim,*inactv;  
-extern psbstlist* bsts;
+extern vind flsts,lastvar,mindim;  
+extern vector<psbstlist> bsts;
 
 sbset *csbset(vind n,vector<vind>& v,real c,real ind);
 
