@@ -228,7 +228,7 @@ tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)
 \references{
 [1] Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
 Computational aspects of algorithms for variable selection in the
-context of principal components. \emph{Computational Statistics \& Data Analysis}, 47, 225-236.
+context of principal components. \emph{Computational Statistics and Data Analysis}, 47, 225-236.
 
 [2]Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,

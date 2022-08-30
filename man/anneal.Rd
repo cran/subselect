@@ -19,7 +19,7 @@ family of all k-variable subsets which differ from S by a
 single variable), and decides whether to replace the current subset 
 according to the Simulated Annealing rule, i.e., either (i) always,
 if the alternative subset's value of the criterion is higher; or (ii) with
-probability \eqn{$\exp^{\frac{ac-cc}{t}}$}{exp((ac-cc)/t)} 
+probability \eqn{\exp^{\frac{ac-cc}{t}}}{exp((ac-cc)/t)} 
 if the alternative subset's value of the
 criterion (ac) is lower than that of the current solution (cc), where
 the parameter t (temperature) decreases throughout the
@@ -258,7 +258,7 @@ tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps)}
 \references{
 [1] Cadima, J., Cerdeira, J. Orestes and Minhoto, M. (2004)
 Computational aspects of algorithms for variable selection in the
-context of principal components. \emph{Computational Statistics \& Data Analysis}, 47, 225-236.
+context of principal components. \emph{Computational Statistics and Data Analysis}, 47, 225-236.
 
 [2] Cadima, J. and Jolliffe, I.T. (2001). Variable Selection and the
 Interpretation of Principal Subspaces, \emph{Journal of Agricultural,

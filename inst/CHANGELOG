@@ -1,3 +1,11 @@
+########## Version 0.15.3 (August 2022) ###############
+
+* Minor changes to some .Rd files for compatibility with KaTeX
+
+########## Version 0.15 (March 2020) ###############
+
+* Changes to some C files
+
 ########## Version 0.14 (February 2020) ##############
 
 * Updates for the C++ One Definition Rules

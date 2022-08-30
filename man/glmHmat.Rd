@@ -30,7 +30,7 @@ information estimates and H is an auxiliary rank-one matrix given by
 \code{H =  FI \%*\% b \%*\% t(b) \%*\% FI}, it
 follows that the value of Wald's statistic for the  
 excluded variables (\eqn{W_excv}) in a given subset  is given by 
-\eqn{$W_{excv} = W_{allv} - tr (FI_{indices}^{-1} H_{indices}) ,$} where
+\eqn{W_{excv} = W_{allv} - tr (FI_{indices}^{-1} H_{indices}) ,} where
 \eqn{FI_indices} and \eqn{H_indices} are the  
 portions of the FI and H matrices associated with the selected variables.
 
