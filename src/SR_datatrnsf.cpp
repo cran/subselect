@@ -137,7 +137,7 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);							
 	if (srchres==limsrchbest &&printmsg) {												
 		char timelascstr[10];											
-		sprintf(timelascstr,"%f",timelimit);									
+		snprintf(timelascstr,10,"%f",timelimit);									
 		std::string st1("\nWarning: An exact search could not be completed in "),st2(timelascstr),st3(" seconds\n");	
 		msg(st1+st2+st3);	
 	}

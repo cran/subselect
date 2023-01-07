@@ -1,6 +1,6 @@
 Package: subselect
-Version: 0.15.3
-Date: 2022-08-30
+Version: 0.15.4
+Date: 2023-01-05
 Title: Selecting Variable Subsets
 Authors@R: c(person("Jorge" ,"Orestes Cerdeira", role="aut", email="jo.cerdeira@fct.unl.pt"), 
              person("Pedro", "Duarte Silva", role="aut", email="psilva@porto.ucp.pt"), 
@@ -18,5 +18,5 @@ License: GPL (>= 2)
 Repository: CRAN
 LazyData: TRUE
 NeedsCompilation: yes
-Packaged: 2022-08-30 15:42:11 UTC; jcadima
-Date/Publication: 2022-08-30 16:50:02 UTC
+Packaged: 2023-01-05 12:38:19 UTC; jcadima
+Date/Publication: 2023-01-07 14:30:02 UTC
