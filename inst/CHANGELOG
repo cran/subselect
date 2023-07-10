@@ -1,3 +1,12 @@
+
+########## Version 0.15.5 (July 2023) ##############
+
+* Issues arising from clang17 corrected
+
+########## Version 0.15.4 (January 2023) ##############
+
+* Deprecated C function sprintf was replaced with snprintf
+
 ########## Version 0.15.3 (August 2022) ###############
 
 * Minor changes to some .Rd files for compatibility with KaTeX

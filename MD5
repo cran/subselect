@@ -1,4 +1,4 @@
-0191841a0acf8399ad6eb057f28c066f *DESCRIPTION
+db20c7b90647fae8e3fecf13dc0b7884 *DESCRIPTION
 30427d7c330f550b9e017031b0b25e36 *NAMESPACE
 f812c003d9bbaa0da0e7c38c9a7ea6af *R/anneal.R
 3e84a4059b41fc83ca971bd27cfd15b9 *R/ccr12.R
@@ -24,10 +24,10 @@ fb18ad38af7337dd1535eaaf14eac5f8 *R/xi2.R
 d0a53a5915b6da64c6954126d37d85e0 *R/zeta2.R
 f2124d4c6099ed30e1d082989d6b36c4 *build/vignette.rds
 27490a269e5b70d1c62283f7350822ba *data/farm.rda
-a4d7e086da323bd3f1e2c2910ce1cf3c *inst/CHANGELOG
+fa2b1ecd976b3a3cea9ea6cf9f92a775 *inst/CHANGELOG
 69a4f8a5495e9cb03dd82a498c5b877e *inst/doc/subselect.R
 660c27b7b8320597397a648a08e8d309 *inst/doc/subselect.Rnw
-c0c3ab653526fcc39fc842b8c7671b5f *inst/doc/subselect.pdf
+675d9c4a2eb2038eba8b81b0ca72ce35 *inst/doc/subselect.pdf
 a15a0f6818f70fd1e388bb7706069c91 *inst/readme
 dbc6ab5caa28e453f032bb1dc93bd259 *man/anneal.Rd
 4a6be6b1a2578ccec4ea8f94f0fb33db *man/ccr12.Rd
@@ -68,8 +68,8 @@ c8769640d7999af8b044c9b27195e2ce *src/RVcrt.cpp
 93142abf9fd434ba04032be5a8fe5d82 *src/RVcrt.h
 2f87cca60a26ee8b94b0a8ffeeb1528d *src/Rnk3CCRcrt.cpp
 8537c728dd041f0623c24d0cc6bdbb84 *src/Rnk3CCRcrt.h
-491e9e32990686823fe3ce1e46f065b2 *src/SRI_sscma.cpp
-17de4e47948468c5a2b5a37536e16d11 *src/SRI_sscma.h
+3db59cf2e1a7ad57e5d5bfb5b1eb351a *src/SRI_sscma.cpp
+02da6620c6c6d15f6fc33631b0c80950 *src/SRI_sscma.h
 a81d69960a01af16d9130b679021eaa4 *src/SR_datatrnsf.cpp
 70b1f25256407899f0613cd68aa32064 *src/SR_intf.cpp
 4f47ed2eb677e4e16429be6b7cb23ca8 *src/SpecialArrays.cpp
