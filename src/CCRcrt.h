@@ -65,9 +65,9 @@ class ccrdata :  public subsetdata {
 		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,
 					bool& reliable,const double tol,const double rqbound) const = 0; 
 		void updatest(real& newwilksst,real& newbartpist,vind varind,partialccrdata* newdtpnt,bool& reliable,const double tol) const;
-		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		void pivot(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
-		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		void pivot(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
 		vind			p;
 		vind			k;

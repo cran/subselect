@@ -40,8 +40,8 @@ rnk3ccrdata::rnk3ccrdata(vind nv,vind tnv,vind nvtopiv,real w,real bp,real lh,re
    
 inline void rnk3ccrdata::pivot(direction,mindices& mmind,vind vp,vind t,partialdata* pdt,subsetdata* fdt,bool last,bool& reliable,const double tol)
 { 
-	if (mmind.direct()) rnk3pivot(*(mmind.idpm()),vp,t,pdt,fdt,last,reliable,tol); 
-	else rnk3pivot(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 
+	if (mmind.direct()) rnk3pivotd(*(mmind.idpm()),vp,t,pdt,fdt,last,reliable,tol); 
+	else rnk3pivoti(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 
 }
 
 void  rnk3ccrdata::getpdata(partialdata* pd)  
@@ -101,9 +101,43 @@ real rnk3ccrdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool
 
 	return newccr12;
 } 
-
+/*
 template<accesstp tp> 
 void rnk3ccrdata::rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+{
+	partialrnk3ccrdata* newpdata = static_cast<partialrnk3ccrdata *>(newpdtpnt);    
+	rnk3ccrdata* newfdata = static_cast<rnk3ccrdata *>(newfdtpnt);    
+	
+	/*  Attention: newpdtpnt and newfdtpnt MUST point to partialrnk3ccrdata and rnk3ccrdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert                */
+	
+/*	partialrnk3ccrdata* newpdata = dynamic_cast<partialrnk3ccrdata *>(newpdtpnt);
+	rnk3ccrdata* newfdata = dynamic_cast<rnk3ccrdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                           */
+/*
+	ccrdata::pivot(prtmmit,vp,t,newpdata,newfdata,last,reliable,tol);
+	for (vind j=0;j<3;j++) 
+		vectorpivot(prtmmit,heinv[j],newfdata->heinv[j],*emat,(newpdata->getlhtmpv())[j],vp,t,reliable,tol); 
+} 
+*/
+void rnk3ccrdata::rnk3pivotd(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+{
+	partialrnk3ccrdata* newpdata = static_cast<partialrnk3ccrdata *>(newpdtpnt);    
+	rnk3ccrdata* newfdata = static_cast<rnk3ccrdata *>(newfdtpnt);    
+	
+	/*  Attention: newpdtpnt and newfdtpnt MUST point to partialrnk3ccrdata and rnk3ccrdata objects !!!
+	    For safety, in debug mode use the alternative code with dynamic_cast and assert                */
+	
+/*	partialrnk3ccrdata* newpdata = dynamic_cast<partialrnk3ccrdata *>(newpdtpnt);
+	rnk3ccrdata* newfdata = dynamic_cast<rnk3ccrdata *>(newfdtpnt);
+	assert(newpdata && newfdata);                                           */
+
+	ccrdata::pivot(prtmmit,vp,t,newpdata,newfdata,last,reliable,tol);
+	for (vind j=0;j<3;j++) 
+		vectorpivot(prtmmit,heinv[j],newfdata->heinv[j],*emat,(newpdata->getlhtmpv())[j],vp,t,reliable,tol); 
+} 
+
+void rnk3ccrdata::rnk3pivoti(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {
 	partialrnk3ccrdata* newpdata = static_cast<partialrnk3ccrdata *>(newpdtpnt);    
 	rnk3ccrdata* newfdata = static_cast<rnk3ccrdata *>(newfdtpnt);    

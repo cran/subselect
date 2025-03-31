@@ -37,8 +37,7 @@ one. The true rank of H can be different from r if the discriminators
 are linearly dependent.} 
   \item{call}{The function call which generated the output.}
 }
-\seealso{\code{\link{anneal}}, \code{\link{genetic}},
-\code{\link{improve}}, \code{\link{eleaps}}, \code{\link{lda}}.} 
+\seealso{\code{\link{anneal}}, \code{\link{genetic}}, \code{\link{improve}}, \code{\link{eleaps}}.} 
 \examples{
 ##--------------------------------------------------------------------
 

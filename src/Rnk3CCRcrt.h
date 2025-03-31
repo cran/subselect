@@ -33,8 +33,12 @@ class rnk3ccrdata : public ccrdata {
 	private:
 		virtual real updatecrt(direction dir,vind varind,partialdata* newdtpnt,
 					bool& reliable,const double tol,const double rqbound) const;
-		template<accesstp tp> 
-			void rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+//		template<accesstp tp> 
+//			void rnk3pivot(lagindex<tp>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+//					bool& reliable,const double tol);
+			void rnk3pivotd(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+					bool& reliable,const double tol);
+			void rnk3pivoti(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
 					bool& reliable,const double tol);
 		real			lawhotst;
 		vector< vector<real> >	heinv;

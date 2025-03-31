@@ -93,7 +93,7 @@ real vsqfdata::updatesum(direction dir,vind varind,vind dim,partialvsqfdata* new
 	return newsum;
 }
 
-void vsqfdata::pivot(direction dir,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
+void vsqfdata::pivot(direction dir,lagindexd& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
 			bool& reliable,const double tol)
 {
 	vind pivotind(prtmmit[vp-1]),newdim(dim),maxk(0);
@@ -123,7 +123,7 @@ void vsqfdata::pivot(direction dir,lagindex<d>& prtmmit,vind vp,vind t,vind dim,
 		vectorpivot(prtmmit,ve[j],newfdata->ve[j],*e,tv[j],vp,t,reliable,tol);	
 }
 
-void vsqfdata::pivot(direction dir,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
+void vsqfdata::pivot(direction dir,lagindexi& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
 			bool& reliable,const double tol)
 {
 	vind pivotind(prtmmit[vp-1]),newdim(dim),maxk(0);

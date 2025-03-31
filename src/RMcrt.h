@@ -60,14 +60,14 @@ class rmdata :  public subsetdata {
 		virtual void forbidpivot(void)	{ unreliable = true; }
 		virtual void allowpivot(void)   { unreliable = false; }	
 	private:
-		real updatecrt(direction dir,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const;
-		real updatecrt(direction dir,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const;
-		void pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		real updatecrt(direction dir,itindexd& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const;
+		real updatecrt(direction dir,itindexi& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const;
+		void pivot(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
-		void pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		void pivot(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
-		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
-		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
+		bool nopivot(lagindexd& prtmmit,vind vp) const;
+		bool nopivot(lagindexi& prtmmit,vind vp) const;
 		vind			lastv;
 		vind			p;
 		vind			k;

@@ -75,17 +75,17 @@ class rvdata :  public subsetdata {
 		virtual void forbidpivot(void)	{ unreliable = true; }
 		virtual void allowpivot(void)   { unreliable = false; }	
 	private:
-		real updatecrt(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const;
-		real updatecrt(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const;
-		void pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		real updatecrt(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const;
+		real updatecrt(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const;
+		void pivot(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
-		void pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
+		void pivot(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,
 				bool last,bool& reliable,const double tol);
-		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
-		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
-		void cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,
+		bool nopivot(lagindexd& prtmmit,vind vp) const;
+		bool nopivot(lagindexi& prtmmit,vind vp) const;
+		void cmpts2sm1(lagindexd&,itindexd&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,
 				bool reorder) const;
-		void cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,
+		void cmpts2sm1(lagindexi& prtmmit,itindexi& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,
 				bool* collst,bool reorder) const;
 /*  Computation of the S2*S^1 matrix product for sub-matrices defined by row (rowlst) and column (collst) boolean lists  */
 		real frobenius(twodarray& m,bool *inlst) const;

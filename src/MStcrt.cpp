@@ -94,7 +94,7 @@ real  wilksdata::updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool&
 	return newwilksst;
 } 
 
-void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+void wilksdata::pivot(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    
@@ -111,7 +111,7 @@ void wilksdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt
 	symatpivot(prtmmit,newpdata->gettpivot(),*tmat,*(newfdata->tmat),vp,t,reliable,tol);
 } 
 
-void wilksdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+void wilksdata::pivot(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialwilksdata* newpdata = static_cast<partialwilksdata *>(newpdtpnt);    
 	wilksdata* newfdata = static_cast<wilksdata *>(newfdtpnt);    

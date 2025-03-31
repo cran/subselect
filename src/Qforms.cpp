@@ -33,14 +33,14 @@ void qfdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialqfdata* p
 	else pivot(*(mmind.iipm()),vp,t,pdt,fdt,last,reliable,tol); 
 }
 
-void qfdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol)
+void qfdata::pivot(lagindexd& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol)
 {
 	symatpivot(prtmmit,newpdata->getpivotval(),*e,*(newfdata->e),vp,t,reliable,tol);
 	for (vind j=0;j<r;j++) 
 		vectorpivot(prtmmit,ve[j],newfdata->ve[j],*e,(newpdata->gettmpv())[j],vp,t,reliable,tol); 
 }
 
-void qfdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol)
+void qfdata::pivot(lagindexi& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,bool last,bool& reliable,const double tol)
 {
 	symatpivot(prtmmit,newpdata->getpivotval(),*e,*(newfdata->e),vp,t,reliable,tol);
 	for (vind j=0;j<r;j++) 

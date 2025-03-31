@@ -149,9 +149,9 @@
               sq(i,j)=sq(fica(i),fica(j))
               sq(j,i)=sq(i,j)
               if(rh .GT. 0) then
-		    h(i,j)=h(fica(i),fica(j))
-                    h(j,i)=h(i,j)
-	      end if
+                h(i,j)=h(fica(i),fica(j))
+                h(j,i)=h(i,j)
+              end if
             end do
             s(i,i)=s(fica(i),fica(i))
             sq(i,i)=sq(fica(i),fica(i))
@@ -895,7 +895,7 @@
        integer i,info,j,k,kmax,p,poriginal
        integer setint(*)
        logical setk(*)
-       character*1 laux
+       character(len=1) laux
        double precision s(poriginal,*),sq(poriginal,*)
        double precision ski(kmax,*),skinput(kmax,*),dobjrm
 
@@ -988,7 +988,7 @@
        integer i,info,j,k,kmax,p,poriginal
        integer setint(*)
        logical setk(*)
-       character*1 laux
+       character(len=1) laux
        double precision s(poriginal,*),sq(poriginal,*)
        double precision ski(kmax,*),skinput(kmax,*)
        double precision soma1,soma2,soma,dobjrv
@@ -1120,7 +1120,7 @@
       integer setint(*),qsi(*)
       integer fica(0:p)
       logical setk(*)
-      character*1 laux
+      character(len=1) laux
       double precision s(poriginal,*),skinput(kmax,*),ski(kmax,*)
       double precision valp(*),vecp(poriginal,*)
       double precision dobjgcd,aux0,aux
@@ -1211,7 +1211,7 @@
 *  work     - double precision array, to be used internaly by the DSYEV routine.
    
        integer k,info,lwork,numsing,ldmat
-       character*1 jobz,laux
+       character(len=1) jobz,laux
        double precision work(*),egval(*)
        double precision origmat(ldmat,*),workmat(ldmat,*)
        double precision numtol
@@ -1310,7 +1310,7 @@
        integer setint(*)
        logical checksg
        logical setk(*)
-       character*1 laux,jobz
+       character(len=1) laux,jobz
        double precision numtol,lambda,dobjtau2
        double precision s(poriginal,*),h(poriginal,*)
        double precision skinput(kmax,*),hkinput(kmax,*),ekinput(kmax,*)
@@ -1438,7 +1438,7 @@
        integer setint(*)
        logical checksg
        logical setk(*)
-       character*1 laux,jobz
+       character(len=1) laux,jobz
        double precision numtol,dobjxi2
        double precision s(poriginal,*),h(poriginal,*)
        double precision skinput(kmax,*),hkinput(kmax,*)
@@ -1554,7 +1554,7 @@
        integer setint(*)
        logical checksg
        logical setk(*)
-       character*1 laux,jobz
+       character(len=1) laux,jobz
        double precision numtol,lambda,dobjzeta2
        double precision s(poriginal,*),h(poriginal,*)
        double precision skinput(kmax,*),hkinput(kmax,*),ekinput(kmax,*)
@@ -1665,7 +1665,7 @@
        integer setint(*)
        logical checksg
        logical setk(*)
-       character*1 laux,jobz
+       character(len=1) laux,jobz
        double precision numtol,dobjccr12
        double precision s(poriginal,*),h(poriginal,*)
        double precision skinput(kmax,*),hkinput(kmax,*)

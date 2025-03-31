@@ -70,7 +70,7 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	  double* E,double* Ei,double* Hegvct,double* HegvctTinv,double* HegvctEinv,	
 	  double wilksval,double bartpival,double lawhotval,double ccr12val,int r,	
 	  int kmin,int kmax,int nsol,int* out,int* in,int nout,int nin,			
-	  const char* cmpcr,int fixed,int* pcind,int nind,int nvar,double timelimit,			
+	  const char *cmpcr, int fixed,int* pcind,int nind,int nvar,double timelimit,			
 	  double ntol,bool onlyforward,int* subs,double* subsv,double* bestsv,int* bests,
 	  bool printmsg=true)		
 {
@@ -79,6 +79,7 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 	trnsfres tres;
 
  	resetvar();
+ 	
 	ctime = clock();
 	maxtime = rtime = timelimit*CLOCKS_PER_SEC;
 	onlyf = onlyforward;				
@@ -124,6 +125,8 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 		msg(memmsg);
 		return 4;
 	}
+
+ 
 	if (fulldata) {													
 		if (log(timelimit) < -100+5*p) heuristic = true;
 		else heuristic = false;
@@ -134,6 +137,8 @@ int callsscma(double* S,double* S2,double* Si,double* Segval,double* Segvct,
 		cleanup();
 		return 4;
 	}
+ 
+ 
 	fillres(mindim,ndim,nsol,bests,subs,bestsv,subsv);							
 	if (srchres==limsrchbest &&printmsg) {												
 		char timelascstr[10];											

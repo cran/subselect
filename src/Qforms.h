@@ -62,12 +62,12 @@ class qfdata   {
 		vector< vector<real> >	ve;
 		symtwodarray*		e;
 	private:
-		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
+		void pivot(lagindexd& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
 				bool last,bool& reliable,const double tol); 
-		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
+		void pivot(lagindexi& prtmmit,vind vp,vind t,partialqfdata* newpdata,qfdata* newfdata,
 				bool last,bool& reliable,const double tol); 
-		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
-		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
+		bool nopivot(lagindexd& prtmmit,vind vp) const;
+		bool nopivot(lagindexi& prtmmit,vind vp) const;
 };
 
 class sqfdata   : public qfdata  {     /* Sum of quadratic forms     */

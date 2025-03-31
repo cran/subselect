@@ -94,7 +94,7 @@ void rvdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt
 }
 
 
-real rvdata::updatecrt(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const
+real rvdata::updatecrt(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const
 {
 	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
 	
@@ -141,7 +141,7 @@ real rvdata::updatecrt(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vin
 	return newcrt;
 }
 
-real rvdata::updatecrt(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const
+real rvdata::updatecrt(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind var,partialdata* newdtpnt,bool& reliable,const double tol) const
 {
 	partialrvdata *newdata = static_cast<partialrvdata *>(newdtpnt);    
 	
@@ -190,7 +190,7 @@ real rvdata::updatecrt(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vin
 	return newcrt;
 }
 
-void rvdata::pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+void rvdata::pivot(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
 			bool& reliable,const double tol)
 {
 	vind fpivotind = fmmind[vp-1];              
@@ -248,7 +248,7 @@ void rvdata::pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp
 	cmpts2sm1(prtmmit,fmmind,pdata,newdata->s2m1,orgvar,vp,&mprowin[0],&mpcolin[0],true);
 }
 
-void rvdata::pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+void rvdata::pivot(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
 			bool& reliable,const double tol)
 {
 	vind fpivotind = fmmind[vp-1];              
@@ -305,7 +305,7 @@ void rvdata::pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp
 	cmpts2sm1(prtmmit,fmmind,pdata,newdata->s2m1,orgvar,vp,&mprowin[0],&mpcolin[0],true);
 }
 
-void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,bool reorder) const
+void rvdata::cmpts2sm1(lagindexd&,itindexd&,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,bool reorder) const
 {
 	vind fvarind=lastv-k,pivotind=vp-fvarind-1,ri,ci;
 	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
@@ -358,13 +358,13 @@ void rvdata::cmpts2sm1(lagindex<d>&,itindex<d>&,partialrvdata* pdata,twodarray& 
 	}
 }
 
-void rvdata::cmpts2sm1(lagindex<i>& prtmmit,itindex<i>& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,bool reorder) const
+void rvdata::cmpts2sm1(lagindexi& prtmmit,itindexi& fmmind,partialrvdata* pdata,twodarray& outmat,vind* orgvlst,vind vp,bool* rowlst,bool* collst,bool reorder) const
 {
 	real *tv=pdata->gettmpv(),*fl=pdata->getcndv();
 	vind inrowi,ri,ci;
 	vind pivotind=prtmmit[vp-1];
-	itindex<i> rowind(fmmind);	
-	itindex<i> colind(fmmind);	
+	itindexi rowind(fmmind);	
+	itindexi colind(fmmind);	
 
 	for (vind j=0;j<p;j++) if (collst[j] ) {
 		tv[j] = 0.;

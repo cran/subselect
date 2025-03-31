@@ -43,18 +43,18 @@ class mindices  {    // Class with index pointers implementing the mapping from 
 			pmlst - pointer to list with mapping of current variable sequence into pivoted variable set
 	*/
 		~mindices(void);    //  Destructor
-		itindex<d>*	idfm(void)	{ return idfm_; }
-		lagindex<d>* idpm(void)	{ return idpm_; }
-		itindex<i>*	iifm(void)	{ return iifm_; }
-		lagindex<i>* iipm(void)	{ return iipm_; }
-		void asgnfmmiid(itindex<i>* i)	{ iifm_ = i; }	// Assign list for indirect access in full variable scheme
-		void asgnpmmiid(lagindex<i>* i)	{ iipm_ = i; }  // Assign list for i acess in pivoted variable scheme
+		itindexd*	idfm(void)	{ return idfm_; }
+		lagindexd* idpm(void)	{ return idpm_; }
+		itindexi*	iifm(void)	{ return iifm_; }
+		lagindexi* iipm(void)	{ return iipm_; }
+		void asgnfmmiid(itindexi* i)	{ iifm_ = i; }	// Assign list for indirect access in full variable scheme
+		void asgnpmmiid(lagindexi* i)	{ iipm_ = i; }  // Assign list for i acess in pivoted variable scheme
 		bool direct(void) { return (iipm_ == 0); }	// True if direct acces to pivoted variable set. False otherwise  
 	private:
-		itindex<d>*  idfm_;
-		lagindex<d>* idpm_;
-		itindex<i>*  iifm_;
-		lagindex<i>* iipm_;
+		itindexd*  idfm_;
+		lagindexd* idpm_;
+		itindexi*  iifm_;
+		lagindexi* iipm_;
 };
 
 class globaldata {

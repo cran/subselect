@@ -54,8 +54,8 @@ class gcddata :  public subsetdata {
 		vind		nvar;
 		sqfdata*	sqf;
 	private:
-		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
-		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
+		bool nopivot(lagindexd& prtmmit,vind vp) const;
+		bool nopivot(lagindexi& prtmmit,vind vp) const;
 };
 
 class fgcddata :  public gcddata {

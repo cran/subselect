@@ -57,7 +57,7 @@ void rmdata::pivot(direction dir,mindices& mmind,vind vp,vind t,partialdata* pdt
 	else pivot(dir,*(mmind.iipm()),*(mmind.iifm()),vp,t,pdt,fdt,last,reliable,tol); 
 }
 
-real rmdata::updatecrt(direction dir,itindex<d>& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
+real rmdata::updatecrt(direction dir,itindexd& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
 {
 	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
 	
@@ -99,7 +99,7 @@ real rmdata::updatecrt(direction dir,itindex<d>& fmmind,vind var,vind varind,par
 	return newcrt;
 }
 
-real rmdata::updatecrt(direction dir,itindex<i>& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
+real rmdata::updatecrt(direction dir,itindexi& fmmind,vind var,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const
 {
 	partialrmdata *newdata = static_cast<partialrmdata *>(newdtpnt);    
 	
@@ -142,7 +142,7 @@ real rmdata::updatecrt(direction dir,itindex<i>& fmmind,vind var,vind varind,par
 	return newcrt;
 }
 
-void rmdata::pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+void rmdata::pivot(direction dir,lagindexd& prtmmit,itindexd& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
 			bool& reliable,const double tol)
 {
 	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    
@@ -186,7 +186,7 @@ void rmdata::pivot(direction dir,lagindex<d>& prtmmit,itindex<d>& fmmind,vind vp
 	} }
 }
 
-void rmdata::pivot(direction dir,lagindex<i>& prtmmit,itindex<i>& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
+void rmdata::pivot(direction dir,lagindexi& prtmmit,itindexi& fmmind,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,
 			bool& reliable,const double tol)
 {
 	partialrmdata* newpdata = static_cast<partialrmdata *>(newpdtpnt);    

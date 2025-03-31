@@ -3,15 +3,18 @@ eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nso
 		  tolval=1000*.Machine$double.eps,tolsym=1000*.Machine$double.eps,maxaperr=1E-4) 
 {
 
+  NUMERICNULL <- 99E99
+  INTEGERNULL <- 99999
+  
 ###############################
 # auxiliary  variables        #
 ###############################
 
-	p <- ncol(mat)    				# Number of original variables
-	nexclude <- length(exclude)     		# Number of excluded variables
-	ninclude <- length(include)     		# Number of included variables
+	p <- ncol(mat)    				                # Number of original variables
+	nexclude <- length(exclude)     		      # Number of excluded variables
+	ninclude <- length(include)     		      # Number of included variables
 	if (pcindices[1]!="first_k") esp <- TRUE	# The user has specified the set of Principal Components to be used with the GCD criterion
-	else esp <- FALSE				# The user has not specified the set of Principal Components to be used with the GCD criterion
+	else esp <- FALSE				                  # The user has not specified the set of Principal Components to be used with the GCD criterion
 
         
 ###############################
@@ -58,10 +61,10 @@ eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nso
 	# Matrix initializations
 	
 	if (singularmat==FALSE) Si <- solve(mat)
-	else Si <- NULL					
+	else Si <- NUMERICNULL					
 
 	if (criterion == "RV")  S2 <- mat %*% mat
-	else S2 <- NULL
+	else S2 <- NUMERICNULL
 
 	if (criterion == "GCD")  {
 	  SSpectd <- eigen(mat,symmetric=TRUE)
@@ -69,46 +72,46 @@ eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nso
 	  Segvct <- SSpectd$vectors[,pcindices]
         }
         else  {
-           Segval <- NULL
-           Segvct <- NULL
+           Segval <- NUMERICNULL
+           Segvct <- NUMERICNULL
         }
  
 	if (criterion == "TAU_2" || criterion == "ZETA_2" || (criterion == "CCR1_2" && r > 1) ) {
 	   E <- mat - H
 	   if (singularmat==FALSE) Ei <- solve(E)	
-	   else Ei <- NULL				
+	   else Ei <- NUMERICNULL				
         }
-	else  E <- Ei <- NULL
+	else  E <- Ei <- NUMERICNULL
 
 	if (criterion == "XI_2" || criterion == "WALD" || criterion == "ZETA_2" || criterion == "CCR1_2" ) 	{
 	  HSpectd <- eigen(H,symmetric=TRUE)
 	  if (r > 1) Hegvct <- HSpectd$vectors[,1:r] %*% sqrt(diag(HSpectd$values[1:r])) 
 	  else Hegvct <- HSpectd$vectors[,1] * sqrt(HSpectd$values[1]) 
         }
-	else  Hegvct <- NULL
+	else  Hegvct <- NUMERICNULL
 	if ( (criterion == "XI_2" || criterion == "WALD" || criterion == "CCR1_2" ) && singularmat==FALSE) 
 		HegvctTinv <- solve(mat,Hegvct)
-	else HegvctTinv <- NULL
+	else HegvctTinv <- NUMERICNULL
 	if ( (criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3)) && singularmat==FALSE)
 		HegvctEinv <- solve(E,Hegvct) 
-	else HegvctEinv <- NULL
+	else HegvctEinv <- NUMERICNULL
 
 	if ( ( criterion == "TAU_2" || (criterion == "CCR1_2" && r > 1) ) && singularmat==FALSE)
 		Wilksval <- det(E) / det(mat)
-	else Wilksval <- NULL
+	else Wilksval <- NUMERICNULL
 	if ( ( criterion == "XI_2" || criterion == "WALD" || criterion == "CCR1_2" ) && singularmat==FALSE)
 		HSi <- t(solve(mat,H))
 	if ( ( criterion == "XI_2" || (criterion == "CCR1_2" && r > 1) ) && singularmat==FALSE)
 		BartPival <- sum(diag(HSi))
-	else BartPival <- NULL
+	else BartPival <- NUMERICNULL
         if ( criterion == "WALD") Waldval <- sum(diag(HSi))
-        else Waldval <- NULL
+        else Waldval <- NUMERICNULL
 	if ( ( criterion == "ZETA_2" || (criterion == "CCR1_2" && r == 3) ) && singularmat==FALSE) 
 		LawHotval <- sum(diag(solve(E,H)))	
-	else LawHotval <- NULL
+	else LawHotval <- NUMERICNULL
 	if ( ( criterion == "CCR1_2") && singularmat==FALSE) 
 		CCR12val <- as.numeric(eigen(HSi,symmetric=FALSE,only.values=TRUE)$values[1])	
-	else CCR12val <- NULL
+	else CCR12val <- NUMERICNULL
         
 	if (criterion == "WALD")   {
 
@@ -158,6 +161,7 @@ eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nso
 	   as.logical(singularmat), 	    
            PACKAGE="subselect"   
         ) 
+	names(Cout) <- c("subsets","values","bestvalues","bestsets","found","nomemory")
 	if (Cout$nomemory == TRUE) return(NULL)
 
 #######################################
@@ -168,4 +172,3 @@ eleaps<-function(mat,kmin=length(include)+1,kmax=ncol(mat)-length(exclude)-1,nso
 	 if (is.null(output)) return(invisible(NA))
 	 output   # return(output)
 }
-

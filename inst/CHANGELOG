@@ -1,4 +1,13 @@
 
+
+########## Version 0.16.0  (March 2025) ##############
+
+* Maintainer change from Jorge Cadima to Pedro Duarte Silva 
+
+* Issues arising from g++ 14.x corrected
+* Old-style Fortran 77 character length (character* ) declaration 
+* updated to character(len =*) format.
+
 ########## Version 0.15.5 (July 2023) ##############
 
 * Issues arising from clang17 corrected

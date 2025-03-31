@@ -103,7 +103,7 @@ void ccrdata::updatest(real& newwilksst,real& newbartpist,vind varind,partialccr
 	return;
 } 
 
-void ccrdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+void ccrdata::pivot(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialccrdata* newpdata = static_cast<partialccrdata *>(newpdtpnt);    
 	ccrdata* newfdata = static_cast<ccrdata *>(newfdtpnt);    
@@ -121,7 +121,7 @@ void ccrdata::pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,s
 		vectorpivot(prtmmit,htinv[j],newfdata->htinv[j],*tmat,(newpdata->getbptmpv())[j],vp,t,reliable,tol); 
 } 
 
-void ccrdata::pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
+void ccrdata::pivot(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol)
 {	
 	partialccrdata* newpdata = static_cast<partialccrdata *>(newpdtpnt);    
 	ccrdata* newfdata = static_cast<ccrdata *>(newfdtpnt);    

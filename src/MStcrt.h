@@ -54,10 +54,10 @@ class wilksdata :  public subsetdata {
 		virtual void allowpivot(void)   { unreliable = false; }	
 	private:
 		real updatecrt(direction dir,vind varind,partialdata* newdtpnt,bool& reliable,const double tol) const; 
-		void pivot(lagindex<d>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
-		void pivot(lagindex<i>& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
-		bool nopivot(lagindex<d>& prtmmit,vind vp) const;
-		bool nopivot(lagindex<i>& prtmmit,vind vp) const;
+		void pivot(lagindexd& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
+		void pivot(lagindexi& prtmmit,vind vp,vind t,partialdata* newpdtpnt,subsetdata* newfdtpnt,bool last,bool& reliable,const double tol);
+		bool nopivot(lagindexd& prtmmit,vind vp) const;
+		bool nopivot(lagindexi& prtmmit,vind vp) const;
 		vind		p;
 		vind		k;
 		vind		hrank;

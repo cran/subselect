@@ -232,7 +232,7 @@ void subset::reorder(vector<vind>& l)
 		fmemorypos[i1] = l[i1] - 1;
 		if (i1 >= lag) pmemorypos[i1-lag] = l[i1]-lag-1;
 	}
-	if (nopmemorypos) memii->asgnpmmiid(new lagindex<i>(t,frstvarpm,pmemorypos));
+	if (nopmemorypos) memii->asgnpmmiid(new lagindexi(t,frstvarpm,pmemorypos));
 }
 
 void subset::asgvar(vind fvar,vind nv,const vector<vind>& list)
@@ -248,7 +248,7 @@ void subset::asgvar(vind fvar,vind nv,const vector<vind>& list)
 		pmemorypos[fvar+i1] = list[i1]-1;
 		fmemorypos[lag+fvar+i1] = lag+list[i1]-1;
 	}
-	if (nopmemorypos) memii->asgnpmmiid(new lagindex<i>(t,frstvarpm,pmemorypos));
+	if (nopmemorypos) memii->asgnpmmiid(new lagindexi(t,frstvarpm,pmemorypos));
 }
 
 bool subset::pivot(direction dir,vind vp,vind t,subset *newsp,bool last,double acpbound)
@@ -284,8 +284,8 @@ mindices::mindices(vind szfm,vind szpm,vind pmemlag)
    :  idfm_(0), idpm_(0), iifm_(0), iipm_(0) 
 {
 	try {
-		idfm_ = new itindex<d>(szfm);
-		idpm_ = new lagindex<d>(szpm,pmemlag);
+		idfm_ = new itindexd(szfm);
+		idpm_ = new lagindexd(szpm,pmemlag);
 	}
 	catch (...)   {
 		delete idfm_;
@@ -298,9 +298,9 @@ mindices::mindices(vind szfm,vind szpm,vind pmemlag,vector<vind>& fmmlst)
    :  idfm_(0), idpm_(0), iifm_(0), iipm_(0) 
 {
 	try {
-		idfm_ = new itindex<d>(szfm);
-		idpm_ = new lagindex<d>(szpm,pmemlag);
-		iifm_ = new itindex<i>(szfm,fmmlst);
+		idfm_ = new itindexd(szfm);
+		idpm_ = new lagindexd(szpm,pmemlag);
+		iifm_ = new itindexi(szfm,fmmlst);
 	}
 	catch (...)   {
 		delete idfm_;
@@ -314,10 +314,10 @@ mindices::mindices(vind szfm,vind szpm,vind pmemlag,vector<vind>& fmmlst,vector<
    :  idfm_(0), idpm_(0), iifm_(0), iipm_(0) 
 {
 	try {
-		idfm_ = new itindex<d>(szfm);
-		idpm_ = new lagindex<d>(szpm,pmemlag);
-		iifm_ = new itindex<i>(szfm,fmmlst);
-		iipm_ = new lagindex<i>(szpm,pmemlag,pmmlst);
+		idfm_ = new itindexd(szfm);
+		idpm_ = new lagindexd(szpm,pmemlag);
+		iifm_ = new itindexi(szfm,fmmlst);
+		iipm_ = new lagindexi(szpm,pmemlag,pmmlst);
 	}
 	catch (...)   {
 		delete idfm_;

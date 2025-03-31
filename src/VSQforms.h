@@ -30,9 +30,9 @@ class vsqfdata :  public sqfdata {
 					bool& reliable,const double tol);
 	private:
 		real updatesum(direction dir,vind varind,vind dim,partialvsqfdata* newdata,bool& reliable,const double tol) const;   
-		void pivot(direction dir,lagindex<d>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
+		void pivot(direction dir,lagindexd& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata,bool last,
 			bool& reliable,const double tol);
-		void pivot(direction dir,lagindex<i>& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata
+		void pivot(direction dir,lagindexi& prtmmit,vind vp,vind t,vind dim,partialvsqfdata* newpdata,vsqfdata* newfdata
 			,bool last,bool& reliable,const double tol);
 		vector<real>	vc;
 		real **rpl;  // Vector of pointers to reals whose accuracy will be monitered  
